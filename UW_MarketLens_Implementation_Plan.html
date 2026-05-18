@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UW MarketLens — Implementation Plan</title>
+<style>
+  :root {
+    --blue: #2E5C8A;
+    --blue-light: #E8EEF5;
+    --cream: #F5F2E8;
+    --line: #CCCCCC;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --green: #2f8a4e;
+    --amber: #b9770e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Calibri", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    line-height: 1.5;
+    margin: 0;
+    background: #f3f4f6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    max-width: 920px;
+    margin: 32px auto;
+    background: #fff;
+    padding: 0 0 56px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+  header.hero {
+    background: var(--blue);
+    color: #fff;
+    padding: 26px 40px;
+  }
+  header.hero .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+  header.hero h1 { margin: 6px 0 4px; font-size: 30px; }
+  header.hero .sub { font-size: 14px; opacity: .92; }
+  header.hero .meta { font-size: 11px; opacity: .75; margin-top: 10px; }
+  .body { padding: 8px 40px 0; }
+  h2 {
+    color: var(--blue);
+    font-size: 19px;
+    margin: 34px 0 6px;
+    border-bottom: 2px solid var(--blue-light);
+    padding-bottom: 5px;
+  }
+  h2 .num {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    width: 24px; height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 5px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  p { margin: 8px 0; }
+  .lead { font-size: 14.5px; color: #374151; }
+  .callout {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--blue);
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout b { color: var(--blue); }
+
+  /* Section cards */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: #fff;
+    position: relative;
+  }
+  .card .tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--blue);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .card h3 { margin: 10px 0 4px; font-size: 15px; color: var(--ink); }
+  .card p { font-size: 13px; color: #4b5563; margin: 4px 0; }
+  .pill {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  .pill.free { background: #e7f6ec; color: var(--green); }
+  .pill.dep  { background: #fcefd9; color: var(--amber); }
+  .card .effort { position: absolute; top: 14px; right: 16px; font-size: 11px; color: var(--muted); }
+
+  /* Dependency diagram */
+  .flow {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12.5px;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.45;
+    margin: 16px 0;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--blue-light); color: var(--blue); }
+  td.week { font-weight: 700; color: var(--blue); white-space: nowrap; }
+
+  .legend { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+  .legend span { margin-right: 16px; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align: middle; }
+  .dot.free { background: var(--green); }
+  .dot.dep  { background: var(--amber); }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    font-style: italic;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--blue-light);
+  }
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; max-width: none; }
+    h2 { page-break-after: avoid; }
+    .card, table { page-break-inside: avoid; }
+  }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="kicker">DYOP · Implementation Plan</div>
+    <h1>UW MarketLens</h1>
+    <div class="sub">AI-Powered Prediction Market Reliability Platform</div>
+    <div class="meta">University of Washington · Spring 2025 · 3-Week Build · Team of 3</div>
+  </header>
+
+  <div class="body">
+
+    <p class="lead">This plan breaks the project into <b>self-contained sections</b>. Sections are
+    designed so several can be built at the same time and so any team member can pick up any
+    section — we rotate through parts to learn the whole stack rather than splitting into silos.</p>
+
+    <div class="callout">
+      <b>Working principle.</b> Agree on the shared JSON schemas first (Section&nbsp;0). After that,
+      every section is built against mock data, so nobody is blocked waiting on a teammate.
+      Real wiring happens at integration in Week&nbsp;2.
+    </div>
+
+    <h2><span class="num">A</span>Section Breakdown</h2>
+    <p class="legend">
+      <span><span class="dot free"></span>No dependencies — start immediately</span>
+      <span><span class="dot dep"></span>Has a soft dependency — can start on mock data</span>
+    </p>
+
+    <div class="grid">
+
+      <div class="card">
+        <span class="tag">S0</span><span class="effort">~½ day · together</span>
+        <h3>Shared Contract</h3>
+        <p>Define JSON schemas: MarketScore, AnomalyResult, ResolutionVerdict, Tags, Citation.</p>
+        <p>Everything else builds against these.</p>
+        <span class="pill free">Do first</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S1</span><span class="effort">~2–3 days</span>
+        <h3>Polymarket Ingestion</h3>
+        <p>API client; fetch markets + trade history; store raw data.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S2</span><span class="effort">~2 days</span>
+        <h3>Feature Engineering</h3>
+        <p>Raw trades → feature vectors: volume, spread, trader count, volatility, time-to-resolution.</p>
+        <span class="pill dep">Soft dep: S1 format</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S3</span><span class="effort">~2–3 days</span>
+        <h3>Anomaly Detection</h3>
+        <p>Isolation Forest + synthetic anomaly injection + recall/FPR eval. Runs on synthetic data.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S4</span><span class="effort">~2–3 days</span>
+        <h3>LLM Resolution Checker</h3>
+        <p>NewsAPI fetch + Claude JSON-schema call + 30-market labeled set + agreement metric.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S5</span><span class="effort">~1–2 days</span>
+        <h3>LLM Course Tagger</h3>
+        <p>Few-shot tagging prompt + caching + committed tagging rubric.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S6</span><span class="effort">~½–1 day</span>
+        <h3>Citation Generator</h3>
+        <p>APA/MLA strings + embedded reliability flag. Pure function — great warm-up.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S7</span><span class="effort">~1–2 days</span>
+        <h3>Composite Score</h3>
+        <p>Combine anomaly + LLM verdict + liquidity rules → 0–100 score. The true integration point.</p>
+        <span class="pill dep">Soft dep: S3/S4</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S8</span><span class="effort">~2 days</span>
+        <h3>FastAPI Backend Shell</h3>
+        <p>Routes, request/response wiring, error handling. Stubs first, real logic later.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S9</span><span class="effort">~3–4 days</span>
+        <h3>React Frontend</h3>
+        <p>Lookup, score display, dynamic library, admin verify view. Built against mock JSON.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S10</span><span class="effort">~½–1 day</span>
+        <h3>Deploy + CI/CD</h3>
+        <p>Vercel + Render + GitHub Actions. Set up empty on day 1.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+      <div class="card">
+        <span class="tag">S11</span><span class="effort">ongoing</span>
+        <h3>Website + User Testing</h3>
+        <p>/about page, SUS survey, recruiting. Start recruiting early.</p>
+        <span class="pill free">Independent</span>
+      </div>
+
+    </div>
+
+    <h2><span class="num">B</span>What Runs in Parallel</h2>
+    <p>Only <b>S2→S1</b> and <b>S7→S3/S4</b> are real dependencies — and even those start on mock
+    data. Everything else is independent from day 1.</p>
+
+    <div class="flow">Day 1:        S0  — Shared schemas (everyone, together)
+                 │
+   ┌──────┬──────┼──────┬──────┬──────┬───────────┐
+   ▼      ▼      ▼      ▼      ▼      ▼           ▼
+  S1     S3     S4     S5     S6     S8    S9 / S10 / S11
+  │      │      │                    │
+  ▼      └───┬──┘                    │
+  S2         ▼                       │
+             S7  ◄───── mock inputs until S3/S4 land
+             │
+             ▼
+   Integration:  S1→S2→S3   ·   S7 into S8   ·   S8 into S9</div>
+
+    <h2><span class="num">C</span>Top Risks to De-Risk First</h2>
+    <table>
+      <thead><tr><th>Risk</th><th>Action this week</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Polymarket trade-level API access</b> — whole feature set depends on it</td>
+          <td>Verify the real endpoint, rate limits, and trade-history availability on Day 1. Define a minimum viable feature set if only CLOB data is available.</td>
+        </tr>
+        <tr>
+          <td><b>30-market labeling &amp; tester recruiting</b> — manual, calendar-bound</td>
+          <td>Start labeling and recruiting in Week 1, not Week 3 — these can't be sped up by coding harder.</td>
+        </tr>
+        <tr>
+          <td><b>NewsAPI free tier (100 req/day)</b></td>
+          <td>Cache article retrievals per market from the start; only re-query on state change.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer>
+      UW MarketLens · DYOP Implementation Plan · Spring 2025 · University of Washington
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>
