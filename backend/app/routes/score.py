@@ -19,4 +19,4 @@ def score(req: ScoreRequest) -> MarketScore:
     if "polymarket.com" not in url:
         # PLACEHOLDER validation — S1 will do real URL parsing.
         raise HTTPException(status_code=400, detail="Expected a polymarket.com URL")
-    return mock.make_market_score(url)
+    return mock.make_market_score(url, req.as_of)

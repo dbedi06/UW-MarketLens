@@ -19,6 +19,9 @@ from pydantic import BaseModel, Field
 class ScoreRequest(BaseModel):
     # PLACEHOLDER — replace in S0
     url: str = Field(..., description="A Polymarket market URL")
+    as_of: str | None = Field(
+        default=None, description="Snapshot date YYYY-MM-DD; defaults to today"
+    )
 
 
 class CitationRequest(BaseModel):
@@ -60,7 +63,34 @@ class Citation(BaseModel):
     # PLACEHOLDER — replace in S0 (real version comes from S6 citation generator)
     apa: str
     mla: str
+    bibtex: str
     reliability_flag: str
+
+
+class ReasonItem(BaseModel):
+    # PLACEHOLDER — replace in S0. The plain-language "why" behind the verdict.
+    # Real headlines/details come from S3 (anomaly), S4 (resolution), liquidity rules.
+    factor: Literal["liquidity", "anomaly", "resolution"]
+    severity: Literal["good", "warn", "bad"]
+    headline: str
+    detail: str
+
+
+class MarketMeta(BaseModel):
+    # PLACEHOLDER — replace in S0 (real version comes from S1 ingestion)
+    volume_usd: int
+    liquidity_usd: int
+    unique_traders: int
+    end_date: str
+    resolved: bool
+
+
+class AnomalyPoint(BaseModel):
+    # PLACEHOLDER — replace in S0 (real version comes from S2/S3 windowed features)
+    window_index: int
+    price: float
+    anomaly_value: float
+    flagged: bool
 
 
 class MarketScore(BaseModel):
@@ -69,11 +99,34 @@ class MarketScore(BaseModel):
     market_question: str
     reliability_score: int = Field(..., ge=0, le=100)
     band: Literal["HIGH", "MEDIUM", "LOW"]
+    headline: str  # one-line plain-language verdict summary (Pillar 1)
+    reasons: List[ReasonItem] = Field(default_factory=list)  # the "why" (Pillar 1)
+    meta: MarketMeta
+    anomaly_series: List[AnomalyPoint] = Field(default_factory=list)
     subscores: Subscores
     anomaly: AnomalyResult
     resolution: ResolutionVerdict
     tags: Tags
     citation: Citation
+    as_of: str  # snapshot date (Pillar 2)
+    snapshot_id: str  # stable id = hash(url + as_of) (Pillar 2)
+    permalink: str  # /snapshot/<id> (Pillar 2)
+
+
+class PendingTag(BaseModel):
+    # PLACEHOLDER — replace in S0 (real version: S5 tagger output awaiting review)
+    market_url: str
+    market_question: str
+    suggested_departments: List[str]
+    course_applicability: int
+    verified: bool
+
+
+class VerifyRequest(BaseModel):
+    # PLACEHOLDER — replace in S0
+    market_url: str
+    action: Literal["approve", "override"]
+    departments: List[str] | None = None  # required when action == "override"
 
 
 class LibraryEntry(BaseModel):

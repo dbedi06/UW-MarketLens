@@ -30,7 +30,41 @@ export interface Tags {
 export interface Citation {
   apa: string;
   mla: string;
+  bibtex: string;
   reliability_flag: string;
+}
+
+export type Severity = "good" | "warn" | "bad";
+export type Factor = "liquidity" | "anomaly" | "resolution";
+
+export interface ReasonItem {
+  factor: Factor;
+  severity: Severity;
+  headline: string;
+  detail: string;
+}
+
+export interface MarketMeta {
+  volume_usd: number;
+  liquidity_usd: number;
+  unique_traders: number;
+  end_date: string;
+  resolved: boolean;
+}
+
+export interface AnomalyPoint {
+  window_index: number;
+  price: number;
+  anomaly_value: number;
+  flagged: boolean;
+}
+
+export interface PendingTag {
+  market_url: string;
+  market_question: string;
+  suggested_departments: string[];
+  course_applicability: number;
+  verified: boolean;
 }
 
 export interface MarketScore {
@@ -38,11 +72,18 @@ export interface MarketScore {
   market_question: string;
   reliability_score: number;
   band: Band;
+  headline: string;
+  reasons: ReasonItem[];
+  meta: MarketMeta;
+  anomaly_series: AnomalyPoint[];
   subscores: Subscores;
   anomaly: AnomalyResult;
   resolution: ResolutionVerdict;
   tags: Tags;
   citation: Citation;
+  as_of: string;
+  snapshot_id: string;
+  permalink: string;
 }
 
 export interface LibraryEntry {

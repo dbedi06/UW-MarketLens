@@ -10,7 +10,7 @@ Then open http://localhost:8000/docs for the auto-generated interactive API.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import score, library, citation
+from .routes import score, library, citation, snapshot, admin
 
 app = FastAPI(
     title="UW MarketLens API",
@@ -40,3 +40,5 @@ def health() -> dict:
 app.include_router(score.router)
 app.include_router(library.router)
 app.include_router(citation.router)
+app.include_router(snapshot.router)
+app.include_router(admin.router)

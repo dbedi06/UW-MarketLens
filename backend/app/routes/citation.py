@@ -17,4 +17,6 @@ def citation(req: CitationRequest) -> Citation:
     url = req.url.strip()
     if "polymarket.com" not in url:
         raise HTTPException(status_code=400, detail="Expected a polymarket.com URL")
-    return mock.make_citation(url, req.style)
+    # Derive from the full score so the citation's reliability flag and the
+    # snapshot permalink always agree with the rest of the report.
+    return mock.make_market_score(url).citation

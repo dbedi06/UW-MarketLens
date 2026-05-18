@@ -25,8 +25,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173, paste a `polymarket.com/event/...` URL, and the
-score card + citation render from the live backend. Interactive API docs:
+Open http://localhost:5173. Multi-page app: **Home** (lookup) → **Market
+detail** (plain-language "why", anomaly chart with the flagged window shaded,
+subscores, market facts, copy-able APA/MLA/BibTeX citation, and a dated
+**snapshot permalink** that always re-renders the identical report) →
+**Library** (search + department filters) → **Admin** (approve/override LLM
+tags) → **About** (architecture + methodology). Interactive API docs:
 http://localhost:8000/docs
 
 ## Layout
