@@ -4,16 +4,21 @@
 // Layout: sticky decision-support rail (ReportSummary) + scrolling evidence
 // on desktop; single stacked column below lg.
 
+import { lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import type { MarketScore } from "../types";
 import { stagger, fadeUp } from "../lib/motion";
 import Stat from "../ui/Stat";
+import Skeleton from "../ui/Skeleton";
 import SectionHeading from "../ui/SectionHeading";
 import ReportSummary from "./ReportSummary";
 import WhyPanel from "./WhyPanel";
-import AnomalyChart from "./AnomalyChart";
 import SubscoreBars from "./SubscoreBars";
+import ComputationNote from "./ComputationNote";
 import CitationBox from "./CitationBox";
+
+// recharts is heavy — split it into its own chunk.
+const AnomalyChart = lazy(() => import("./AnomalyChart"));
 
 function MarketFacts({ data }: { data: MarketScore }) {
   const m = data.meta;
@@ -51,8 +56,11 @@ export default function MarketReport({ data }: { data: MarketScore }) {
 
       <div className="space-y-10">
         <WhyPanel reasons={data.reasons} />
-        <AnomalyChart series={data.anomaly_series} />
+        <Suspense fallback={<Skeleton className="h-80" />}>
+          <AnomalyChart series={data.anomaly_series} />
+        </Suspense>
         <SubscoreBars subscores={data.subscores} />
+        <ComputationNote />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
         <p className="pt-1 text-center text-xs italic text-ink/40">

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { Subscores } from "../types";
 import { fadeUp } from "../lib/motion";
 import SectionHeading from "../ui/SectionHeading";
+import InfoTip from "../ui/InfoTip";
 
 const EXPLAIN: Record<keyof Subscores, string> = {
   liquidity_health:
@@ -30,10 +31,12 @@ export default function SubscoreBars({ subscores }: { subscores: Subscores }) {
       <SectionHeading eyebrow="Composition" title="Subscore breakdown" />
       <div className="divide-y-2 divide-ink/10 border-t-2 border-ink">
         {keys.map((k) => (
-          <div key={k} className="py-5" title={EXPLAIN[k]}>
+          <div key={k} className="py-5">
             <div className="mb-2 flex items-baseline justify-between">
-              <span className="font-sans text-sm font-bold text-ink">
+              <span className="flex items-center gap-2 font-sans text-sm
+                font-bold text-ink">
                 {LABEL[k]}
+                <InfoTip text={EXPLAIN[k]} />
               </span>
               <span className="font-mono text-lg font-bold tabular-nums text-ink">
                 {subscores[k]}

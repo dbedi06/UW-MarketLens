@@ -7,6 +7,7 @@ import { NavLink, Link } from "react-router-dom";
 const links = [
   { to: "/", label: "Home", end: true },
   { to: "/library", label: "Library" },
+  { to: "/compare", label: "Compare" },
   { to: "/admin", label: "Admin" },
   { to: "/about", label: "About" },
 ];
@@ -25,7 +26,7 @@ export default function NavBar() {
           <span className="caption hidden sm:inline">reliability</span>
         </Link>
 
-        <nav className="hidden sm:flex items-center gap-7">
+        <nav aria-label="Primary" className="hidden sm:flex items-center gap-7">
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -56,7 +57,7 @@ export default function NavBar() {
       </div>
 
       {open && (
-        <nav className="sm:hidden border-t border-line px-5 py-1">
+        <nav aria-label="Mobile" className="sm:hidden border-t border-line px-5 py-1">
           {links.map((l) => (
             <NavLink
               key={l.to}
