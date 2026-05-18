@@ -7,7 +7,6 @@ import { useParams } from "react-router-dom";
 import type { MarketScore } from "../types";
 import { getSnapshot } from "../api";
 import MarketReport from "../components/MarketReport";
-import SnapshotMasthead from "../components/SnapshotMasthead";
 import PageShell from "../ui/PageShell";
 import Skeleton from "../ui/Skeleton";
 
@@ -49,8 +48,11 @@ export default function SnapshotPage() {
       )}
       {data && !loading && (
         <>
-          <SnapshotMasthead id={id} asOf={data.as_of} />
-          <MarketReport data={data} hideSocialPreview />
+          <div className="mb-6 border-l-2 border-brand-600 pl-3">
+            <div className="caption">Saved snapshot · {id}</div>
+            <p className="text-sm text-ink/55">Frozen and reproducible.</p>
+          </div>
+          <MarketReport data={data} />
         </>
       )}
     </PageShell>
