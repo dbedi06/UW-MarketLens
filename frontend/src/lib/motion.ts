@@ -4,24 +4,25 @@
 
 import type { Variants } from "framer-motion";
 
-// Editorial = calm. Small, quiet movement; no theatrical staggering.
+// Bold Swiss: present, confident motion (not the over-calm editorial pass,
+// not the old fade-everything). Still reduced-motion safe.
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 6 },
+  hidden: { opacity: 0, y: 18 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
   },
 };
 
 export const fadeIn: Variants = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.3 } },
+  show: { opacity: 1, transition: { duration: 0.4 } },
 };
 
 export const stagger: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.04 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.04 } },
 };
 
 // Drop-in props for scroll-reveal sections.

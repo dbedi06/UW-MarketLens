@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { fadeUp, stagger } from "../lib/motion";
 
 const SAMPLE = "https://polymarket.com/event/will-the-fed-cut-rates-in-2025";
 const LS_KEY = "ml_recent_lookups";
@@ -33,30 +35,51 @@ export default function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-content px-5 sm:px-8 lg:px-14">
-      {/* ---- Masthead ---- */}
-      <header className="border-b border-line pb-12 pt-16 sm:pt-24">
-        <div className="caption flex items-center gap-3">
-          <span>UW · Academic-grade</span>
-          <span className="h-px w-8 bg-line" />
-          <span>Prediction-market reliability</span>
-        </div>
+    <div>
+      {/* ---- Statement masthead (full-bleed purple block) ---- */}
+      <section className="block-purple">
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="mx-auto max-w-content px-5 sm:px-8 lg:px-14
+            pt-16 pb-20 sm:pt-24 sm:pb-28"
+        >
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center gap-3 font-mono text-[11px]
+              font-medium uppercase tracking-[0.14em] text-gold"
+          >
+            <span>UW · Academic-grade</span>
+            <span className="h-px w-10 bg-gold/50" />
+            <span>Prediction-market reliability</span>
+          </motion.div>
 
-        <h1 className="mt-6 max-w-[14ch] font-display text-5xl font-semibold
-          leading-[1.04] tracking-[-0.01em] text-ink sm:text-7xl">
-          Is this prediction market citable?
-        </h1>
+          <motion.h1
+            variants={fadeUp}
+            className="display mt-8 max-w-[16ch] text-[clamp(2.75rem,8vw,7rem)]
+              text-paper"
+          >
+            Is this market<br />
+            <span className="text-gold">citable?</span>
+          </motion.h1>
 
-        <p className="mt-6 max-w-prose font-display text-lg italic
-          leading-relaxed text-ink/70">
-          MarketLens explains why a Polymarket market is or isn't reliable —
-          in plain language — and issues a stable, dated citation you can
-          defend in a paper.
-        </p>
+          <motion.p
+            variants={fadeUp}
+            className="mt-8 max-w-xl text-lg leading-relaxed text-paper/75"
+          >
+            MarketLens explains why a Polymarket market is or isn't reliable —
+            in plain language — and issues a stable, dated citation you can
+            defend in a paper.
+          </motion.p>
+        </motion.div>
+      </section>
 
-        <div className="mt-10 max-w-2xl">
+      {/* ---- Search bar on paper, thick rule ---- */}
+      <section className="border-b-2 border-ink">
+        <div className="mx-auto max-w-content px-5 sm:px-8 lg:px-14 py-8">
           <label className="caption">Market URL</label>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
             <input
               value={url}
               onChange={(e) => {
@@ -67,92 +90,60 @@ export default function HomePage() {
               placeholder="https://polymarket.com/event/..."
               className="field flex-1 font-mono text-[13px]"
             />
-            <button onClick={() => go(url)} className="btn-primary px-7">
+            <button onClick={() => go(url)} className="btn-primary px-8">
               Check reliability
             </button>
           </div>
           {err ? (
-            <p className="mt-2 text-sm text-bad">{err}</p>
+            <p className="mt-2 font-mono text-xs text-bad">{err}</p>
           ) : (
-            <p className="mt-2 text-sm text-ink/45">
+            <p className="mt-2 font-mono text-xs text-ink/45">
               Try the sample URL above, or paste any market link.
             </p>
           )}
         </div>
-      </header>
+      </section>
 
-      {/* ---- Pillars ---- */}
-      <section className="grid gap-px border-b border-line bg-line
+      {/* ---- Pillars: big numbered panels ---- */}
+      <section className="mx-auto grid max-w-content gap-px bg-ink/15
         md:grid-cols-2">
-        <article className="bg-paper p-8 sm:p-12">
-          <div className="caption">Pillar 01</div>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
-            The why, not the number
-          </h2>
-          <p className="mt-3 max-w-prose leading-relaxed text-ink/70">
-            Every verdict ships with plain-language reasons and the
-            flagged-window evidence — quote it to defend or caveat a citation.
-          </p>
-          <ul className="mt-6 divide-y divide-line border-y border-line">
-            {[
-              ["Healthy liquidity", "good"],
-              ["Suspicious trading window", "bad"],
-              ["Resolution partially corroborated", "warn"],
-            ].map(([label, sev]) => (
-              <li
-                key={label}
-                className="flex items-center gap-3 py-2.5 text-sm text-ink/80"
-              >
-                <span
-                  className={`font-mono text-xs ${
-                    sev === "good"
-                      ? "text-good"
-                      : sev === "warn"
-                      ? "text-warn"
-                      : "text-bad"
-                  }`}
-                >
-                  {sev === "good" ? "[ok]" : sev === "warn" ? "[?]" : "[x]"}
-                </span>
-                {label}
-              </li>
-            ))}
-          </ul>
-        </article>
-
-        <article className="bg-paper p-8 sm:p-12">
-          <div className="caption">Pillar 02</div>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
-            A citation that stays true
-          </h2>
-          <p className="mt-3 max-w-prose leading-relaxed text-ink/70">
-            Markets move; a citation must not. Every lookup yields a dated
-            permalink that always re-renders the identical report.
-          </p>
-          <pre className="mt-6 overflow-x-auto border border-line bg-ink/[0.03]
-            p-4 font-mono text-xs leading-relaxed text-ink/80">
-{`Polymarket. (n.d.). … [Prediction market].
-UW MarketLens reliability snapshot 2026-05-18.
-/snapshot/0476950e8428`}
-          </pre>
-          <p className="mt-3 text-xs text-ink/45">
-            Reopen the link next quarter — byte-identical.
-          </p>
-        </article>
+        {[
+          {
+            n: "01",
+            t: "The why, not the number",
+            d: "Every verdict ships with plain-language reasons and the flagged-window evidence — quote it to defend or caveat a citation.",
+          },
+          {
+            n: "02",
+            t: "A citation that stays true",
+            d: "Markets move; a citation must not. Every lookup yields a dated permalink that always re-renders the identical report.",
+          },
+        ].map((p) => (
+          <div key={p.n} className="bg-paper p-8 sm:p-12">
+            <div className="numeral text-7xl text-brand-600/20">{p.n}</div>
+            <h2 className="mt-4 font-display text-2xl font-extrabold
+              uppercase tracking-tight text-ink">
+              {p.t}
+            </h2>
+            <p className="mt-3 max-w-prose leading-relaxed text-ink/65">
+              {p.d}
+            </p>
+          </div>
+        ))}
       </section>
 
       {/* ---- Recent ---- */}
       {recent.length > 0 && (
-        <section className="py-12">
+        <section className="mx-auto max-w-content px-5 sm:px-8 lg:px-14 py-12">
           <div className="caption">Recent lookups</div>
-          <ul className="mt-3 divide-y divide-line border-y border-line">
+          <ul className="mt-3 divide-y divide-line border-y-2 border-ink">
             {recent.map((r) => (
               <li key={r}>
                 <button
                   onClick={() => go(r)}
                   className="flex w-full items-center justify-between gap-4
-                    py-3 text-left font-mono text-[13px] text-ink/70
-                    hover:text-ink"
+                    py-3.5 text-left font-mono text-[13px] text-ink/70
+                    transition-colors hover:text-ink"
                 >
                   <span className="truncate">
                     {r.replace("https://polymarket.com/event/", "")}

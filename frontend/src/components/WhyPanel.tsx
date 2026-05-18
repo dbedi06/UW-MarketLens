@@ -30,21 +30,22 @@ export default function WhyPanel({ reasons }: { reasons: ReasonItem[] }) {
         title="Why this verdict"
         sub="Each factor feeds the composite score. Quote these to justify (or caveat) citing this market."
       />
-      <ul className="mt-2 divide-y divide-line border-t border-line">
+      <ul className="mt-2 divide-y-2 divide-ink/10 border-t-2 border-ink">
         {reasons.map((r) => (
           <li
             key={r.factor}
-            className={`flex gap-4 border-l-2 py-4 pl-4 ${RAIL[r.severity]}`}
+            className={`flex gap-4 border-l-4 py-5 pl-5 ${RAIL[r.severity]}`}
           >
             <span
-              className={`mt-0.5 font-mono text-xs font-medium ${SEV_TEXT[r.severity]}`}
+              className={`mt-1 font-mono text-xs font-bold ${SEV_TEXT[r.severity]}`}
             >
               {MARK[r.severity]}
             </span>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-2.5">
+              <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="caption">{FACTOR_LABEL[r.factor]}</span>
-                <span className="font-display font-semibold text-ink">
+                <span className="font-display text-lg font-extrabold
+                  uppercase tracking-tight text-ink">
                   {r.headline}
                 </span>
               </div>

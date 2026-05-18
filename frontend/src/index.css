@@ -1,5 +1,5 @@
-@import "@fontsource-variable/fraunces";
-@import "@fontsource-variable/hanken-grotesk";
+@import "@fontsource-variable/archivo/wght.css";
+@import "@fontsource-variable/archivo/wdth.css";
 @import "@fontsource-variable/jetbrains-mono";
 
 @tailwind base;
@@ -11,55 +11,64 @@
     @apply bg-paper text-ink font-sans antialiased;
   }
   h1, h2, h3 {
-    @apply font-display text-ink;
-    font-optical-sizing: auto;
+    @apply font-display font-extrabold tracking-tight text-ink;
   }
   ::selection {
-    @apply bg-ink/10;
+    @apply bg-brand-600 text-paper;
   }
 }
 
 @layer components {
-  /* Editorial panel — a bordered sheet on paper, not a floating bubble. */
+  /* Bold Swiss: oversized, expanded, uppercase statement type. */
+  .display {
+    @apply font-display font-extrabold uppercase leading-[0.92]
+           tracking-[-0.02em];
+    font-stretch: 125%;
+  }
+  /* Giant graphic numeral for scores. */
+  .numeral {
+    @apply font-display font-extrabold tabular-nums leading-none;
+    font-stretch: 125%;
+  }
+  /* Purple color surface (a real block, not an accent). */
+  .block-purple {
+    @apply bg-brand-800 text-paper;
+  }
+  /* Rule system. */
+  .rule { @apply border-0 border-t border-line; }
+  .rule-thick { @apply border-0 border-t-2 border-ink; }
+
+  /* Mono kicker label. */
+  .caption {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.12em]
+           text-brand-600;
+  }
+  .eyebrow { @apply caption; }
+
+  /* Square Swiss panel — crisper border than the timid hairline. */
   .card {
-    @apply rounded-md bg-panel border border-line;
+    @apply rounded-sm bg-panel border border-ink/15;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5
-           text-sm font-semibold transition-colors
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/20;
+    @apply inline-flex items-center justify-center gap-2 rounded-sm px-5 py-2.5
+           font-mono text-xs font-semibold uppercase tracking-[0.08em]
+           transition-colors focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-ink/25;
   }
   .btn-primary {
     @apply btn bg-ink text-paper hover:bg-brand-700 active:translate-y-px;
   }
   .btn-ghost {
-    @apply btn border border-line bg-transparent text-ink
-           hover:bg-ink/[0.04] active:translate-y-px;
+    @apply btn border border-ink/25 bg-transparent text-ink
+           hover:bg-ink hover:text-paper active:translate-y-px;
   }
   .field {
-    @apply w-full rounded-md border-line bg-panel px-4 py-3 text-sm
+    @apply w-full rounded-sm border-ink/20 bg-panel px-4 py-3 text-sm
            focus:border-ink focus:ring-0;
   }
-  /* Mono caption label — replaces the uppercase "eyebrow" AI trope. */
-  .caption {
-    @apply font-mono text-[11px] font-medium tracking-wide text-brand-600;
-  }
-  .eyebrow {
-    @apply caption;
-  }
-  /* Editorial accents — flat, hairline-based (no gradients). */
-  .surface-tint {
-    @apply bg-brand-600/[0.03] border border-line;
-  }
-  .accent-rail {
-    @apply border-l-2 border-brand-600;
-  }
   .section-title {
-    @apply font-display text-xl font-semibold text-ink;
-  }
-  /* A thin editorial divider rule. */
-  .rule {
-    @apply border-0 border-t border-line;
+    @apply font-display text-2xl font-extrabold uppercase tracking-tight
+           text-ink;
   }
 }
 

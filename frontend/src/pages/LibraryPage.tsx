@@ -69,25 +69,25 @@ export default function LibraryPage() {
         <p className="mt-4 text-sm text-bad">Library failed to load: {err}</p>
       )}
 
-      <ul className="divide-y divide-line border-b border-line">
+      <ul className="divide-y-2 divide-ink/10 border-b-2 border-ink">
         {sorted.map((r) => (
           <li key={r.market_url}>
             <button
               onClick={() =>
                 nav(`/market?url=${encodeURIComponent(r.market_url)}`)
               }
-              className="group flex w-full items-center gap-6 py-5 text-left"
+              className="group flex w-full items-center gap-7 py-6 text-left
+                transition-colors hover:bg-ink/[0.03]"
             >
-              <span className="w-12 shrink-0 font-mono text-2xl tabular-nums
-                text-ink">
+              <span className="numeral w-24 shrink-0 text-5xl text-brand-600">
                 {r.reliability_score}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-display text-[15px] font-medium
-                  leading-snug text-ink">
+                <span className="block font-display text-lg font-extrabold
+                  uppercase leading-tight tracking-tight text-ink">
                   {r.market_question}
                 </span>
-                <span className="caption mt-1 block">
+                <span className="caption mt-1.5 block">
                   {r.departments.join(" · ")}
                   {r.verified && " · verified"}
                 </span>

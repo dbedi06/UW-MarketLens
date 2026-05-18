@@ -15,14 +15,11 @@ export default function NavBar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper">
+    <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
       <div className="mx-auto flex max-w-content items-center justify-between
-        px-5 sm:px-8 lg:px-14 py-4">
-        <Link to="/" className="flex items-baseline gap-2">
-          <span className="font-display text-lg font-semibold tracking-tight
-            text-ink">
-            UW MarketLens
-          </span>
+        px-5 sm:px-8 lg:px-14 py-3.5">
+        <Link to="/" className="flex items-baseline gap-2.5">
+          <span className="display text-lg text-ink">UW MARKETLENS</span>
           <span className="caption hidden sm:inline">reliability</span>
         </Link>
 

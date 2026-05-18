@@ -67,9 +67,9 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
               type="monotone"
               dataKey="price"
               stroke="#4B2E83"
-              strokeWidth={2}
+              strokeWidth={3}
               fill="#4B2E83"
-              fillOpacity={0.06}
+              fillOpacity={0.08}
               animationDuration={1100}
             />
           </AreaChart>

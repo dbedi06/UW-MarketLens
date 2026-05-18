@@ -28,22 +28,23 @@ export default function SubscoreBars({ subscores }: { subscores: Subscores }) {
   return (
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading eyebrow="Composition" title="Subscore breakdown" />
-      <div className="divide-y divide-line border-t border-line">
+      <div className="divide-y-2 divide-ink/10 border-t-2 border-ink">
         {keys.map((k) => (
-          <div key={k} className="py-4" title={EXPLAIN[k]}>
+          <div key={k} className="py-5" title={EXPLAIN[k]}>
             <div className="mb-2 flex items-baseline justify-between">
-              <span className="text-sm font-medium text-ink">{LABEL[k]}</span>
-              <span className="font-mono text-sm tabular-nums text-ink/60">
+              <span className="font-display text-sm font-extrabold uppercase
+                tracking-tight text-ink">{LABEL[k]}</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-ink">
                 {subscores[k]}
                 <span className="text-ink/30"> / 100</span>
               </span>
             </div>
-            <div className="h-1.5 overflow-hidden bg-line">
+            <div className="h-3 overflow-hidden bg-ink/10">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${subscores[k]}%` }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                 className={`h-full ${barColor(subscores[k])}`}
               />
             </div>

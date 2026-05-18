@@ -33,11 +33,11 @@ export default {
         line: "#E4DFD5",
       },
       fontFamily: {
-        display: ['"Fraunces Variable"', "Georgia", "serif"],
-        sans: ['"Hanken Grotesk Variable"', "system-ui", "sans-serif"],
+        display: ['"Archivo Variable"', "system-ui", "sans-serif"],
+        sans: ['"Archivo Variable"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono Variable"', "ui-monospace", "monospace"],
       },
-      borderRadius: { md: "0.375rem", xl: "0.5rem", "2xl": "0.5rem" },
+      borderRadius: { md: "0.125rem", xl: "0.125rem", "2xl": "0.125rem" },
       boxShadow: {
         soft: "0 1px 2px rgba(26,23,20,.04)",
       },

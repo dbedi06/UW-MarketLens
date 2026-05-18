@@ -1,20 +1,18 @@
-// Animated radial gauge with a count-up number. Replaces the flat score box.
-// The arc sweeps and the number ticks up on mount (collapses instantly under
-// prefers-reduced-motion via the global CSS rule + Framer's reduced-motion).
+// Bold Swiss: the score IS the graphic. A huge expanded numeral that counts
+// up, a band word, and a thick progress rule. No timid ring.
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { animate, useReducedMotion } from "framer-motion";
 
-const BAND_COLOR: Record<string, string> = {
-  HIGH: "#1f7a4d",
-  MEDIUM: "#9a6a14",
-  LOW: "#b3261e",
+const BAND: Record<string, { word: string; color: string }> = {
+  HIGH: { word: "Reliable", color: "#1f7a4d" },
+  MEDIUM: { word: "Use with caution", color: "#9a6a14" },
+  LOW: { word: "Not recommended", color: "#b3261e" },
 };
 
 export default function ScoreGauge({
   score,
   band,
-  size = 168,
 }: {
   score: number;
   band: string;
@@ -22,60 +20,45 @@ export default function ScoreGauge({
 }) {
   const reduce = useReducedMotion();
   const [display, setDisplay] = useState(reduce ? score : 0);
-  const stroke = 12;
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  const ref = useRef<SVGCircleElement>(null);
-  const color = BAND_COLOR[band] ?? "#4B2E83";
+  const meta = BAND[band] ?? { word: band, color: "#4B2E83" };
 
   useEffect(() => {
     if (reduce) {
       setDisplay(score);
-      if (ref.current)
-        ref.current.style.strokeDashoffset = `${circ * (1 - score / 100)}`;
       return;
     }
     const controls = animate(0, score, {
       duration: 1.1,
-      ease: [0.22, 1, 0.36, 1],
-      onUpdate: (v) => {
-        setDisplay(Math.round(v));
-        if (ref.current)
-          ref.current.style.strokeDashoffset = `${circ * (1 - v / 100)}`;
-      },
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setDisplay(Math.round(v)),
     });
     return () => controls.stop();
-  }, [score, circ, reduce]);
+  }, [score, reduce]);
 
   return (
-    <div className="relative grid place-items-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="#E4DFD5"
-          strokeWidth={stroke}
-        />
-        <circle
-          ref={ref}
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke={color}
-          strokeWidth={stroke}
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          strokeDashoffset={circ}
-        />
-      </svg>
-      <div className="absolute text-center">
-        <div className="font-display text-6xl font-semibold text-ink tabular-nums">
+    <div className="w-full">
+      <div className="caption">Reliability</div>
+      <div className="mt-1 flex items-end gap-2">
+        <span
+          className="numeral text-[6.5rem] sm:text-[7.5rem]"
+          style={{ color: meta.color }}
+        >
           {display}
-        </div>
-        <div className="caption mt-0.5">/ 100</div>
+        </span>
+        <span className="mb-3 font-mono text-sm text-ink/40">/ 100</span>
+      </div>
+      <div className="mt-2 h-2 w-full bg-line">
+        <div
+          className="h-full transition-[width] duration-1000 ease-out"
+          style={{ width: `${display}%`, background: meta.color }}
+        />
+      </div>
+      <div
+        className="mt-3 font-display text-sm font-extrabold uppercase
+          tracking-wide"
+        style={{ color: meta.color }}
+      >
+        {meta.word}
       </div>
     </div>
   );

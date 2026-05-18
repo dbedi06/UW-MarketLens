@@ -38,9 +38,12 @@ export default function AboutPage() {
         <h2 className="section-title">How a score is built</h2>
         <ol className="mt-5 divide-y divide-line border-y border-line">
           {PIPELINE.map(([id, t, d]) => (
-            <li key={id} className="flex items-baseline gap-5 py-3">
-              <span className="caption w-8 shrink-0">{id}</span>
-              <span className="w-32 shrink-0 font-display font-semibold text-ink">
+            <li key={id} className="flex items-baseline gap-6 py-4">
+              <span className="numeral w-16 shrink-0 text-2xl text-brand-600">
+                {id}
+              </span>
+              <span className="w-36 shrink-0 font-display font-extrabold
+                uppercase tracking-tight text-ink">
                 {t}
               </span>
               <span className="text-sm text-ink/60">{d}</span>
