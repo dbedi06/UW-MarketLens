@@ -19,13 +19,18 @@ export default function NavBar() {
       bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-content items-center justify-between
         px-5 sm:px-8 py-3.5">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-xl
-            bg-brand-600 font-display text-sm font-bold text-white shadow-lift">
+        <Link to="/" className="group flex items-center gap-2.5">
+          <span className="relative grid h-8 w-8 place-items-center
+            rounded-xl bg-gradient-to-br from-brand-600 to-brand-800
+            font-display text-sm font-bold text-white shadow-lift
+            ring-1 ring-white/10 transition group-hover:scale-105">
             M
+            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2
+              rounded-full bg-gold ring-2 ring-white" />
           </span>
-          <span className="font-display text-[15px] font-bold text-ink">
-            UW MarketLens
+          <span className="font-display text-[15px] font-bold tracking-tight
+            text-ink">
+            UW <span className="text-brand-600">MarketLens</span>
           </span>
         </Link>
 

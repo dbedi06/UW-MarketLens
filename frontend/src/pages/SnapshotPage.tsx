@@ -26,11 +26,18 @@ export default function SnapshotPage() {
   }, [id]);
 
   return (
-    <PageShell>
+    <PageShell wide>
       {loading && (
-        <div className="space-y-5">
-          <Skeleton className="h-44" />
-          <Skeleton className="h-64" />
+        <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
+          <div className="card flex flex-col items-center gap-4 p-6">
+            <Skeleton className="h-40 w-40 rounded-full" />
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-52" />
+            <Skeleton className="h-64" />
+          </div>
         </div>
       )}
       {error && !loading && (

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import type { ReasonItem } from "../types";
 import { fadeUp, stagger } from "../lib/motion";
+import SectionHeading from "../ui/SectionHeading";
 
 const ICON: Record<string, string> = { good: "✓", warn: "!", bad: "✕" };
 const ACCENT: Record<string, string> = {
@@ -23,12 +24,12 @@ const FACTOR_LABEL: Record<string, string> = {
 
 export default function WhyPanel({ reasons }: { reasons: ReasonItem[] }) {
   return (
-    <motion.div variants={fadeUp} className="card p-6">
-      <h2 className="text-xl font-semibold">Why this verdict</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Each factor feeds the composite score. Quote these to justify (or
-        caveat) citing this market.
-      </p>
+    <motion.div variants={fadeUp} className="card accent-rail p-6">
+      <SectionHeading
+        eyebrow="The why, not the number"
+        title="Why this verdict"
+        sub="Each factor feeds the composite score. Quote these to justify (or caveat) citing this market."
+      />
       <motion.ul
         variants={stagger}
         initial="hidden"

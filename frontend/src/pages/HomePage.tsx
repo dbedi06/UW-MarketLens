@@ -107,14 +107,7 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
 
-        <svg
-          className="block w-full text-slate-50"
-          viewBox="0 0 1440 80"
-          preserveAspectRatio="none"
-          style={{ height: 56 }}
-        >
-          <path fill="currentColor" d="M0 80h1440V0c-240 53-560 70-720 70S240 53 0 0z" />
-        </svg>
+        <div className="h-16 bg-gradient-to-b from-transparent to-slate-50" />
       </section>
 
       {/* ---- Pillars ---- */}

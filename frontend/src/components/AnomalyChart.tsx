@@ -8,6 +8,7 @@ import {
 import { motion } from "framer-motion";
 import type { AnomalyPoint } from "../types";
 import { fadeUp } from "../lib/motion";
+import SectionHeading from "../ui/SectionHeading";
 
 export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
   const flagged = series.filter((p) => p.flagged);
@@ -17,13 +18,16 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
 
   return (
     <motion.div variants={fadeUp} className="card p-6">
-      <h2 className="text-xl font-semibold">Trade-window price path</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        {hasFlag
-          ? "The shaded span is the window the anomaly model flagged — an unusual price move on thin volume."
-          : "No window was flagged: the price path stays within normal market behavior."}
-      </p>
-      <div className="mt-4 h-64 w-full">
+      <SectionHeading
+        eyebrow="Evidence"
+        title="Trade-window price path"
+        sub={
+          hasFlag
+            ? "The shaded span is the window the anomaly model flagged — an unusual price move on thin volume."
+            : "No window was flagged: the price path stays within normal market behavior."
+        }
+      />
+      <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256}>
           <AreaChart data={series} margin={{ top: 8, right: 12, bottom: 4, left: -10 }}>
             <defs>

@@ -8,15 +8,38 @@ import { toast } from "../ui/Toast";
 export default function SnapshotBar({
   asOf,
   permalink,
+  compact = false,
 }: {
   asOf: string;
   permalink: string;
+  compact?: boolean;
 }) {
   const fullLink = `${window.location.origin}${permalink}`;
 
   async function copy() {
     await navigator.clipboard.writeText(fullLink);
     toast("Permalink copied");
+  }
+
+  if (compact) {
+    return (
+      <div className="rounded-xl border border-brand-600/15
+        bg-brand-600/[0.06] p-3">
+        <div className="text-xs text-slate-500">
+          📌 Snapshot as of{" "}
+          <strong className="text-brand-700">{asOf}</strong>
+        </div>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={copy}
+          className="mt-2 w-full rounded-lg bg-white px-3 py-1.5 text-xs
+            font-semibold text-brand-700 ring-1 ring-slate-200
+            hover:ring-brand-600/40"
+        >
+          Copy permalink
+        </motion.button>
+      </div>
+    );
   }
 
   return (

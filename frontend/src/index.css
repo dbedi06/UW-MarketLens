@@ -44,6 +44,20 @@
   .eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand-600;
   }
+
+  /* ---- Brand-expression utilities (centralized) -------------------------
+     Dial the whole app from "expressive" → "restrained" by softening just
+     these three classes. Nothing else hard-codes brand surfaces. */
+  .surface-tint {
+    @apply bg-gradient-to-br from-brand-50 to-white
+           ring-1 ring-brand-600/10;
+  }
+  .accent-rail {
+    @apply border-l-4 border-brand-600;
+  }
+  .section-title {
+    @apply font-display text-lg font-bold text-ink tracking-tight;
+  }
 }
 
 /* Honor reduced-motion globally */

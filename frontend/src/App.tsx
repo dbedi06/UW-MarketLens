@@ -2,6 +2,8 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "./lib/motion";
 import { Toaster } from "./ui/Toast";
+import Footer from "./ui/Footer";
+import ScrollToTop from "./ui/ScrollToTop";
 import NavBar from "./components/NavBar";
 import HomePage from "./pages/HomePage";
 import MarketDetailPage from "./pages/MarketDetailPage";
@@ -13,10 +15,11 @@ import AboutPage from "./pages/AboutPage";
 export default function App() {
   const location = useLocation();
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
+      <ScrollToTop />
       <NavBar />
       <AnimatePresence mode="wait">
-        <motion.main key={location.pathname} {...pageTransition}>
+        <motion.main key={location.pathname} {...pageTransition} className="flex-1">
           <Routes location={location}>
             <Route path="/" element={<HomePage />} />
             <Route path="/market" element={<MarketDetailPage />} />
@@ -35,6 +38,7 @@ export default function App() {
           </Routes>
         </motion.main>
       </AnimatePresence>
+      <Footer />
       <Toaster />
     </div>
   );
