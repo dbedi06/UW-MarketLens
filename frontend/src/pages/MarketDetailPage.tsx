@@ -3,6 +3,19 @@ import { useSearchParams } from "react-router-dom";
 import type { MarketScore } from "../types";
 import { getScore } from "../api";
 import MarketReport from "../components/MarketReport";
+import PageShell from "../ui/PageShell";
+import Skeleton from "../ui/Skeleton";
+
+function LoadingState() {
+  return (
+    <div className="space-y-5">
+      <Skeleton className="h-44" />
+      <Skeleton className="h-14" />
+      <Skeleton className="h-56" />
+      <Skeleton className="h-64" />
+    </div>
+  );
+}
 
 export default function MarketDetailPage() {
   const [params] = useSearchParams();
@@ -25,8 +38,16 @@ export default function MarketDetailPage() {
       .finally(() => setLoading(false));
   }, [url]);
 
-  if (loading) return <p className="question">Analyzing market…</p>;
-  if (error) return <p className="error">{error}</p>;
-  if (!data) return null;
-  return <MarketReport data={data} />;
+  return (
+    <PageShell>
+      {loading && <LoadingState />}
+      {error && !loading && (
+        <div className="card p-10 text-center">
+          <p className="text-lg font-semibold text-ink">Couldn't analyze that market</p>
+          <p className="mt-2 text-sm text-slate-500">{error}</p>
+        </div>
+      )}
+      {data && !loading && <MarketReport data={data} />}
+    </PageShell>
+  );
 }

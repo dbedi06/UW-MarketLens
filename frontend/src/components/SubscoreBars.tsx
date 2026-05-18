@@ -1,7 +1,8 @@
-// The three numeric subscores that compose the reliability score, each with a
-// hover explanation so the number isn't a black box.
+// Subscores as animated progress bars, each with a hover explanation.
 
+import { motion } from "framer-motion";
 import type { Subscores } from "../types";
+import { fadeUp } from "../lib/motion";
 
 const EXPLAIN: Record<keyof Subscores, string> = {
   liquidity_health:
@@ -11,33 +12,48 @@ const EXPLAIN: Record<keyof Subscores, string> = {
   resolution_quality:
     "How well the market's resolution is corroborated by independent reporting.",
 };
-
 const LABEL: Record<keyof Subscores, string> = {
   liquidity_health: "Liquidity health",
   anomaly: "Trading-pattern integrity",
   resolution_quality: "Resolution quality",
 };
 
+function barColor(v: number) {
+  return v >= 70 ? "bg-good" : v >= 40 ? "bg-warn" : "bg-bad";
+}
+
 export default function SubscoreBars({ subscores }: { subscores: Subscores }) {
   const keys = Object.keys(subscores) as (keyof Subscores)[];
   return (
-    <div className="card">
-      <h2>Subscore breakdown</h2>
-      <div className="subscores">
+    <motion.div variants={fadeUp} className="card p-6">
+      <h2 className="text-xl font-semibold">Subscore breakdown</h2>
+      <div className="mt-5 space-y-5">
         {keys.map((k) => (
-          <div className="sub" key={k} title={EXPLAIN[k]}>
-            <div className="label">
-              <span>
-                {LABEL[k]} <span className="info-dot" aria-label={EXPLAIN[k]}>ⓘ</span>
+          <div key={k} title={EXPLAIN[k]}>
+            <div className="mb-1.5 flex items-center justify-between text-sm">
+              <span className="font-medium text-slate-700">
+                {LABEL[k]}{" "}
+                <span className="cursor-help text-slate-300" aria-label={EXPLAIN[k]}>
+                  ⓘ
+                </span>
               </span>
-              <span>{subscores[k]}/100</span>
+              <span className="font-mono font-semibold tabular-nums text-slate-500">
+                {subscores[k]}
+                <span className="text-slate-300">/100</span>
+              </span>
             </div>
-            <div className="bar">
-              <div style={{ width: `${subscores[k]}%` }} />
+            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: `${subscores[k]}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                className={`h-full rounded-full ${barColor(subscores[k])}`}
+              />
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }

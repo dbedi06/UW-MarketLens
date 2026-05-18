@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import type { LibraryEntry } from "../types";
 import { getLibrary } from "../api";
+import PageShell from "../ui/PageShell";
+import SectionHeading from "../ui/SectionHeading";
+import Badge, { bandTone } from "../ui/Badge";
+import { fadeUp, stagger } from "../lib/motion";
 
 const DEPTS = ["ALL", "POLS", "ECON", "INFO", "EVANS"];
-const bandColor: Record<string, string> = {
-  HIGH: "#2f8a4e",
-  MEDIUM: "#b9770e",
-  LOW: "#b91c1c",
-};
 
 export default function LibraryPage() {
   const nav = useNavigate();
@@ -35,84 +35,87 @@ export default function LibraryPage() {
   );
 
   return (
-    <div>
-      <h2 className="page-title">UW Market Library</h2>
-      <p className="question">
-        Markets tagged to UW departments by the LLM tagger (mock). Find a
-        citable market for your course, then open it for the full reliability
-        report.
-      </p>
+    <PageShell wide>
+      <motion.div variants={fadeUp}>
+        <SectionHeading
+          eyebrow="UW market library"
+          title="Find a citable market for your course"
+          sub="Markets tagged to UW departments by the LLM tagger (mock). Open one for the full reliability report."
+        />
+      </motion.div>
 
-      <div className="lookup">
+      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search market questions…"
+          className="field sm:max-w-sm"
         />
-      </div>
+        <div className="flex flex-wrap gap-2">
+          {DEPTS.map((d) => (
+            <button
+              key={d}
+              onClick={() => setDept(d)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                d === dept
+                  ? "bg-brand-600 text-white shadow-lift"
+                  : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-brand-600/40"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
-      <div className="chips">
-        {DEPTS.map((d) => (
-          <button
-            key={d}
-            className={d === dept ? "chip-btn active" : "chip-btn"}
-            onClick={() => setDept(d)}
+      {err && <p className="text-sm text-bad">Library failed to load: {err}</p>}
+
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {sorted.map((r) => (
+          <motion.button
+            key={r.market_url}
+            variants={fadeUp}
+            whileHover={{ y: -3 }}
+            onClick={() => nav(`/market?url=${encodeURIComponent(r.market_url)}`)}
+            className="card group p-5 text-left transition hover:shadow-lift"
           >
-            {d}
-          </button>
+            <div className="flex items-start justify-between gap-3">
+              <Badge tone={bandTone(r.band)}>{r.reliability_score}</Badge>
+              {r.verified && <Badge tone="gold">✓ verified</Badge>}
+            </div>
+            <p className="mt-3 font-medium leading-snug text-ink line-clamp-3">
+              {r.market_question}
+            </p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-xs text-slate-400">
+                {r.departments.join(" · ")}
+              </span>
+              <span className="text-sm font-semibold text-brand-600
+                opacity-0 transition group-hover:opacity-100">
+                View report →
+              </span>
+            </div>
+          </motion.button>
         ))}
-      </div>
+        {sorted.length === 0 && !err && (
+          <div className="col-span-full rounded-2xl border border-dashed
+            border-slate-300 p-12 text-center text-slate-400">
+            No markets match this filter.
+          </div>
+        )}
+      </motion.div>
 
-      {err && <p className="error">Library failed to load: {err}</p>}
-
-      <div className="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Market</th>
-              <th
-                className="sortable"
-                onClick={() => setSortDesc((s) => !s)}
-                title="Click to toggle sort"
-              >
-                Score {sortDesc ? "▼" : "▲"}
-              </th>
-              <th>Departments</th>
-              <th>Verified</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr
-                key={r.market_url}
-                className="row-click"
-                onClick={() =>
-                  nav(`/market?url=${encodeURIComponent(r.market_url)}`)
-                }
-              >
-                <td>{r.market_question}</td>
-                <td>
-                  <span
-                    className="pill"
-                    style={{ background: bandColor[r.band] }}
-                  >
-                    {r.reliability_score}
-                  </span>
-                </td>
-                <td>{r.departments.join(", ")}</td>
-                <td>{r.verified ? "✓" : "—"}</td>
-              </tr>
-            ))}
-            {sorted.length === 0 && (
-              <tr>
-                <td colSpan={4} className="empty-row">
-                  No markets match this filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <button
+        onClick={() => setSortDesc((s) => !s)}
+        className="mt-5 text-sm font-medium text-slate-500 hover:text-brand-600"
+      >
+        Sort by score: {sortDesc ? "highest first ▼" : "lowest first ▲"}
+      </button>
+    </PageShell>
   );
 }

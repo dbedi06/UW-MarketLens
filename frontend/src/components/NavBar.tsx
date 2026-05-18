@@ -1,6 +1,8 @@
-// Top navigation. NavLink auto-applies an "active" class to the current route.
+// Sticky translucent nav with a shared-layout active pill.
 
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const links = [
   { to: "/", label: "Home", end: true },
@@ -10,26 +12,82 @@ const links = [
 ];
 
 export default function NavBar() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <header className="hero">
-      <div className="hero-inner">
-        <div>
-          <h1>UW MarketLens</h1>
-          <p>AI-Powered Prediction Market Reliability Platform</p>
-        </div>
-        <nav className="nav">
+    <header className="sticky top-0 z-40 border-b border-slate-200/70
+      bg-white/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-content items-center justify-between
+        px-5 sm:px-8 py-3.5">
+        <Link to="/" className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-xl
+            bg-brand-600 font-display text-sm font-bold text-white shadow-lift">
+            M
+          </span>
+          <span className="font-display text-[15px] font-bold text-ink">
+            UW MarketLens
+          </span>
+        </Link>
+
+        <nav className="hidden sm:flex items-center gap-1">
+          {links.map((l) => (
+            <NavLink key={l.to} to={l.to} end={l.end}>
+              {({ isActive }) => (
+                <span className="relative px-3.5 py-2 text-sm font-medium">
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-lg bg-brand-600/10"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span
+                    className={`relative ${
+                      isActive ? "text-brand-700" : "text-slate-500 hover:text-ink"
+                    }`}
+                  >
+                    {l.label}
+                  </span>
+                </span>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        <button
+          className="sm:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+          onClick={() => setOpen((o) => !o)}
+          aria-label="Toggle menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {open ? <path d="M6 6l12 12M6 18L18 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+          </svg>
+        </button>
+      </div>
+
+      {open && (
+        <motion.nav
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          className="sm:hidden border-t border-slate-200/70 px-5 py-2"
+        >
           {links.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               end={l.end}
-              className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                `block rounded-lg px-3 py-2.5 text-sm font-medium ${
+                  isActive ? "bg-brand-600/10 text-brand-700" : "text-slate-600"
+                }`
+              }
             >
               {l.label}
             </NavLink>
           ))}
-        </nav>
-      </div>
+        </motion.nav>
+      )}
     </header>
   );
 }
