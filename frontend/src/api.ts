@@ -5,6 +5,11 @@ import type { MarketScore, LibraryEntry, PendingTag } from "./types";
 
 const BASE = "http://localhost:8000";
 
+// Absolute URL of the dynamic OG share card for a snapshot id.
+export function ogImageUrl(id: string): string {
+  return `${BASE}/api/og/${id}`;
+}
+
 async function jsonOrThrow<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

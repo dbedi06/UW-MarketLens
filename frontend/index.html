@@ -20,7 +20,13 @@
       property="og:description"
       content="Is this prediction market citable? Plain-language reliability reasons and a stable, dated citation."
     />
-    <meta name="twitter:card" content="summary" />
+    <!-- Static default share card. Per-snapshot cards are served live at
+         /api/og/<id>; injecting that per-URL into crawled HTML needs SSR at
+         the deploy host (documented). -->
+    <meta property="og:image" content="http://localhost:8000/api/og/default" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
       content="UW MarketLens · Prediction-market reliability"
@@ -29,6 +35,7 @@
       name="twitter:description"
       content="Is this prediction market citable? Plain-language reliability reasons and a stable, dated citation."
     />
+    <meta name="twitter:image" content="http://localhost:8000/api/og/default" />
   </head>
   <body>
     <div id="root"></div>

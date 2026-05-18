@@ -16,6 +16,7 @@ import WhyPanel from "./WhyPanel";
 import SubscoreBars from "./SubscoreBars";
 import ComputationNote from "./ComputationNote";
 import CitationBox from "./CitationBox";
+import SocialPreview from "./SocialPreview";
 
 // recharts is heavy — split it into its own chunk.
 const AnomalyChart = lazy(() => import("./AnomalyChart"));
@@ -63,6 +64,7 @@ export default function MarketReport({ data }: { data: MarketScore }) {
         <ComputationNote />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
+        <SocialPreview snapshotId={data.snapshot_id} />
         <p className="pt-1 text-center text-xs italic text-ink/40">
           Deterministic mock data (backend <code>app/mock.py</code>). The same
           URL and date always yield this exact report. The real S1-S7 pipeline
