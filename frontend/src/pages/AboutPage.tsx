@@ -42,8 +42,8 @@ export default function AboutPage() {
               <span className="numeral w-16 shrink-0 text-2xl text-brand-600">
                 {id}
               </span>
-              <span className="w-36 shrink-0 font-display font-extrabold
-                uppercase tracking-tight text-ink">
+              <span className="w-36 shrink-0 font-sans font-extrabold
+                tracking-tight text-ink">
                 {t}
               </span>
               <span className="text-sm text-ink/60">{d}</span>
@@ -63,7 +63,7 @@ export default function AboutPage() {
         <div className="mt-5 grid gap-px border border-line bg-line sm:grid-cols-2">
           {METHOD.map(([t, d]) => (
             <div key={t} className="bg-paper p-6">
-              <div className="font-display font-semibold text-ink">{t}</div>
+              <div className="font-sans font-bold text-ink">{t}</div>
               <p className="mt-1.5 text-sm leading-relaxed text-ink/65">{d}</p>
             </div>
           ))}

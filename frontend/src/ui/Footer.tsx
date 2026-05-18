@@ -6,7 +6,9 @@ export default function Footer() {
       <div className="mx-auto flex max-w-content flex-col gap-6 px-5 sm:px-8
         lg:px-14 py-14 sm:flex-row sm:items-start sm:justify-between">
         <div className="max-w-md">
-          <div className="display text-xl text-paper">UW MARKETLENS</div>
+          <div className="font-sans text-xl font-extrabold tracking-tight text-paper">
+            UW MarketLens
+          </div>
           <p className="mt-3 text-xs leading-relaxed text-paper/55">
             Academic-grade reliability scoring for Polymarket markets.
             Placeholder build — scores are deterministic mock data pending the

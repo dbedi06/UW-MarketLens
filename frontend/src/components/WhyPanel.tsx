@@ -44,8 +44,8 @@ export default function WhyPanel({ reasons }: { reasons: ReasonItem[] }) {
             <div className="min-w-0">
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="caption">{FACTOR_LABEL[r.factor]}</span>
-                <span className="font-display text-lg font-extrabold
-                  uppercase tracking-tight text-ink">
+                <span className="font-sans text-base font-extrabold
+                  tracking-tight text-ink">
                   {r.headline}
                 </span>
               </div>

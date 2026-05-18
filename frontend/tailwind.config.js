@@ -37,9 +37,10 @@ export default {
         sans: ['"Archivo Variable"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono Variable"', "ui-monospace", "monospace"],
       },
-      borderRadius: { md: "0.125rem", xl: "0.125rem", "2xl": "0.125rem" },
+      borderRadius: { md: "0.5rem", lg: "0.75rem", xl: "1rem", "2xl": "1.25rem" },
       boxShadow: {
-        soft: "0 1px 2px rgba(26,23,20,.04)",
+        soft: "0 1px 2px rgba(26,23,20,.03), 0 6px 24px -8px rgba(75,46,131,.12)",
+        glow: "0 24px 70px -30px rgba(75,46,131,.45)",
       },
       maxWidth: { content: "1360px", prose: "68ch" },
       keyframes: {

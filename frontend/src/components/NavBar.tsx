@@ -19,7 +19,9 @@ export default function NavBar() {
       <div className="mx-auto flex max-w-content items-center justify-between
         px-5 sm:px-8 lg:px-14 py-3.5">
         <Link to="/" className="flex items-baseline gap-2.5">
-          <span className="display text-lg text-ink">UW MARKETLENS</span>
+          <span className="font-sans text-lg font-extrabold tracking-tight text-ink">
+            UW MarketLens
+          </span>
           <span className="caption hidden sm:inline">reliability</span>
         </Link>
 

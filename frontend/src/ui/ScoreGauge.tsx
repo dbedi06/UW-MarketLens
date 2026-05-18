@@ -54,7 +54,7 @@ export default function ScoreGauge({
         />
       </div>
       <div
-        className="mt-3 font-display text-sm font-extrabold uppercase
+        className="mt-3 font-sans text-sm font-extrabold uppercase
           tracking-wide"
         style={{ color: meta.color }}
       >

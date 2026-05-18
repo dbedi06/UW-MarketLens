@@ -36,14 +36,23 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ---- Statement masthead (full-bleed purple block) ---- */}
-      <section className="block-purple">
+      {/* ---- Soft gradient masthead (iteration-1 background, academic structure) ---- */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b
+          from-brand-900 via-brand-800 to-brand-700" />
+        <div className="absolute inset-0 -z-10 opacity-[0.5]
+          [background-image:radial-gradient(60%_60%_at_18%_15%,rgba(255,255,255,.10)_0,transparent_60%),radial-gradient(50%_50%_at_85%_0,rgba(183,165,122,.22)_0,transparent_55%)]" />
+        <div className="absolute inset-0 -z-10 opacity-[0.6]
+          [background-image:linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)]
+          [background-size:48px_48px]
+          [mask-image:radial-gradient(120%_90%_at_50%_0,#000_30%,transparent_75%)]" />
+
         <motion.div
           variants={stagger}
           initial="hidden"
           animate="show"
           className="mx-auto max-w-content px-5 sm:px-8 lg:px-14
-            pt-16 pb-20 sm:pt-24 sm:pb-28"
+            pt-16 pb-16 sm:pt-24 sm:pb-20"
         >
           <motion.div
             variants={fadeUp}
@@ -57,56 +66,67 @@ export default function HomePage() {
 
           <motion.h1
             variants={fadeUp}
-            className="display mt-8 max-w-[16ch] text-[clamp(2.75rem,8vw,7rem)]
-              text-paper"
+            className="display mt-7 max-w-[16ch] text-[clamp(2.75rem,8vw,7rem)]
+              text-paper [text-shadow:0_2px_30px_rgba(0,0,0,.25)]"
           >
-            Is this market<br />
+            Is this market{" "}
             <span className="text-gold">citable?</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="mt-8 max-w-xl text-lg leading-relaxed text-paper/75"
+            className="mt-7 max-w-xl text-lg leading-relaxed text-paper/75"
           >
             MarketLens explains why a Polymarket market is or isn't reliable —
             in plain language — and issues a stable, dated citation you can
             defend in a paper.
           </motion.p>
+
+          {/* Search on a soft floating panel (usable + soft) */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-10 max-w-2xl rounded-2xl border border-white/10
+              bg-white/[0.06] p-5 shadow-glow backdrop-blur-sm"
+          >
+            <label className="font-mono text-[11px] font-medium uppercase
+              tracking-[0.12em] text-gold">
+              Market URL
+            </label>
+            <div className="mt-2.5 flex flex-col gap-3 sm:flex-row">
+              <input
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setErr(null);
+                }}
+                onKeyDown={(e) => e.key === "Enter" && go(url)}
+                placeholder="https://polymarket.com/event/..."
+                className="flex-1 rounded-lg border-0 bg-paper/95 px-4 py-3
+                  font-mono text-[13px] text-ink placeholder:text-ink/40
+                  focus:ring-2 focus:ring-gold/60"
+              />
+              <button
+                onClick={() => go(url)}
+                className="rounded-lg bg-gold px-7 py-3 text-sm font-bold
+                  text-brand-900 transition hover:brightness-105"
+              >
+                Check reliability
+              </button>
+            </div>
+            <p
+              className={`mt-2.5 font-mono text-xs ${
+                err ? "text-red-300" : "text-paper/55"
+              }`}
+            >
+              {err ?? "Try the sample URL above, or paste any market link."}
+            </p>
+          </motion.div>
         </motion.div>
       </section>
 
-      {/* ---- Search bar on paper, thick rule ---- */}
-      <section className="border-b-2 border-ink">
-        <div className="mx-auto max-w-content px-5 sm:px-8 lg:px-14 py-8">
-          <label className="caption">Market URL</label>
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-            <input
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                setErr(null);
-              }}
-              onKeyDown={(e) => e.key === "Enter" && go(url)}
-              placeholder="https://polymarket.com/event/..."
-              className="field flex-1 font-mono text-[13px]"
-            />
-            <button onClick={() => go(url)} className="btn-primary px-8">
-              Check reliability
-            </button>
-          </div>
-          {err ? (
-            <p className="mt-2 font-mono text-xs text-bad">{err}</p>
-          ) : (
-            <p className="mt-2 font-mono text-xs text-ink/45">
-              Try the sample URL above, or paste any market link.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ---- Pillars: big numbered panels ---- */}
-      <section className="mx-auto grid max-w-content gap-px bg-ink/15
-        md:grid-cols-2">
+      {/* ---- Pillars: soft rounded cards ---- */}
+      <section className="mx-auto grid max-w-content gap-5 px-5 sm:px-8
+        lg:px-14 py-14 md:grid-cols-2">
         {[
           {
             n: "01",
@@ -119,15 +139,13 @@ export default function HomePage() {
             d: "Markets move; a citation must not. Every lookup yields a dated permalink that always re-renders the identical report.",
           },
         ].map((p) => (
-          <div key={p.n} className="bg-paper p-8 sm:p-12">
-            <div className="numeral text-7xl text-brand-600/20">{p.n}</div>
-            <h2 className="mt-4 font-display text-2xl font-extrabold
-              uppercase tracking-tight text-ink">
+          <div key={p.n} className="card p-8 sm:p-10">
+            <div className="numeral text-6xl text-brand-600/20">{p.n}</div>
+            <h2 className="mt-3 font-sans text-2xl font-extrabold
+              tracking-tight text-ink">
               {p.t}
             </h2>
-            <p className="mt-3 max-w-prose leading-relaxed text-ink/65">
-              {p.d}
-            </p>
+            <p className="mt-3 leading-relaxed text-ink/65">{p.d}</p>
           </div>
         ))}
       </section>

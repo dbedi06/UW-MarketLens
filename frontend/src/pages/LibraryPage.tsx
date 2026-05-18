@@ -83,8 +83,8 @@ export default function LibraryPage() {
                 {r.reliability_score}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-display text-lg font-extrabold
-                  uppercase leading-tight tracking-tight text-ink">
+                <span className="block font-sans text-base font-extrabold
+                  leading-snug tracking-tight text-ink">
                   {r.market_question}
                 </span>
                 <span className="caption mt-1.5 block">

@@ -30,7 +30,9 @@ export default function ReportSummary({ data }: { data: MarketScore }) {
         <ScoreGauge score={data.reliability_score} band={data.band} />
 
         <div className="mt-6 border-t-2 border-ink pt-4">
-          <h1 className="display text-xl text-ink">{data.headline}</h1>
+          <h1 className="font-sans text-xl font-extrabold tracking-tight text-ink">
+            {data.headline}
+          </h1>
           <p className="mt-2 text-sm leading-relaxed text-ink/55">
             {data.market_question}
           </p>

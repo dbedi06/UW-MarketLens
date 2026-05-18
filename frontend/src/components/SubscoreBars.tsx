@@ -32,8 +32,9 @@ export default function SubscoreBars({ subscores }: { subscores: Subscores }) {
         {keys.map((k) => (
           <div key={k} className="py-5" title={EXPLAIN[k]}>
             <div className="mb-2 flex items-baseline justify-between">
-              <span className="font-display text-sm font-extrabold uppercase
-                tracking-tight text-ink">{LABEL[k]}</span>
+              <span className="font-sans text-sm font-bold text-ink">
+                {LABEL[k]}
+              </span>
               <span className="font-mono text-lg font-bold tabular-nums text-ink">
                 {subscores[k]}
                 <span className="text-ink/30"> / 100</span>
