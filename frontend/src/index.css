@@ -1,5 +1,5 @@
 @import "@fontsource-variable/archivo/wght.css";
-@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource/archivo-black/latin-400.css";
 @import "@fontsource-variable/jetbrains-mono";
 
 @tailwind base;
@@ -11,7 +11,7 @@
     @apply bg-paper text-ink font-sans antialiased;
   }
   h1, h2, h3 {
-    @apply font-display font-extrabold tracking-tight text-ink;
+    @apply font-display tracking-tight text-ink;
   }
   ::selection {
     @apply bg-brand-600 text-paper;
@@ -19,16 +19,13 @@
 }
 
 @layer components {
-  /* Bold Swiss: oversized, expanded, uppercase statement type. */
+  /* Bold Swiss: oversized, uppercase statement type (Archivo Black). */
   .display {
-    @apply font-display font-extrabold uppercase leading-[0.92]
-           tracking-[-0.02em];
-    font-stretch: 125%;
+    @apply font-display uppercase leading-[0.95] tracking-[-0.015em];
   }
   /* Giant graphic numeral for scores. */
   .numeral {
-    @apply font-display font-extrabold tabular-nums leading-none;
-    font-stretch: 125%;
+    @apply font-display tabular-nums leading-none tracking-[-0.02em];
   }
   /* Purple color surface (a real block, not an accent). */
   .block-purple {
@@ -67,8 +64,7 @@
            focus:border-ink focus:ring-0;
   }
   .section-title {
-    @apply font-display text-2xl font-extrabold uppercase tracking-tight
-           text-ink;
+    @apply font-display text-2xl uppercase tracking-tight text-ink;
   }
 }
 

@@ -33,7 +33,7 @@ export default {
         line: "#E4DFD5",
       },
       fontFamily: {
-        display: ['"Archivo Variable"', "system-ui", "sans-serif"],
+        display: ['"Archivo Black"', "system-ui", "sans-serif"],
         sans: ['"Archivo Variable"', "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono Variable"', "ui-monospace", "monospace"],
       },
