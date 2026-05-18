@@ -56,9 +56,9 @@ export default function MarketReport({ data }: { data: MarketScore }) {
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
         <p className="pt-1 text-center text-xs italic text-ink/40">
-          Deterministic mock data (backend <code>app/mock.py</code>). Same URL +
-          date always yields this exact report — replaced by the real S1–S7
-          pipeline later with no frontend change.
+          Deterministic mock data (backend <code>app/mock.py</code>). The same
+          URL and date always yield this exact report. The real S1-S7 pipeline
+          replaces it later with no frontend change.
         </p>
       </div>
     </motion.div>

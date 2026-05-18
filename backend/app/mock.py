@@ -91,8 +91,8 @@ def _reasons(seed: int, liquidity: int, anomaly_sub: int, resolution_sub: int,
             f"unique traders and ${meta.volume_usd:,} total volume. "
             + ("Deep enough that prices reflect broad consensus."
                if liquidity >= 70 else
-               "Few traders means a single actor can move the price — treat the "
-               "implied probability with caution.")
+               "Few traders means a single actor can move the price, so treat "
+               "the implied probability with caution.")
         ),
     )
     ano = ReasonItem(
@@ -107,7 +107,7 @@ def _reasons(seed: int, liquidity: int, anomaly_sub: int, resolution_sub: int,
             "Trade windows fall within normal market behavior."
             if anomaly_sub >= 70 else
             f"The model flagged a window where the price moved {price_swing:.2f} "
-            f"in {swing_minutes} minutes on below-average volume — see the "
+            f"in {swing_minutes} minutes on below-average volume. See the "
             f"highlighted span in the chart."
         ),
     )
@@ -124,7 +124,7 @@ def _reasons(seed: int, liquidity: int, anomaly_sub: int, resolution_sub: int,
             "wire sources (AP, Reuters)."
             if resolution_sub >= 70 else
             "The resolution statement could not be matched against independent "
-            "reporting — cite the outcome with an explicit caveat."
+            "reporting, so cite the outcome with an explicit caveat."
         ),
     )
     return [liq, ano, res]
@@ -137,7 +137,7 @@ def _headline(score: int, reasons: list[ReasonItem]) -> str:
         else "Use with caution" if score >= 40
         else "Not recommended for citation"
     )
-    return f"{verdict} — {worst.headline.lower()} drives most of the assessment."
+    return f"{verdict}: {worst.headline.lower()} drives most of the assessment."
 
 
 # ---- Market metadata & anomaly series (Pillar 1 evidence) -----------------
@@ -179,7 +179,7 @@ def make_citation(url: str, as_of: str, permalink: str, score: int,
     q = _question_from_url(url)
     flag = (
         "RELIABLE (score ≥ 70)" if score >= 70
-        else "USE WITH CAUTION — reliability below integrity threshold"
+        else "USE WITH CAUTION: reliability below integrity threshold"
     )
     apa = (
         f'Polymarket. (n.d.). {q} [Prediction market]. UW MarketLens '
@@ -244,7 +244,7 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
         ),
         resolution=ResolutionVerdict(
             verdict=verdict_pool[seed % 4],
-            reasoning="PLACEHOLDER reasoning — replaced by S4 LLM-as-judge output.",
+            reasoning="PLACEHOLDER reasoning, replaced by S4 LLM-as-judge output.",
             supporting_sources=["https://apnews.com/", "https://reuters.com/"][: 1 + seed % 2],
         ),
         tags=Tags(departments=depts, course_applicability=_pct(seed, 5)),

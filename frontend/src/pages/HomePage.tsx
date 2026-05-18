@@ -77,8 +77,8 @@ export default function HomePage() {
             variants={fadeUp}
             className="mt-7 max-w-xl text-lg leading-relaxed text-paper/75"
           >
-            MarketLens explains why a Polymarket market is or isn't reliable —
-            in plain language — and issues a stable, dated citation you can
+            MarketLens explains, in plain language, why a Polymarket market is
+            or isn't reliable, and issues a stable, dated citation you can
             defend in a paper.
           </motion.p>
 
@@ -121,7 +121,7 @@ export default function HomePage() {
           {
             n: "01",
             t: "The why, not the number",
-            d: "Every verdict ships with plain-language reasons and the flagged-window evidence — quote it to defend or caveat a citation.",
+            d: "Every verdict ships with plain-language reasons and the flagged-window evidence. Quote it to defend or caveat a citation.",
           },
           {
             n: "02",

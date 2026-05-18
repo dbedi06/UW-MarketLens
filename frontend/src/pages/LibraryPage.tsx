@@ -113,7 +113,7 @@ export default function LibraryPage() {
         onClick={() => setSortDesc((s) => !s)}
         className="caption mt-5 hover:text-ink"
       >
-        Sort by score — {sortDesc ? "highest first" : "lowest first"}
+        Sort by score: {sortDesc ? "highest first" : "lowest first"}
       </button>
     </PageShell>
   );

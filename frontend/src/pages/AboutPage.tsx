@@ -9,11 +9,11 @@ const PIPELINE: [string, string, string][] = [
   ["S2", "Features", "Per-window vectors"],
   ["S3", "Anomaly", "Isolation Forest"],
   ["S4", "Resolution", "LLM-as-judge vs. wire sources"],
-  ["S7", "Composite", "Deterministic 0–100 score"],
+  ["S7", "Composite", "Deterministic 0 to 100 score"],
 ];
 
 const METHOD: [string, string][] = [
-  ["The “why,” not the number", "Every verdict ships with plain-language reasons and flagged-window evidence — a score is only as citable as its explanation."],
+  ["The \"why,\" not the number", "Every verdict ships with plain-language reasons and flagged-window evidence. A score is only as citable as its explanation."],
   ["Reproducible snapshots", "Markets move; a citation must not. Each lookup yields a dated permalink that always re-renders the identical report."],
   ["Human-in-the-loop tagging", "The LLM proposes UW department tags; a person approves or overrides before they enter the library."],
   ["Auditable AI", "All model calls return structured, schema-constrained output evaluated against labeled ground truth."],
@@ -97,7 +97,7 @@ export default function AboutPage() {
         </table>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
           Numbers are intentionally blank until the real models are wired and
-          evaluated — we don't report metrics we haven't measured.
+          evaluated. We don't report metrics we haven't measured.
         </p>
       </section>
     </PageShell>
