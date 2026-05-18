@@ -86,10 +86,11 @@ export default function AdminPage() {
                             on ? ds.filter((x) => x !== d) : [...ds, d],
                           )
                         }
-                        className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                        className={`rounded-sm border px-2.5 py-1 font-mono
+                          text-[11px] uppercase tracking-wide transition-colors ${
                           on
-                            ? "bg-brand-600 text-white"
-                            : "bg-slate-100 text-slate-500"
+                            ? "border-brand-600 text-brand-700"
+                            : "border-line text-ink/40 hover:text-ink"
                         }`}
                       >
                         {d}
@@ -110,7 +111,7 @@ export default function AdminPage() {
             </div>
             <div className="flex flex-shrink-0 gap-2">
               {t.verified && editing !== t.market_url ? (
-                <Badge tone="gold">Verified ✓</Badge>
+                <Badge tone="gold">Verified</Badge>
               ) : editing === t.market_url ? (
                 <>
                   <Button onClick={() => saveOverride(t)}>Save</Button>

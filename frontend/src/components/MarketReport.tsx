@@ -42,19 +42,20 @@ export default function MarketReport({ data }: { data: MarketScore }) {
       variants={stagger}
       initial="hidden"
       animate="show"
-      className="grid items-start gap-6 lg:grid-cols-[340px_1fr]"
+      className="grid items-start gap-x-16 gap-y-10
+        lg:grid-cols-[380px_minmax(0,1fr)]"
     >
-      <div className="lg:sticky lg:top-20">
+      <div className="lg:sticky lg:top-24">
         <ReportSummary data={data} />
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-10">
         <WhyPanel reasons={data.reasons} />
         <AnomalyChart series={data.anomaly_series} />
         <SubscoreBars subscores={data.subscores} />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
-        <p className="pt-1 text-center text-xs italic text-slate-400">
+        <p className="pt-1 text-center text-xs italic text-ink/40">
           Deterministic mock data (backend <code>app/mock.py</code>). Same URL +
           date always yields this exact report — replaced by the real S1–S7
           pipeline later with no frontend change.

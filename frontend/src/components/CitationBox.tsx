@@ -23,38 +23,30 @@ export default function CitationBox({ citation }: { citation: Citation }) {
 
   return (
     <motion.div variants={fadeUp} className="card p-6">
-      <h2 className="text-xl font-semibold">Academic citation</h2>
+      <h2 className="section-title">Academic citation</h2>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+        <div className="flex gap-5">
           {(["APA", "MLA", "BibTeX"] as Style[]).map((s) => (
             <button
               key={s}
               onClick={() => setStyle(s)}
-              className={`relative rounded-lg px-3.5 py-1.5 text-sm font-medium
-                transition ${
-                  s === style ? "text-brand-700" : "text-slate-500 hover:text-ink"
-                }`}
+              className={`border-b-2 pb-1 font-mono text-xs transition-colors ${
+                s === style
+                  ? "border-brand-600 text-ink"
+                  : "border-transparent text-ink/45 hover:text-ink"
+              }`}
             >
-              {s === style && (
-                <motion.span
-                  layoutId="cite-tab"
-                  className="absolute inset-0 rounded-lg bg-white shadow-soft"
-                />
-              )}
-              <span className="relative">{s}</span>
+              {s}
             </button>
           ))}
         </div>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={copy}
-          className="btn-primary"
-        >
+        <button onClick={copy} className="btn-ghost text-xs">
           Copy
-        </motion.button>
+        </button>
       </div>
-      <pre className="mt-3 whitespace-pre-wrap break-words rounded-xl
-        bg-ink p-4 font-mono text-[13px] leading-relaxed text-slate-200">
+      <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words
+        border border-line bg-ink/[0.03] p-4 font-mono text-[13px]
+        leading-relaxed text-ink/80">
         {text}
       </pre>
       <div className="mt-3">

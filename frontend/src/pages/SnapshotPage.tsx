@@ -28,13 +28,13 @@ export default function SnapshotPage() {
   return (
     <PageShell wide>
       {loading && (
-        <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
-          <div className="card flex flex-col items-center gap-4 p-6">
+        <div className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-[380px_minmax(0,1fr)]">
+          <div className="card flex flex-col items-center gap-4 p-7">
             <Skeleton className="h-40 w-40 rounded-full" />
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-9 w-full" />
           </div>
-          <div className="space-y-6">
+          <div className="space-y-10">
             <Skeleton className="h-52" />
             <Skeleton className="h-64" />
           </div>
@@ -43,14 +43,14 @@ export default function SnapshotPage() {
       {error && !loading && (
         <div className="card p-10 text-center">
           <p className="text-lg font-semibold text-ink">Snapshot unavailable</p>
-          <p className="mt-2 text-sm text-slate-500">{error}</p>
+          <p className="mt-2 text-sm text-ink/55">{error}</p>
         </div>
       )}
       {data && !loading && (
         <>
-          <div className="mb-4 rounded-xl bg-brand-600 px-4 py-2.5 text-sm
-            font-medium text-white">
-            Viewing a saved snapshot ({id}) — frozen and reproducible.
+          <div className="mb-6 border-l-2 border-brand-600 pl-3">
+            <div className="caption">Saved snapshot · {id}</div>
+            <p className="text-sm text-ink/55">Frozen and reproducible.</p>
           </div>
           <MarketReport data={data} />
         </>

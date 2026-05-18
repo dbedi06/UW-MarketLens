@@ -16,7 +16,7 @@ export default function Card({
   return (
     <Comp
       variants={fadeUp}
-      whileHover={hover ? { y: -3, boxShadow: "0 8px 30px rgba(75,46,131,.12)" } : undefined}
+      whileHover={hover ? { borderColor: "#1A1714" } : undefined}
       className={`card p-6 ${className}`}
     >
       {children}

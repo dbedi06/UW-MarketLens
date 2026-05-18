@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import { animate, useReducedMotion } from "framer-motion";
 
 const BAND_COLOR: Record<string, string> = {
-  HIGH: "#0f9d58",
-  MEDIUM: "#d08700",
-  LOW: "#dc2626",
+  HIGH: "#1f7a4d",
+  MEDIUM: "#9a6a14",
+  LOW: "#b3261e",
 };
 
 export default function ScoreGauge({
@@ -55,7 +55,7 @@ export default function ScoreGauge({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#eef0f4"
+          stroke="#E4DFD5"
           strokeWidth={stroke}
         />
         <circle
@@ -72,12 +72,10 @@ export default function ScoreGauge({
         />
       </svg>
       <div className="absolute text-center">
-        <div className="font-display text-5xl font-extrabold text-ink tabular-nums">
+        <div className="font-display text-6xl font-semibold text-ink tabular-nums">
           {display}
         </div>
-        <div className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-          / 100
-        </div>
+        <div className="caption mt-0.5">/ 100</div>
       </div>
     </div>
   );

@@ -16,8 +16,8 @@ export default function PageShell({
       variants={stagger}
       initial="hidden"
       animate="show"
-      className={`mx-auto w-full px-5 sm:px-8 py-8 ${
-        wide ? "max-w-content" : "max-w-3xl"
+      className={`mx-auto w-full px-5 sm:px-8 lg:px-14 py-10 ${
+        wide ? "max-w-content" : "max-w-prose"
       }`}
     >
       {children}

@@ -8,10 +8,10 @@ export default function SectionHeading({
   sub?: string;
 }) {
   return (
-    <div className="mb-4">
-      {eyebrow && <div className="eyebrow mb-1.5">{eyebrow}</div>}
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {sub && <p className="mt-1 text-sm text-slate-500">{sub}</p>}
+    <div className="mb-5">
+      {eyebrow && <div className="caption mb-2">{eyebrow}</div>}
+      <h2 className="section-title">{title}</h2>
+      {sub && <p className="mt-1.5 max-w-prose text-sm text-ink/55">{sub}</p>}
     </div>
   );
 }

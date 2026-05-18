@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import type { LibraryEntry } from "../types";
 import { getLibrary } from "../api";
 import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 import Badge, { bandTone } from "../ui/Badge";
-import { fadeUp, stagger } from "../lib/motion";
 
 const DEPTS = ["ALL", "POLS", "ECON", "INFO", "EVANS"];
 
@@ -36,85 +34,86 @@ export default function LibraryPage() {
 
   return (
     <PageShell wide>
-      <motion.div variants={fadeUp}>
-        <SectionHeading
-          eyebrow="UW market library"
-          title="Find a citable market for your course"
-          sub="Markets tagged to UW departments by the LLM tagger (mock). Open one for the full reliability report."
-        />
-      </motion.div>
+      <SectionHeading
+        eyebrow="UW market library"
+        title="Find a citable market for your course"
+        sub="Markets tagged to UW departments by the LLM tagger (mock). Open one for the full reliability report."
+      />
 
-      <motion.div variants={fadeUp} className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-8 flex flex-col gap-4 border-y border-line py-4
+        sm:flex-row sm:items-center sm:justify-between">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search market questions…"
-          className="field sm:max-w-sm"
+          className="field font-mono text-[13px] sm:max-w-xs"
         />
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-5">
           {DEPTS.map((d) => (
             <button
               key={d}
               onClick={() => setDept(d)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`border-b-2 pb-0.5 font-mono text-xs transition-colors ${
                 d === dept
-                  ? "bg-brand-600 text-white shadow-lift"
-                  : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-brand-600/40"
+                  ? "border-brand-600 text-ink"
+                  : "border-transparent text-ink/45 hover:text-ink"
               }`}
             >
               {d}
             </button>
           ))}
         </div>
-      </motion.div>
+      </div>
 
-      {err && <p className="text-sm text-bad">Library failed to load: {err}</p>}
+      {err && (
+        <p className="mt-4 text-sm text-bad">Library failed to load: {err}</p>
+      )}
 
-      <motion.div
-        variants={stagger}
-        initial="hidden"
-        animate="show"
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      <ul className="divide-y divide-line border-b border-line">
         {sorted.map((r) => (
-          <motion.button
-            key={r.market_url}
-            variants={fadeUp}
-            whileHover={{ y: -3 }}
-            onClick={() => nav(`/market?url=${encodeURIComponent(r.market_url)}`)}
-            className="card group p-5 text-left transition hover:shadow-lift"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <Badge tone={bandTone(r.band)}>{r.reliability_score}</Badge>
-              {r.verified && <Badge tone="gold">✓ verified</Badge>}
-            </div>
-            <p className="mt-3 font-medium leading-snug text-ink line-clamp-3">
-              {r.market_question}
-            </p>
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-slate-400">
-                {r.departments.join(" · ")}
+          <li key={r.market_url}>
+            <button
+              onClick={() =>
+                nav(`/market?url=${encodeURIComponent(r.market_url)}`)
+              }
+              className="group flex w-full items-center gap-6 py-5 text-left"
+            >
+              <span className="w-12 shrink-0 font-mono text-2xl tabular-nums
+                text-ink">
+                {r.reliability_score}
               </span>
-              <span className="text-sm font-semibold text-brand-600
-                opacity-0 transition group-hover:opacity-100">
-                View report →
+              <span className="min-w-0 flex-1">
+                <span className="block font-display text-[15px] font-medium
+                  leading-snug text-ink">
+                  {r.market_question}
+                </span>
+                <span className="caption mt-1 block">
+                  {r.departments.join(" · ")}
+                  {r.verified && " · verified"}
+                </span>
               </span>
-            </div>
-          </motion.button>
+              <span className="hidden shrink-0 sm:block">
+                <Badge tone={bandTone(r.band)}>{r.band}</Badge>
+              </span>
+              <span className="caption shrink-0 opacity-0 transition
+                group-hover:opacity-100">
+                open
+              </span>
+            </button>
+          </li>
         ))}
         {sorted.length === 0 && !err && (
-          <div className="col-span-full rounded-2xl border border-dashed
-            border-slate-300 p-12 text-center text-slate-400">
+          <li className="py-16 text-center text-sm italic text-ink/40">
             No markets match this filter.
-          </div>
+          </li>
         )}
-      </motion.div>
+      </ul>
 
       <button
         onClick={() => setSortDesc((s) => !s)}
-        className="mt-5 text-sm font-medium text-slate-500 hover:text-brand-600"
+        className="caption mt-5 hover:text-ink"
       >
-        Sort by score: {sortDesc ? "highest first ▼" : "lowest first ▲"}
+        Sort by score — {sortDesc ? "highest first" : "lowest first"}
       </button>
     </PageShell>
   );

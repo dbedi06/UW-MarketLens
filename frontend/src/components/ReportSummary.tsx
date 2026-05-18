@@ -19,26 +19,26 @@ export default function ReportSummary({ data }: { data: MarketScore }) {
   return (
     <motion.aside
       variants={fadeUp}
-      className="card accent-rail flex flex-col items-center gap-4 p-6 text-center"
+      className="card accent-rail flex flex-col gap-5 p-7"
     >
-      <ScoreGauge score={data.reliability_score} band={data.band} />
-      <Badge tone={bandTone(data.band)}>{data.band} RELIABILITY</Badge>
-      <h1 className="font-display text-xl font-bold leading-snug text-ink">
-        {data.headline}
-      </h1>
-      <p className="text-sm leading-relaxed text-slate-500">
-        {data.market_question}
-      </p>
+      <div className="flex flex-col items-center gap-3">
+        <ScoreGauge score={data.reliability_score} band={data.band} />
+        <Badge tone={bandTone(data.band)}>{data.band} reliability</Badge>
+      </div>
+      <div className="border-t border-line pt-4">
+        <h1 className="font-display text-xl font-semibold leading-snug text-ink">
+          {data.headline}
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-ink/55">
+          {data.market_question}
+        </p>
+      </div>
 
-      <div className="w-full border-t border-slate-100 pt-4">
-        <SnapshotBar asOf={data.as_of} permalink={data.permalink} compact />
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={copyCitation}
-          className="btn-primary mt-2 w-full"
-        >
+      <div>
+        <button onClick={copyCitation} className="btn-primary w-full">
           Copy citation
-        </motion.button>
+        </button>
+        <SnapshotBar asOf={data.as_of} permalink={data.permalink} compact />
       </div>
     </motion.aside>
   );

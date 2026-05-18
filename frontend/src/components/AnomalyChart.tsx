@@ -30,22 +30,16 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={256}>
           <AreaChart data={series} margin={{ top: 8, right: 12, bottom: 4, left: -10 }}>
-            <defs>
-              <linearGradient id="priceFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#4B2E83" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#4B2E83" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eef0f4" vertical={false} />
+            <CartesianGrid stroke="#E4DFD5" vertical={false} />
             <XAxis
               dataKey="window_index"
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "#8a8278", fontFamily: "JetBrains Mono Variable, monospace" }}
               tickLine={false}
-              axisLine={{ stroke: "#e2e8f0" }}
+              axisLine={{ stroke: "#E4DFD5" }}
             />
             <YAxis
               domain={[0, 1]}
-              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              tick={{ fontSize: 11, fill: "#8a8278", fontFamily: "JetBrains Mono Variable, monospace" }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `${Math.round(v * 100)}%`}
@@ -54,27 +48,28 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
               formatter={(v) => [`${Math.round(Number(v) * 100)}%`, "Implied prob."]}
               labelFormatter={(l) => `Window ${l}`}
               contentStyle={{
-                borderRadius: 12,
-                border: "1px solid #e2e8f0",
+                borderRadius: 4,
+                border: "1px solid #E4DFD5",
                 fontSize: 12,
-                boxShadow: "0 8px 30px rgba(75,46,131,.12)",
+                fontFamily: "JetBrains Mono Variable, monospace",
               }}
             />
             {hasFlag && (
               <ReferenceArea
                 x1={flagStart}
                 x2={flagEnd}
-                fill="#dc2626"
-                fillOpacity={0.1}
-                label={{ value: "flagged", fontSize: 10, fill: "#dc2626" }}
+                fill="#b3261e"
+                fillOpacity={0.07}
+                label={{ value: "flagged", fontSize: 10, fill: "#b3261e" }}
               />
             )}
             <Area
               type="monotone"
               dataKey="price"
               stroke="#4B2E83"
-              strokeWidth={2.5}
-              fill="url(#priceFill)"
+              strokeWidth={2}
+              fill="#4B2E83"
+              fillOpacity={0.06}
               animationDuration={1100}
             />
           </AreaChart>

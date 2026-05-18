@@ -36,11 +36,11 @@ export function Toaster() {
         {items.map((m) => (
           <motion.div
             key={m.id}
-            initial={{ opacity: 0, y: 16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            className="rounded-xl bg-ink px-4 py-2.5 text-sm font-medium
-              text-white shadow-glow"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            className="rounded-md bg-ink px-4 py-2.5 font-mono text-xs
+              text-paper"
           >
             {m.text}
           </motion.div>

@@ -3,13 +3,14 @@
 
 type Tone = "good" | "warn" | "bad" | "brand" | "gold" | "neutral";
 
+// Flat editorial tags: hairline border + ink/semantic text, no fill/glow.
 const TONES: Record<Tone, string> = {
-  good: "bg-good/10 text-good ring-good/20",
-  warn: "bg-warn/10 text-warn ring-warn/20",
-  bad: "bg-bad/10 text-bad ring-bad/20",
-  brand: "bg-brand-600/10 text-brand-700 ring-brand-600/20",
-  gold: "bg-gold/15 text-gold-text ring-gold/30",
-  neutral: "bg-slate-100 text-slate-600 ring-slate-200",
+  good: "border-good/40 text-good",
+  warn: "border-warn/40 text-warn",
+  bad: "border-bad/40 text-bad",
+  brand: "border-brand-600/40 text-brand-700",
+  gold: "border-gold/50 text-gold-text",
+  neutral: "border-line text-ink/60",
 };
 
 export function bandTone(band: string): Tone {
@@ -27,8 +28,9 @@ export default function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1
-        text-xs font-semibold ring-1 ring-inset ${TONES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-sm border px-2 py-0.5
+        font-mono text-[11px] font-medium uppercase tracking-wide
+        ${TONES[tone]} ${className}`}
     >
       {children}
     </span>

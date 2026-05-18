@@ -30,7 +30,7 @@ export default function App() {
             <Route
               path="*"
               element={
-                <p className="mx-auto max-w-3xl px-5 py-16 text-center text-slate-500">
+                <p className="mx-auto max-w-prose px-5 py-24 text-center text-ink/50">
                   Page not found.
                 </p>
               }

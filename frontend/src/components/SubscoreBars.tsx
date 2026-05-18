@@ -28,30 +28,28 @@ export default function SubscoreBars({ subscores }: { subscores: Subscores }) {
   return (
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading eyebrow="Composition" title="Subscore breakdown" />
-      <div className="space-y-5">
+      <div className="divide-y divide-line border-t border-line">
         {keys.map((k) => (
-          <div key={k} title={EXPLAIN[k]}>
-            <div className="mb-1.5 flex items-center justify-between text-sm">
-              <span className="font-medium text-slate-700">
-                {LABEL[k]}{" "}
-                <span className="cursor-help text-slate-300" aria-label={EXPLAIN[k]}>
-                  ⓘ
-                </span>
-              </span>
-              <span className="font-mono font-semibold tabular-nums text-slate-500">
+          <div key={k} className="py-4" title={EXPLAIN[k]}>
+            <div className="mb-2 flex items-baseline justify-between">
+              <span className="text-sm font-medium text-ink">{LABEL[k]}</span>
+              <span className="font-mono text-sm tabular-nums text-ink/60">
                 {subscores[k]}
-                <span className="text-slate-300">/100</span>
+                <span className="text-ink/30"> / 100</span>
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-1.5 overflow-hidden bg-line">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: `${subscores[k]}%` }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                className={`h-full rounded-full ${barColor(subscores[k])}`}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className={`h-full ${barColor(subscores[k])}`}
               />
             </div>
+            <p className="mt-2 text-xs leading-relaxed text-ink/45">
+              {EXPLAIN[k]}
+            </p>
           </div>
         ))}
       </div>

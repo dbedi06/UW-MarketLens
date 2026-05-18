@@ -8,14 +8,14 @@ import Skeleton from "../ui/Skeleton";
 
 function LoadingState() {
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[340px_1fr]">
-      <div className="card flex flex-col items-center gap-4 p-6">
+    <div className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="card flex flex-col items-center gap-4 p-7">
         <Skeleton className="h-40 w-40 rounded-full" />
         <Skeleton className="h-5 w-32" />
         <Skeleton className="h-4 w-full" />
         <Skeleton className="h-9 w-full" />
       </div>
-      <div className="space-y-6">
+      <div className="space-y-10">
         <Skeleton className="h-52" />
         <Skeleton className="h-64" />
         <Skeleton className="h-40" />
@@ -51,7 +51,7 @@ export default function MarketDetailPage() {
       {error && !loading && (
         <div className="card p-10 text-center">
           <p className="text-lg font-semibold text-ink">Couldn't analyze that market</p>
-          <p className="mt-2 text-sm text-slate-500">{error}</p>
+          <p className="mt-2 text-sm text-ink/55">{error}</p>
         </div>
       )}
       {data && !loading && <MarketReport data={data} />}
