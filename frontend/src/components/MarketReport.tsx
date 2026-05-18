@@ -42,7 +42,13 @@ function MarketFacts({ data }: { data: MarketScore }) {
   );
 }
 
-export default function MarketReport({ data }: { data: MarketScore }) {
+export default function MarketReport({
+  data,
+  hideSocialPreview = false,
+}: {
+  data: MarketScore;
+  hideSocialPreview?: boolean;
+}) {
   return (
     <motion.div
       variants={stagger}
@@ -64,7 +70,9 @@ export default function MarketReport({ data }: { data: MarketScore }) {
         <ComputationNote />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
-        <SocialPreview snapshotId={data.snapshot_id} />
+        {!hideSocialPreview && (
+          <SocialPreview snapshotId={data.snapshot_id} />
+        )}
         <p className="pt-1 text-center text-xs italic text-ink/40">
           Deterministic mock data (backend <code>app/mock.py</code>). The same
           URL and date always yield this exact report. The real S1-S7 pipeline
