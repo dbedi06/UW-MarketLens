@@ -36,15 +36,16 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ---- Light masthead: paper + faint grid + soft brand glow ---- */}
-      <section className="relative overflow-hidden border-b border-line">
-        <div className="absolute inset-0 -z-10 bg-paper" />
-        <div className="absolute inset-0 -z-10 opacity-70
-          [background-image:radial-gradient(55%_55%_at_15%_10%,rgba(75,46,131,.10)_0,transparent_60%),radial-gradient(45%_50%_at_90%_0,rgba(183,165,122,.16)_0,transparent_55%)]" />
-        <div className="absolute inset-0 -z-10
-          [background-image:linear-gradient(rgba(75,46,131,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(75,46,131,.06)_1px,transparent_1px)]
+      {/* ---- Purple masthead: brighter brand gradient + light grid + glow ---- */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-br
+          from-brand-700 via-brand-600 to-brand-700" />
+        <div className="absolute inset-0 -z-10 opacity-90
+          [background-image:radial-gradient(55%_60%_at_15%_10%,rgba(255,255,255,.16)_0,transparent_60%),radial-gradient(50%_55%_at_88%_0,rgba(183,165,122,.30)_0,transparent_55%)]" />
+        <div className="absolute inset-0 -z-10 opacity-80
+          [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)]
           [background-size:46px_46px]
-          [mask-image:radial-gradient(120%_95%_at_50%_0,#000_35%,transparent_78%)]" />
+          [mask-image:radial-gradient(120%_95%_at_50%_0,#000_35%,transparent_80%)]" />
 
         <motion.div
           variants={stagger}
@@ -53,24 +54,28 @@ export default function HomePage() {
           className="mx-auto max-w-content px-5 sm:px-8 lg:px-14
             pt-16 pb-16 sm:pt-24 sm:pb-20"
         >
-          <motion.div variants={fadeUp} className="caption flex items-center gap-3">
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center gap-3 font-mono text-[11px]
+              font-medium uppercase tracking-[0.14em] text-gold"
+          >
             <span>UW · Academic-grade</span>
-            <span className="h-px w-10 bg-brand-600/30" />
+            <span className="h-px w-10 bg-gold/50" />
             <span>Prediction-market reliability</span>
           </motion.div>
 
           <motion.h1
             variants={fadeUp}
             className="display mt-7 max-w-[16ch] text-[clamp(2.75rem,8vw,7rem)]
-              text-ink"
+              text-paper"
           >
             Is this market{" "}
-            <span className="text-brand-600">citable?</span>
+            <span className="text-gold">citable?</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="mt-7 max-w-xl text-lg leading-relaxed text-ink/65"
+            className="mt-7 max-w-xl text-lg leading-relaxed text-paper/75"
           >
             MarketLens explains why a Polymarket market is or isn't reliable —
             in plain language — and issues a stable, dated citation you can
