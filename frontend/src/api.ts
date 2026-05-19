@@ -3,7 +3,7 @@
 
 import type { MarketScore, LibraryEntry, PendingTag } from "./types";
 
-const BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Absolute URL of the dynamic OG share card for a snapshot id.
 export function ogImageUrl(id: string): string {

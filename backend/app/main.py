@@ -7,6 +7,8 @@ Run locally:
 Then open http://localhost:8000/docs for the auto-generated interactive API.
 """
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,13 +21,20 @@ app = FastAPI(
 )
 
 # CORS: the Vite dev server runs on a different origin (port 5173). Browsers
-# block cross-origin requests unless the server explicitly allows them.
+# block cross-origin requests unless the server explicitly allows them. In
+# production, set FRONTEND_ORIGIN to the deployed static-site URL (Render does
+# this automatically via render.yaml).
+_allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+_frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+if _frontend_origin:
+    _allowed_origins.append(_frontend_origin.rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
