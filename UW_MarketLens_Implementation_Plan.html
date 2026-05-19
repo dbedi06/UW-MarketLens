@@ -158,7 +158,7 @@
     <div class="kicker">DYOP · Implementation Plan</div>
     <h1>UW MarketLens</h1>
     <div class="sub">AI-Powered Prediction Market Reliability Platform</div>
-    <div class="meta">University of Washington · Spring 2025 · 3-Week Build · Team of 3</div>
+    <div class="meta">University of Washington · Spring 2025 · 3-Week Build · Team of 3 · Live on Render</div>
   </header>
 
   <div class="body">
@@ -171,6 +171,20 @@
       <b>Working principle.</b> Agree on the shared JSON schemas first (Section&nbsp;0). After that,
       every section is built against mock data, so nobody is blocked waiting on a teammate.
       Real wiring happens at integration in Week&nbsp;2.
+    </div>
+
+    <div class="callout">
+      <b>Build status.</b> The end-to-end mock slice is shipped and
+      <b>deployed live on Render</b> (static frontend + FastAPI backend, env-driven
+      URLs, CI config in <code>render.yaml</code>). <b>Done:</b> S0 schemas,
+      S6 citation, S7 composite (placeholder weighting), S8 backend shell with
+      score / snapshot / library / citation / admin / dynamic-OG-card endpoints,
+      S9 frontend (multi-page: lookup, verdict report, snapshot permalink,
+      compare, library, admin, about) plus Markdown export, trust disclosures,
+      accessibility pass and route code-splitting, and S10 deploy. <b>In
+      progress:</b> S1 Polymarket ingestion (real data behind the mock boundary).
+      <b>Pending:</b> S2–S5 real models, S11 user testing, and a <b>dark theme</b>
+      (system-default toggle) as a UI follow-up.
     </div>
 
     <h2><span class="num">A</span>Section Breakdown</h2>
@@ -303,6 +317,68 @@
         </tr>
       </tbody>
     </table>
+
+    <h2><span class="num">D</span>Methodological Weaknesses &amp; Mitigations</h2>
+    <p class="lead">Honest appraisal of where the methodology is weak, and how we
+    address each within the 3-week scope. Most fixes are framing/methodology
+    choices, not extra code — and acknowledged limits score better than hidden ones.</p>
+
+    <table>
+      <thead><tr><th>Weakness</th><th>Mitigation (in scope)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>0–100 composite score = false precision.</b> Blending an
+          unvalidated anomaly score + LLM verdict + liquidity heuristics into one
+          number looks authoritative but isn't calibrated to any real outcome.</td>
+          <td>Lead with the <b>HIGH/MEDIUM/LOW band</b>; show the number only as
+          secondary. Always render the decomposed <code>reasons[]</code>.
+          <b>Publish the weighting rubric — and state plainly that weights are
+          currently equal / uncalibrated</b> (the build composites by an
+          equal-weighted mean of mock subscores; the rubric must not imply tuned
+          weights). ~1 day, mostly S9 + a methodology note.</td>
+        </tr>
+        <tr>
+          <td><b>Anomaly detection has no ground truth.</b> Isolation Forest finds
+          statistical outliers ≠ manipulation. Evaluating only on self-injected
+          synthetic anomalies is circular.</td>
+          <td>Add a small <b>real-data sanity set</b> (~10–15 documented-controversy
+          vs. ~10–15 mundane) and show the detector fires more on the known-bad
+          set. <b>Explicit fallback:</b> this is coupled to the S1 API-access risk
+          and may slip — if trade-history retrieval is thin, ship synthetic-only
+          <i>plus</i> a stated limitation rather than blocking S3. Reframe output
+          as <b>"unusual activity worth a human look,"</b> a flag, not a scored
+          input, if the real-data check is weak.</td>
+        </tr>
+        <tr>
+          <td><b>Thin validation (n=30).</b> Too small to support accuracy claims
+          for both the LLM checker and anomaly model.</td>
+          <td>Report <b>confidence intervals</b>, not point estimates ("80%, 95% CI
+          ±14%, n=30"); add <b>inter-rater agreement</b> (≥2 labelers, Cohen's κ);
+          <b>stratify</b> the 30 (easy / ambiguous / thin-liquidity);
+          pre-register the rubric. <b>Consequence:</b> a ±14% interval means
+          "≥80%" can't be a pass/fail gate — reword the Week-2 milestone from
+          "achieve ≥80% agreement" to <b>"report agreement with CI"</b> so §4 and
+          §D don't contradict.</td>
+        </tr>
+        <tr>
+          <td><b>Unclear audience.</b> Active traders already see liquidity/volume
+          natively — what's the edge?</td>
+          <td>Position explicitly as a <b>triage &amp; citation tool for
+          non-expert / academic users</b> (library-by-department + reliability-
+          flagged APA/MLA citation already <i>are</i> this). State the mission
+          plainly in /about (S11). Zero code.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <b>Meta-point.</b> Three of the four reduce to the same move:
+      <b>present what we actually have, with explicit uncertainty, and demote
+      anything we can't back up.</b> Reviewers grade calibration and
+      self-awareness, not bravado. Only the anomaly real-data set needs genuinely
+      new work, and it has an explicit synthetic-only fallback so it can't block
+      the deliverable.
+    </div>
 
     <footer>
       UW MarketLens · DYOP Implementation Plan · Spring 2025 · University of Washington
