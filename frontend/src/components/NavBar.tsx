@@ -12,13 +12,49 @@ const links = [
   { to: "/about", label: "About" },
 ];
 
-export default function NavBar() {
+type Theme = "light" | "dark";
+
+function MoonIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      className="h-4 w-4"
+    >
+      <path d="M16.25 12.5A7.5 7.5 0 0 1 7.5 3.75 7.5 7.5 0 1 0 16.25 12.5Z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      className="h-4 w-4"
+    >
+      <circle cx="10" cy="10" r="3.5" />
+      <path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.8 4.8l1.4 1.4M13.8 13.8l1.4 1.4M4.8 15.2l1.4-1.4M13.8 6.2l1.4-1.4" />
+    </svg>
+  );
+}
+
+export default function NavBar({
+  theme,
+  toggleTheme,
+}: {
+  theme: Theme;
+  toggleTheme: () => void;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
-      <div className="mx-auto flex max-w-content items-center justify-between
-        px-5 sm:px-8 lg:px-14 py-3.5">
+      <div className="mx-auto flex max-w-content items-center justify-between px-5 py-3.5 sm:px-8 lg:px-14">
         <Link to="/" className="flex items-baseline gap-2.5">
           <span className="font-sans text-lg font-extrabold tracking-tight text-ink">
             UW MarketLens
@@ -26,38 +62,72 @@ export default function NavBar() {
           <span className="caption hidden sm:inline">reliability</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden sm:flex items-center gap-7">
-          {links.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.end}
-              className={({ isActive }) =>
-                `border-b-2 pb-0.5 text-sm transition-colors ${
-                  isActive
-                    ? "border-brand-600 text-ink font-medium"
-                    : "border-transparent text-ink/55 hover:text-ink"
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <nav
+            aria-label="Primary"
+            className="hidden items-center gap-7 sm:flex"
+          >
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end={l.end}
+                className={({ isActive }) =>
+                  `border-b-2 pb-0.5 text-sm transition-colors ${
+                    isActive
+                      ? "border-brand-600 text-ink font-medium"
+                      : "border-transparent text-ink/55 hover:text-ink"
+                  }`
+                }
+              >
+                {l.label}
+              </NavLink>
+            ))}
+          </nav>
 
-        <button
-          className="sm:hidden -mr-2 p-2 text-ink/70"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Toggle menu"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            {open ? <path d="M6 6l12 12M6 18L18 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-          </svg>
-        </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            aria-pressed={theme === "dark"}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-line bg-panel px-3 py-2 text-sm text-ink/75 transition-colors hover:text-ink"
+          >
+            {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            <span className="hidden sm:inline">
+              {theme === "dark" ? "Light" : "Dark"}
+            </span>
+          </button>
+
+          <button
+            className="-mr-2 p-2 text-ink/70 sm:hidden"
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              {open ? (
+                <path d="M6 6l12 12M6 18L18 6" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {open && (
-        <nav aria-label="Mobile" className="sm:hidden border-t border-line px-5 py-1">
+        <nav
+          aria-label="Mobile"
+          className="border-t border-line px-5 py-1 sm:hidden"
+        >
           {links.map((l) => (
             <NavLink
               key={l.to}

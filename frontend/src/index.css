@@ -7,16 +7,49 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --paper: #f6f4ef;
+    --panel: #ffffff;
+    --ink: #1a1714;
+    --line: #e4dfd5;
+    --muted: rgba(26, 23, 20, 0.7);
+    --surface-soft: rgba(26, 23, 20, 0.03);
+  }
+
+  .dark {
+    --paper: #111111;
+    --panel: #1b1b1b;
+    --ink: #f7f2e8;
+    --line: #39312a;
+    --muted: rgba(247, 242, 232, 0.76);
+    --surface-soft: rgba(255, 255, 255, 0.06);
+  }
+
   body {
     @apply bg-paper text-ink font-sans antialiased;
+    background-color: var(--paper);
+    color: var(--ink);
   }
-  h1, h2, h3 {
+
+  .dark body {
+    background-color: var(--paper);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3 {
     @apply font-sans font-extrabold tracking-tight text-ink;
+    color: var(--ink);
   }
+
   ::selection {
     @apply bg-brand-600 text-paper;
   }
-  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
     @apply outline-none ring-2 ring-brand-600/40 ring-offset-2
            ring-offset-paper;
   }
@@ -27,55 +60,145 @@
   .display {
     @apply font-display uppercase leading-[0.95] tracking-[-0.015em];
   }
+
   /* Giant graphic numeral for scores. */
   .numeral {
     @apply font-display tabular-nums leading-none tracking-[-0.02em];
   }
+
   /* Purple color surface (a real block, not an accent). */
   .block-purple {
     @apply bg-brand-800 text-paper;
   }
+
   /* Rule system. */
-  .rule { @apply border-0 border-t border-line; }
-  .rule-thick { @apply border-0 border-t-2 border-ink; }
+  .rule {
+    @apply border-0 border-t border-line;
+  }
+
+  .rule-thick {
+    @apply border-0 border-t-2 border-ink;
+  }
 
   /* Mono kicker label. */
   .caption {
     @apply font-mono text-[11px] font-medium uppercase tracking-[0.12em]
            text-brand-600;
   }
-  .eyebrow { @apply caption; }
+
+  .eyebrow {
+    @apply caption;
+  }
 
   /* Soft academic panel: gently rounded, hairline border, soft shadow. */
   .card {
     @apply rounded-xl bg-panel border border-line shadow-soft;
+    background-color: var(--panel);
+    border-color: var(--line);
   }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-2.5
            text-sm font-semibold transition-colors focus:outline-none
            focus-visible:ring-2 focus-visible:ring-brand-600/30;
   }
+
   .btn-primary {
     @apply btn bg-brand-700 text-paper hover:bg-brand-600
            active:translate-y-px;
   }
+
   .btn-ghost {
     @apply btn border border-line bg-transparent text-ink
            hover:bg-brand-600/[0.06] active:translate-y-px;
+    border-color: var(--line);
+    color: var(--ink);
   }
+
   .field {
     @apply w-full rounded-lg border-line bg-panel px-4 py-3 text-sm
            focus:border-brand-600 focus:ring-2 focus:ring-brand-600/20;
+    background-color: var(--panel);
+    border-color: var(--line);
+    color: var(--ink);
   }
+
   /* Bolder, sentence-case section heading (academic, not shouty). */
   .section-title {
     @apply font-sans text-2xl font-extrabold tracking-tight text-ink;
+    color: var(--ink);
+  }
+}
+
+@layer utilities {
+  .dark .bg-paper {
+    background-color: var(--paper);
+  }
+
+  .dark .bg-panel {
+    background-color: var(--panel);
+  }
+
+  .dark .text-ink {
+    color: var(--ink);
+  }
+
+  .dark .border-line {
+    border-color: var(--line);
+  }
+
+  .dark [class*="text-ink/"] {
+    color: var(--muted);
+  }
+
+  .dark .hover\:text-ink:hover {
+    color: var(--ink);
+  }
+
+  .dark [class*="border-ink/"] {
+    border-color: var(--line);
+  }
+
+  .dark [class*="bg-ink/"] {
+    background-color: var(--surface-soft);
+  }
+
+  .dark .shadow-soft {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 30px -14px rgba(0, 0, 0, 0.65);
+  }
+
+  .dark .card {
+    background-color: var(--panel);
+    border-color: var(--line);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28), 0 10px 28px -18px rgba(0, 0, 0, 0.75);
+  }
+
+  .dark .rule,
+  .dark .rule-thick {
+    border-color: var(--line);
+  }
+
+  .dark .field {
+    background-color: var(--panel);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  .dark .btn-ghost {
+    border-color: var(--line);
+    color: var(--ink);
+  }
+
+  .dark .section-title {
+    color: var(--ink);
   }
 }
 
 /* Honor reduced-motion globally */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
