@@ -107,6 +107,48 @@ def test_gamma_parse_end_date_parsed_as_aware_datetime():
     assert parsed["end_date"].tzinfo is not None
 
 
+def test_gamma_parse_handles_modern_clobtokenids_json_string():
+    """Regression: production 401 was caused by `clobTokenIds` arriving
+    as a JSON-encoded *string*, which the old parser assigned directly to
+    a list variable — so `token_ids[0]` returned the literal '['."""
+    from copy import deepcopy
+    event = deepcopy(GAMMA_FIXTURE[0])
+    # Strip the older `tokens` array and replace with the modern shape
+    event["markets"][0].pop("tokens", None)
+    event["markets"][0]["clobTokenIds"] = (
+        '["0xaaaaaaaaaaaaaaaa", "0xbbbbbbbbbbbbbbbb"]'
+    )
+    parsed = _parse_gamma_market(event, "https://polymarket.com/event/x")
+    assert parsed["token_ids"] == [
+        "0xaaaaaaaaaaaaaaaa", "0xbbbbbbbbbbbbbbbb",
+    ]
+    # Critically, the first id is NOT a single bracket character.
+    assert parsed["token_ids"][0] != "["
+
+
+def test_gamma_parse_handles_clobtokenids_as_list():
+    """Belt-and-braces: same field but already a proper list."""
+    from copy import deepcopy
+    event = deepcopy(GAMMA_FIXTURE[0])
+    event["markets"][0].pop("tokens", None)
+    event["markets"][0]["clobTokenIds"] = [
+        "0xccccccccccccccc", "0xddddddddddddddd",
+    ]
+    parsed = _parse_gamma_market(event, "https://polymarket.com/event/x")
+    assert parsed["token_ids"] == [
+        "0xccccccccccccccc", "0xddddddddddddddd",
+    ]
+
+
+def test_clob_fetch_refuses_malformed_token_id(tmp_path, monkeypatch):
+    """Defensive guard: refuse to despatch a bare bracket to CLOB."""
+    monkeypatch.delenv(LIVE_ENV_FLAG, raising=False)
+    monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
+    with httpx.Client() as client:
+        with pytest.raises(ValueError, match="malformed token_id"):
+            _fetch_clob_trades(client, "[", limit=500)
+
+
 # --------------------------------------------------------------------------
 # CLOB trade parse — verifies B1 (addresses) and field-name tolerance
 # --------------------------------------------------------------------------
@@ -158,14 +200,14 @@ def test_clob_parse_handles_unix_and_iso_timestamps(tmp_path, monkeypatch):
     monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
     from app.ingestion.cache import cache_key as _ck, write as _w
     key = _ck("GET", "https://clob.polymarket.com/trades",
-              {"market": "y", "limit": 500})
+              {"market": "yes-token-test", "limit": 500})
     _w(key, {"method": "GET",
              "url": "https://clob.polymarket.com/trades",
-             "params": {"market": "y", "limit": 500}},
+             "params": {"market": "yes-token-test", "limit": 500}},
        CLOB_FIXTURE, cache_dir=tmp_path)
 
     with httpx.Client() as client:
-        trades = _fetch_clob_trades(client, "y", limit=500)
+        trades = _fetch_clob_trades(client, "yes-token-test", limit=500)
     by_id = {t.trade_id: t for t in trades}
     # ISO -> aware datetime
     assert by_id["trade-001"].timestamp.tzinfo is not None
@@ -179,14 +221,14 @@ def test_clob_parse_skips_malformed_records(tmp_path, monkeypatch):
     monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
     from app.ingestion.cache import cache_key as _ck, write as _w
     key = _ck("GET", "https://clob.polymarket.com/trades",
-              {"market": "y", "limit": 500})
+              {"market": "yes-token-test", "limit": 500})
     _w(key, {"method": "GET",
              "url": "https://clob.polymarket.com/trades",
-             "params": {"market": "y", "limit": 500}},
+             "params": {"market": "yes-token-test", "limit": 500}},
        CLOB_FIXTURE, cache_dir=tmp_path)
 
     with httpx.Client() as client:
-        trades = _fetch_clob_trades(client, "y", limit=500)
+        trades = _fetch_clob_trades(client, "yes-token-test", limit=500)
     ids = [t.trade_id for t in trades]
     assert "trade-009-malformed" not in ids
 
@@ -387,3 +429,4 @@ def test_live_route_503_on_cache_miss_without_live_flag(tmp_path, monkeypatch):
                         json={"url": "https://polymarket.com/event/nope"})
     assert r.status_code == 503
     assert "MARKETLENS_POLYMARKET_LIVE" in r.text
+

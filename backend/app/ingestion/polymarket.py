@@ -196,6 +196,46 @@ def _fetch_gamma_market(client: httpx.Client, slug: str) -> dict:
     return event
 
 
+def _extract_token_ids(primary: dict) -> list[str]:
+    """Pull YES/NO token ids from a Gamma market record.
+
+    Polymarket's Gamma API has been through a few shapes; we tolerate
+    three of them in this order of preference:
+
+      1. `tokens: [{token_id, outcome}, ...]` — older shape; our
+         committed fixtures use this.
+      2. `clobTokenIds: '["0x...", "0x..."]'` — modern shape: a
+         JSON-encoded *string* containing the array. Naively assigning
+         this to a list variable gives back the string, and `[0]`
+         returns the first character (a literal `[`). That was the
+         smoking-gun bug behind the production 401 — CLOB returned
+         `?market=[` and quite rightly refused.
+      3. `clobTokenIds: ["0x...", "0x..."]` — the same field, but
+         already a proper list. Belt and braces.
+    """
+    import json as _json
+
+    raw_tokens = primary.get("tokens") or []
+    if isinstance(raw_tokens, list):
+        ids = [t["token_id"] for t in raw_tokens
+               if isinstance(t, dict) and "token_id" in t]
+        if ids:
+            return ids
+
+    raw_clob = primary.get("clobTokenIds")
+    if isinstance(raw_clob, str):
+        try:
+            parsed = _json.loads(raw_clob)
+        except _json.JSONDecodeError:
+            parsed = []
+        if isinstance(parsed, list):
+            return [str(x) for x in parsed if x]
+    if isinstance(raw_clob, list):
+        return [str(x) for x in raw_clob if x]
+
+    return []
+
+
 def _parse_gamma_market(event: dict, url: str) -> dict:
     """
     Pull the fields we need out of a Gamma event object.
@@ -210,10 +250,7 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
 
     # Use the first (YES) market for token IDs, price, and metadata
     primary = markets[0]
-    token_ids = [t["token_id"] for t in primary.get("tokens", []) if "token_id" in t]
-    if not token_ids:
-        # Fall back to clob_token_ids if tokens list is absent
-        token_ids = primary.get("clobTokenIds", [])
+    token_ids = _extract_token_ids(primary)
 
     # Outcome prices: ["0.62", "0.38"] → YES price is index 0
     outcome_prices = primary.get("outcomePrices", ["0.5", "0.5"])
@@ -275,6 +312,16 @@ def _fetch_clob_trades(
     Returns up to `limit` most recent trades for this token.
     The CLOB /trades endpoint is public (no auth).
     """
+    # Defensive: a malformed token_id (empty string, single bracket char,
+    # short JSON-fragment) would otherwise reach Polymarket as
+    # `?market=[` and be answered with an opaque 401 Unauthorized. Refuse
+    # locally with a clearer error so the cause is obvious in the logs.
+    if not isinstance(token_id, str) or len(token_id) < 4:
+        raise ValueError(
+            f"Refusing to query CLOB with malformed token_id "
+            f"{token_id!r} (likely a Gamma parse bug — see "
+            f"`_extract_token_ids`)."
+        )
     data = _get(
         client,
         f"{CLOB_BASE}/trades",
