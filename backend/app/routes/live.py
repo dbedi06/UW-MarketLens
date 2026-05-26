@@ -45,6 +45,7 @@ from ..anomaly.features import (
 )
 from ..anomaly import scoring as anomaly_scoring
 from .. import mock
+from ..resolution import resolve_market
 
 router = APIRouter(prefix="/api/live", tags=["score-live"])
 logger = logging.getLogger(__name__)
@@ -61,10 +62,11 @@ logger = logging.getLogger(__name__)
 def _scores_to_marketscore(
     *, url: str, as_of: str, market: RawMarket,
     X_base: np.ndarray, widx: np.ndarray, anomaly_scores: np.ndarray,
+    resolution_assessment,
 ) -> MarketScore:
     """Translate real per-window scores into the existing MarketScore
     Pydantic shape. Subscores other than anomaly remain placeholders
-    until S4/S5/composite land — clearly marked in `reasons`."""
+    until S5/composite land — clearly marked in `reasons`."""
     # Normalize anomaly scores to 0-1, higher=more anomalous, for display
     # parity with the existing anomaly_series.flagged convention.
     if anomaly_scores.size:
@@ -103,16 +105,20 @@ def _scores_to_marketscore(
 
     # Liquidity sub-score: cheap heuristic from real volume + spread.
     liquidity = _liquidity_subscore(market)
-    # Resolution sub-score: HIGH if market resolved and reasoning is the
-    # Gamma `winner` field; otherwise UNVERIFIABLE placeholder until S4.
-    resolution_sub = 80 if market.resolved else 50
+    resolution_sub = resolution_assessment.resolution_quality
 
     overall = int(round((liquidity + anomaly_subscore + resolution_sub) / 3))
     band = "HIGH" if overall >= 70 else "MEDIUM" if overall >= 40 else "LOW"
 
     n_flagged = int(np.sum(flagged))
-    reasons = _live_reasons(liquidity, anomaly_subscore, resolution_sub,
-                            n_flagged, market)
+    reasons = _live_reasons(
+        liquidity,
+        anomaly_subscore,
+        resolution_sub,
+        n_flagged,
+        market,
+        resolution_assessment,
+    )
     headline = _live_headline(overall, n_flagged, market)
 
     sid = mock.snapshot_id(url, as_of)
@@ -145,12 +151,9 @@ def _scores_to_marketscore(
             top_features=["volume", "price_volatility", "unique_traders"],
         ),
         resolution=ResolutionVerdict(
-            verdict="HIGH" if market.resolved else "UNVERIFIABLE",
-            reasoning=("Gamma reports market resolved; full LLM-as-judge "
-                       "verification arrives with S4."
-                       if market.resolved else
-                       "Market unresolved; resolution check pending (S4)."),
-            supporting_sources=[],
+            verdict=resolution_assessment.verdict,
+            reasoning=resolution_assessment.reasoning,
+            supporting_sources=resolution_assessment.supporting_sources,
         ),
         tags=Tags(departments=["ECON"], course_applicability=60),
         citation=mock.make_citation(url, as_of, permalink, overall),
@@ -188,9 +191,19 @@ def _liquidity_subscore(market: RawMarket) -> int:
 
 
 def _live_reasons(liquidity: int, anomaly_sub: int, resolution_sub: int,
-                  n_flagged: int, market: RawMarket) -> list[ReasonItem]:
+                  n_flagged: int, market: RawMarket,
+                  resolution_assessment) -> list[ReasonItem]:
     def sev(v: int) -> str:
         return "good" if v >= 70 else "warn" if v >= 40 else "bad"
+
+    resolution_detail = (
+        "LLM-as-judge is live: NewsAPI and Claude validate the market question "
+        "against independent reporting, with a fallback to UNVERIFIABLE when "
+        "keys or usable sources are unavailable."
+        if not resolution_assessment.used_fallback
+        else "Resolution checking fell back to UNVERIFIABLE because the "
+             "required NewsAPI/Anthropic inputs were not available."
+    )
 
     return [
         ReasonItem(
@@ -212,7 +225,7 @@ def _live_reasons(liquidity: int, anomaly_sub: int, resolution_sub: int,
             factor="resolution", severity=sev(resolution_sub),
             headline=("Market resolved per Gamma" if market.resolved
                       else "Market unresolved"),
-            detail="LLM-as-judge resolution check arrives with S4.",
+            detail=resolution_detail,
         ),
     ]
 
@@ -263,9 +276,14 @@ def live_score(req: ScoreRequest, request: Request) -> MarketScore:
     F = feature_matrix_streams_with_network(X_base, X_net, mid, widx)
     detector = anomaly_scoring.get_detector()
     scores = detector.score(F)
+    resolution_assessment = resolve_market(
+        market.question or url,
+        resolved=bool(market.resolved),
+    )
 
     as_of = (req.as_of or date.today().isoformat())
     return _scores_to_marketscore(
         url=url, as_of=as_of, market=market,
         X_base=X_base, widx=widx, anomaly_scores=scores,
+        resolution_assessment=resolution_assessment,
     )

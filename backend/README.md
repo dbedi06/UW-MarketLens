@@ -26,15 +26,28 @@ On Render, `MARKETLENS_POLYMARKET_LIVE=1` is set declaratively in
 is gitkept but its contents are not tracked, so each environment
 warms its own cache from real Polymarket calls.
 
+## S4 Resolution Checker
+
+Set these environment variables to enable S4 live resolution checks:
+
+```powershell
+$env:NEWS_API_KEY = "<your-newsapi-key>"
+$env:ANTHROPIC_API_KEY = "<your-anthropic-key>"
+```
+
+If either key is missing, `/api/live/score` falls back to
+`UNVERIFIABLE` and `resolution_quality = 0` so the API still responds
+cleanly rather than failing the request.
+
 ## Endpoints
 
-| Method | Path                | Body                          | Returns        |
-|--------|---------------------|-------------------------------|----------------|
-| GET    | `/health`           | —                             | liveness       |
-| POST   | `/api/score`        | `{ "url": "..." }`            | `MarketScore` (mock) |
-| POST   | `/api/live/score`   | `{ "url": "..." }`            | `MarketScore` (real Polymarket → S1→S2→S3) |
-| GET    | `/api/library`      | —                             | `LibraryEntry[]` |
-| POST   | `/api/citation`     | `{ "url": "...", "style": "APA" }` | `Citation` |
+| Method | Path              | Body                               | Returns                                    |
+| ------ | ----------------- | ---------------------------------- | ------------------------------------------ |
+| GET    | `/health`         | —                                  | liveness                                   |
+| POST   | `/api/score`      | `{ "url": "..." }`                 | `MarketScore` (mock)                       |
+| POST   | `/api/live/score` | `{ "url": "..." }`                 | `MarketScore` (real Polymarket → S1→S2→S3) |
+| GET    | `/api/library`    | —                                  | `LibraryEntry[]`                           |
+| POST   | `/api/citation`   | `{ "url": "...", "style": "APA" }` | `Citation`                                 |
 
 The frontend defaults to Live and exposes a Mock toggle in the nav.
 `/api/live/score` returns 503 on cache miss when
