@@ -21,6 +21,33 @@ import SocialPreview from "./SocialPreview";
 // recharts is heavy — split it into its own chunk.
 const AnomalyChart = lazy(() => import("./AnomalyChart"));
 
+function SourceBadge({ source }: { source: "live" | "mock" }) {
+  const isLive = source === "live";
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5
+        text-[10px] font-bold uppercase tracking-wider ${
+          isLive
+            ? "border-warn/40 bg-warn/10 text-warn"
+            : "border-line bg-panel text-ink/55"
+        }`}
+      title={
+        isLive
+          ? "Score produced by the live S1→S2→S3 chain on real Polymarket data (synthetic-trained detector)."
+          : "Score produced by the deterministic mock data path."
+      }
+    >
+      <span
+        aria-hidden
+        className={`h-1.5 w-1.5 rounded-full ${
+          isLive ? "bg-warn" : "bg-ink/30"
+        }`}
+      />
+      {isLive ? "Live" : "Mock"}
+    </span>
+  );
+}
+
 function MarketFacts({ data }: { data: MarketScore }) {
   const m = data.meta;
   const items: [string, string][] = [
@@ -62,6 +89,11 @@ export default function MarketReport({
       </div>
 
       <div className="space-y-10">
+        {data.source && (
+          <div className="-mb-6 flex items-center justify-end">
+            <SourceBadge source={data.source} />
+          </div>
+        )}
         <WhyPanel reasons={data.reasons} />
         <Suspense fallback={<Skeleton className="h-80" />}>
           <AnomalyChart series={data.anomaly_series} />
@@ -74,9 +106,19 @@ export default function MarketReport({
           <SocialPreview snapshotId={data.snapshot_id} />
         )}
         <p className="pt-1 text-center text-xs italic text-ink/40">
-          Deterministic mock data (backend <code>app/mock.py</code>). The same
-          URL and date always yield this exact report. The real S1-S7 pipeline
-          replaces it later with no frontend change.
+          {data.source === "live" ? (
+            <>
+              Live data via the S1→S2→S3 chain. The detector is
+              synthetic-trained, so this score is directional, not
+              authoritative — see <code>MODEL_STATUS.md</code>.
+            </>
+          ) : (
+            <>
+              Deterministic mock data (backend <code>app/mock.py</code>). The
+              same URL and date always yield this exact report. The real
+              S1-S7 pipeline replaces it later with no frontend change.
+            </>
+          )}
         </p>
       </div>
     </motion.div>

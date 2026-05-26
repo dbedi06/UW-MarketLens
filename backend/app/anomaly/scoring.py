@@ -30,6 +30,9 @@ from ..ingestion import fetch_market
 _TRAIN_M = 80
 _TRAIN_W = 30
 _TRAIN_SEED = 7
+_REF_M = 40
+_REF_W = 30
+_REF_SEED = 8  # disjoint from training seed
 _TOP_K = 3
 
 _DETECTOR: IsoForestDetector | None = None
@@ -38,8 +41,18 @@ _DETECTOR: IsoForestDetector | None = None
 def get_detector() -> IsoForestDetector:
     """Lazy-fit a single IsoForestDetector on synthetic streams with
     network features. Cached at module level; the live route and the
-    labeled-eval scorer share the same model so behavior is identical
-    across both pathways."""
+    labeled-eval scorer share the same model so behavior is identical.
+
+    Two calibration artifacts are attached to the detector singleton:
+      * `_reference_scores`: sorted array of detector scores on a
+        disjoint held-out clean block. Used to convert a market's
+        score statistic into a cross-market-comparable percentile
+        (fixes B1: within-market normalization collapsed to ~50).
+      * `_network_medians`: per-column median of the training network
+        block. Used as the imputation value when a real market has
+        no wallet addresses (fixes B5: zero-imputation looked like
+        a sybil ring on the topology axes).
+    """
     global _DETECTOR
     if _DETECTOR is not None:
         return _DETECTOR
@@ -50,6 +63,25 @@ def get_detector() -> IsoForestDetector:
     det = IsoForestDetector(n_estimators=200, contamination=0.05,
                             seed=_TRAIN_SEED)
     det.fit(F)
+
+    # Reference distribution: score a fresh clean block; sorted scores
+    # become the empirical CDF for percentile lookup at scoring time.
+    Xb_r, Xn_r, mid_r, widx_r = clean_streams_with_network(
+        n_markets=_REF_M, w_per_market=_REF_W, seed=_REF_SEED,
+    )
+    F_ref = feature_matrix_streams_with_network(Xb_r, Xn_r, mid_r, widx_r)
+    ref_window_scores = det.score(F_ref)
+    # Reduce per-market the same way the live route will: mean of top-K.
+    ref_market_stats = []
+    for m in np.unique(mid_r):
+        ws = ref_window_scores[mid_r == m]
+        k = min(_TOP_K, ws.shape[0])
+        ref_market_stats.append(float(np.mean(np.sort(ws)[-k:])))
+    det._reference_scores = np.sort(np.array(ref_market_stats, dtype=float))
+
+    # Network feature medians for honest imputation.
+    det._network_medians = np.median(X_net, axis=0)
+
     _DETECTOR = det
     return det
 
@@ -58,6 +90,17 @@ def reset_detector() -> None:
     """Tests use this to force a fresh fit on `tmp_path` cache state."""
     global _DETECTOR
     _DETECTOR = None
+
+
+def percentile_from_reference(stat: float, reference: np.ndarray) -> float:
+    """Empirical CDF of `stat` against a sorted reference array. Returns
+    a value in [0, 1] where 1 means "more anomalous than all of reference."
+    """
+    if reference.size == 0:
+        return 0.5
+    # Number of reference values strictly less than stat → percentile.
+    idx = int(np.searchsorted(reference, stat, side="right"))
+    return float(idx) / float(reference.size)
 
 
 def score_market_url(url: str) -> float:
@@ -77,15 +120,16 @@ def score_market_url(url: str) -> float:
     if X_base.shape[0] == 0:
         return float("nan")
 
-    # If network features are NaN, replace with the synthetic mean as a
-    # last-ditch fallback — the score is still computable but biased
-    # toward "no signal" on the network axes. Honest disclosure: the
-    # labeled-eval report flags markets where this happened.
+    det = get_detector()
+    # B5 fix: impute NaN network features with the training-set median
+    # per column instead of zero. Zero pushed markets to the low corner
+    # of the network feature space, which looked like a sybil ring;
+    # the median is a "no signal" choice.
     if np.isnan(X_net).any():
-        X_net = np.where(np.isnan(X_net), 0.0, X_net)
+        medians = det._network_medians
+        X_net = np.where(np.isnan(X_net), medians[None, :], X_net)
 
     F = feature_matrix_streams_with_network(X_base, X_net, mid, widx)
-    det = get_detector()
     per_window = det.score(F)
     k = min(_TOP_K, per_window.shape[0])
     top_k = np.sort(per_window)[-k:]

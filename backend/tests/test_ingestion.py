@@ -369,7 +369,10 @@ def test_live_route_returns_market_score_against_cache(tmp_path, monkeypatch):
     assert body["market_url"] == url
     assert body["band"] in {"HIGH", "MEDIUM", "LOW"}
     assert 0 <= body["reliability_score"] <= 100
-    assert len(body["anomaly_series"]) >= 3  # we required >=3 windows
+    # B9: >=4 windows required for relative-feature baseline
+    assert len(body["anomaly_series"]) >= 4
+    # B8: source field reports the live path
+    assert body["source"] == "live"
 
 
 def test_live_route_503_on_cache_miss_without_live_flag(tmp_path, monkeypatch):

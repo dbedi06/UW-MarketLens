@@ -84,6 +84,7 @@ export interface MarketScore {
   as_of: string;
   snapshot_id: string;
   permalink: string;
+  source?: "live" | "mock";
 }
 
 export interface LibraryEntry {

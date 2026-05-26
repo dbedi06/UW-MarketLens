@@ -12,6 +12,9 @@ frontend/.vite/
 .env
 *.local
 
+# Ingestion cache contents (dir is gitkept; per-market JSON is not)
+backend/app/ingestion/cache/*.json
+
 # OS / editor
 .DS_Store
 Thumbs.db

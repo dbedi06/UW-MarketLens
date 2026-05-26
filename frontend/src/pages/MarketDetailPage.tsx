@@ -98,7 +98,7 @@ export default function MarketDetailPage() {
         )}
       </div>
 
-      {mode === "live" && !error && <LiveDisclaimer />}
+      {mode === "live" && <LiveDisclaimer />}
 
       {loading && <LoadingState />}
       {error && !loading && (
