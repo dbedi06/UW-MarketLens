@@ -333,7 +333,17 @@ def live_score(req: ScoreRequest, request: Request) -> MarketScore:
                     f"({exc})"),
         )
     except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
+        # Distinguish "market does not exist on Polymarket" (404) from
+        # "market exists but has insufficient data to score" (422). Both
+        # arrive as ValueError today — the message is the discriminator.
+        msg = str(exc)
+        if "No Gamma event" in msg or "has no markets" in msg:
+            raise HTTPException(
+                status_code=404,
+                detail=(f"This market doesn't appear to exist on Polymarket. "
+                        f"Verify the URL by opening it in a browser. ({msg})"),
+            )
+        raise HTTPException(status_code=422, detail=msg)
     except httpx.HTTPStatusError as exc:
         # Upstream Polymarket returned an error (e.g., 401 for a malformed
         # token id, 404 for an unknown slug, 5xx during outage). Surface a
