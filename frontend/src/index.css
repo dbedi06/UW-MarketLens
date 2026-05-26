@@ -189,8 +189,70 @@
     color: var(--ink);
   }
 
+  .dark .caption {
+    color: #ad96d4;
+  }
+
   .dark .section-title {
     color: var(--ink);
+  }
+
+  .dark .text-brand-600 {
+    color: #ad96d4;
+  }
+
+  .dark .text-brand-700 {
+    color: #cdbfe6;
+  }
+
+  .hero-radial {
+    opacity: 0.18;
+    background-image: radial-gradient(
+        55% 60% at 15% 10%,
+        rgba(255, 255, 255, 0.05) 0,
+        transparent 60%
+      ),
+      radial-gradient(50% 55% at 88% 0, rgba(183, 165, 122, 0.18) 0, transparent 55%);
+  }
+
+  .hero-grid {
+    opacity: 0.08;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(120% 95% at 50% 0, #000 35%, transparent 80%);
+  }
+
+  .dark .hero-radial {
+    opacity: 0.2;
+  }
+
+  .dark .hero-grid {
+    opacity: 0.1;
+  }
+
+  .home-marker {
+    color: rgba(75, 46, 131, 0.88);
+  }
+
+  .dark .home-marker {
+    color: rgba(247, 242, 232, 0.85);
+  }
+
+  .hero-label-row {
+    color: #5d4a1f;
+  }
+
+  .hero-label-divider {
+    background-color: rgba(93, 74, 31, 0.6);
+  }
+
+  .dark .hero-label-row {
+    color: #b7a57a;
+  }
+
+  .dark .hero-label-divider {
+    background-color: rgba(183, 165, 122, 0.5);
   }
 }
 

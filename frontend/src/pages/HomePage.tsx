@@ -36,16 +36,14 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* ---- Purple masthead: brighter brand gradient + light grid + glow ---- */}
+      {/* ---- Purple masthead: deeper brand gradient + reduced glow ---- */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br
-          from-brand-700 via-brand-600 to-brand-700" />
-        <div className="absolute inset-0 -z-10 opacity-90
-          [background-image:radial-gradient(55%_60%_at_15%_10%,rgba(255,255,255,.16)_0,transparent_60%),radial-gradient(50%_55%_at_88%_0,rgba(183,165,122,.30)_0,transparent_55%)]" />
-        <div className="absolute inset-0 -z-10 opacity-80
-          [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)]
-          [background-size:46px_46px]
-          [mask-image:radial-gradient(120%_95%_at_50%_0,#000_35%,transparent_80%)]" />
+        <div
+          className="absolute inset-0 -z-10 bg-gradient-to-br
+          from-brand-900 via-brand-800 to-brand-900"
+        />
+        <div className="hero-radial absolute inset-0 -z-10" />
+        <div className="hero-grid absolute inset-0 -z-10" />
 
         <motion.div
           variants={stagger}
@@ -56,11 +54,11 @@ export default function HomePage() {
         >
           <motion.div
             variants={fadeUp}
-            className="flex items-center gap-3 font-mono text-[11px]
-              font-medium uppercase tracking-[0.14em] text-gold"
+            className="hero-label-row flex items-center gap-3 font-mono
+              text-[13px] font-medium uppercase tracking-[0.14em]"
           >
             <span>UW · Academic-grade</span>
-            <span className="h-px w-10 bg-gold/50" />
+            <span className="hero-label-divider h-px w-10" />
             <span>Prediction-market reliability</span>
           </motion.div>
 
@@ -69,13 +67,12 @@ export default function HomePage() {
             className="display mt-7 max-w-[16ch] text-[clamp(2.75rem,8vw,7rem)]
               text-paper"
           >
-            Is this market{" "}
-            <span className="text-gold">citable?</span>
+            Is this market <span className="text-gold">citable?</span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="mt-7 max-w-xl text-lg leading-relaxed text-paper/75"
+            className="mt-7 max-w-xl text-[19px] leading-relaxed text-paper/90"
           >
             MarketLens explains, in plain language, why a Polymarket market is
             or isn't reliable, and issues a stable, dated citation you can
@@ -83,10 +80,7 @@ export default function HomePage() {
           </motion.p>
 
           {/* Search on a soft floating card (light, usable) */}
-          <motion.div
-            variants={fadeUp}
-            className="card mt-10 max-w-2xl p-5"
-          >
+          <motion.div variants={fadeUp} className="card mt-10 max-w-2xl p-5">
             <label className="caption">Market URL</label>
             <div className="mt-2.5 flex flex-col gap-3 sm:flex-row">
               <input
@@ -105,7 +99,7 @@ export default function HomePage() {
             </div>
             <p
               className={`mt-2.5 font-mono text-xs ${
-                err ? "text-bad" : "text-ink/45"
+                err ? "text-bad" : "text-ink/65"
               }`}
             >
               {err ?? "Try the sample URL above, or paste any market link."}
@@ -115,8 +109,10 @@ export default function HomePage() {
       </section>
 
       {/* ---- Pillars: soft rounded cards ---- */}
-      <section className="mx-auto grid max-w-content gap-5 px-5 sm:px-8
-        lg:px-14 py-14 md:grid-cols-2">
+      <section
+        className="mx-auto grid max-w-content gap-5 px-5 sm:px-8
+        lg:px-14 py-14 md:grid-cols-2"
+      >
         {[
           {
             n: "01",
@@ -130,9 +126,11 @@ export default function HomePage() {
           },
         ].map((p) => (
           <div key={p.n} className="card p-8 sm:p-10">
-            <div className="numeral text-6xl text-brand-600/20">{p.n}</div>
-            <h2 className="mt-3 font-sans text-2xl font-extrabold
-              tracking-tight text-ink">
+            <div className="home-marker numeral text-6xl">{p.n}</div>
+            <h2
+              className="mt-3 font-sans text-2xl font-extrabold
+              tracking-tight text-ink"
+            >
               {p.t}
             </h2>
             <p className="mt-3 leading-relaxed text-ink/65">{p.d}</p>
@@ -150,7 +148,7 @@ export default function HomePage() {
                 <button
                   onClick={() => go(r)}
                   className="flex w-full items-center justify-between gap-4
-                    py-3.5 text-left font-mono text-[13px] text-ink/70
+                    py-3.5 text-left font-mono text-[13px] text-ink/80
                     transition-colors hover:text-ink"
                 >
                   <span className="truncate">
