@@ -348,12 +348,15 @@ def live_score(req: ScoreRequest, request: Request) -> MarketScore:
         # Upstream Polymarket returned an error (e.g., 401 for a malformed
         # token id, 404 for an unknown slug, 5xx during outage). Surface a
         # 502 with the upstream code rather than crashing into a 500.
-        logger.warning("live: upstream Polymarket error %d for %s",
-                       exc.response.status_code, url)
+        failed_url = str(exc.request.url) if exc.request else "<unknown>"
+        logger.warning(
+            "live: upstream Polymarket error %d on %s (event=%s)",
+            exc.response.status_code, failed_url, url,
+        )
         raise HTTPException(
             status_code=502,
             detail=(f"Polymarket returned {exc.response.status_code} for "
-                    f"this market. The URL may be invalid, the market "
-                    f"may not exist, or the API may be experiencing "
-                    f"trouble. Switch to Mock mode to keep browsing."),
+                    f"the upstream call to {failed_url}. The market URL "
+                    f"may be valid but the API may have changed shape. "
+                    f"Switch to Mock mode to keep browsing."),
         )
