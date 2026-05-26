@@ -31,6 +31,7 @@ import logging
 from datetime import date, datetime, timezone
 from typing import Optional
 
+import httpx
 import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 
@@ -62,26 +63,60 @@ logger = logging.getLogger(__name__)
 def _scores_to_marketscore(
     *, url: str, as_of: str, market: RawMarket,
     X_base: np.ndarray, widx: np.ndarray, anomaly_scores: np.ndarray,
-    resolution_assessment,
+    detector, resolution_assessment,
 ) -> MarketScore:
     """Translate real per-window scores into the existing MarketScore
     Pydantic shape. Subscores other than anomaly remain placeholders
-    until S5/composite land — clearly marked in `reasons`."""
-    # Normalize anomaly scores to 0-1, higher=more anomalous, for display
-    # parity with the existing anomaly_series.flagged convention.
+    until S4/S5/composite land — clearly marked in `reasons`.
+
+    B1 fix: anomaly_subscore is now a percentile against the detector's
+    reference distribution (a held-out clean block scored at training
+    time), not a within-market normalization. This makes the subscore
+    actually vary across markets instead of collapsing to ~50.
+    """
     if anomaly_scores.size:
-        s_lo = float(np.min(anomaly_scores))
-        s_hi = float(np.max(anomaly_scores))
-        if s_hi > s_lo:
-            norm = (anomaly_scores - s_lo) / (s_hi - s_lo)
+        # Per-window display values: percentile of each window's raw score
+        # against the per-market-stat reference. Bounded [0, 1].
+        ref = getattr(detector, "_reference_scores", None)
+        if ref is None or ref.size == 0:
+            # Defensive fallback — shouldn't happen with a properly built
+            # detector, but if it does, fall back to clipping raw scores
+            # to a reasonable absolute range. Better to be conservative
+            # than to crash.
+            per_window_pct = np.clip(
+                (anomaly_scores - anomaly_scores.min())
+                / max(1e-9, anomaly_scores.max() - anomaly_scores.min()),
+                0.0, 1.0,
+            )
         else:
-            norm = np.zeros_like(anomaly_scores)
-        # Flag the top 10% of windows by score (cheap proxy; real
-        # threshold selection lives in IsoForestDetector.pick_threshold
-        # but needs a clean validation set).
-        flag_cutoff = float(np.quantile(norm, 0.90)) if norm.size >= 10 else float(np.max(norm))
-        flagged = norm >= flag_cutoff
-        anomaly_subscore = int(round(100 * (1.0 - float(np.mean(norm)))))
+            per_window_pct = np.array([
+                anomaly_scoring.percentile_from_reference(s, ref)
+                for s in anomaly_scores
+            ])
+
+        # Market-level statistic: mean of top-K window scores (matches the
+        # labeled-eval scorer in scoring.score_market_url).
+        k = min(3, anomaly_scores.shape[0])
+        market_stat = float(np.mean(np.sort(anomaly_scores)[-k:]))
+        market_pct = (
+            anomaly_scoring.percentile_from_reference(market_stat, ref)
+            if ref is not None and ref.size else float(np.mean(per_window_pct))
+        )
+        # Higher percentile = more anomalous; subscore inverts (higher
+        # = healthier).
+        anomaly_subscore = int(round(100 * (1.0 - market_pct)))
+
+        # Flag windows above the 90th percentile of the per-window
+        # distribution (still within-market, fine for display).
+        if per_window_pct.size >= 10:
+            flag_cutoff = float(np.quantile(per_window_pct, 0.90))
+        else:
+            # With few windows, flag only those above the per-window 50th
+            # percentile of the reference — avoids "flag everything" or
+            # "flag nothing" extremes.
+            flag_cutoff = 0.5
+        flagged = per_window_pct >= flag_cutoff
+        norm = per_window_pct  # back-compat: variable name used below
     else:
         norm = np.zeros(0)
         flagged = np.zeros(0, dtype=bool)
@@ -123,6 +158,7 @@ def _scores_to_marketscore(
 
     sid = mock.snapshot_id(url, as_of)
     permalink = f"/snapshot/{sid}"
+    mock.register_snapshot(sid, url, as_of, "live")
 
     return MarketScore(
         market_url=url,
@@ -160,6 +196,7 @@ def _scores_to_marketscore(
         as_of=as_of,
         snapshot_id=sid,
         permalink=permalink,
+        source="live",
     )
 
 
@@ -185,8 +222,17 @@ def _liquidity_subscore(market: RawMarket) -> int:
     # Cheap heuristic: more volume + tighter spread = higher score.
     # Real composite belongs in S7; this keeps the route honest by not
     # pretending the placeholder is anything more than that.
-    vol_pts = min(60, int(market.volume_usd / 5000))     # 0..60
-    spread_pts = max(0, int(40 - market.spread * 1000))  # 0..40 if spread<0.04
+    # B3 fix: guard against NaN / non-finite values from the API.
+    vol = market.volume_usd
+    if not np.isfinite(vol):
+        vol_pts = 30  # neutral fallback
+    else:
+        vol_pts = min(60, max(0, int(vol / 5000)))     # 0..60
+    spread = market.spread
+    if not np.isfinite(spread):
+        spread_pts = 20  # neutral fallback
+    else:
+        spread_pts = max(0, min(40, int(40 - spread * 1000)))
     return max(0, min(100, vol_pts + spread_pts))
 
 
@@ -236,6 +282,52 @@ def _live_headline(overall: int, n_flagged: int, market: RawMarket) -> str:
             f"{n_flagged} flagged window(s) over {len(market.trades)} trades.")
 
 
+# ── shared render path (used by route + snapshot dispatch) ─────────────────
+
+def render_live_snapshot(url: str, as_of: str) -> MarketScore:
+    """Run the full S1→S2→S3 chain for `url` and emit a MarketScore.
+
+    Used by both `POST /api/live/score` and `GET /api/snapshot/{id}` when
+    the snapshot was originally produced by the live route. Raises
+    `IngestionUnavailable` on cache miss (caller maps to HTTP 503) and
+    `ValueError` on <4 windows (caller maps to HTTP 422).
+    """
+    market = fetch_market(url)
+    X_base, X_net, mid, widx = from_trades_with_network(market)
+    # B9 fix: bump from <3 to <4. With 3 windows, _rolling_z's min_n=3
+    # requirement leaves the relative axis at zero for every window.
+    # At 4 windows the 4th gets a real relative z-score.
+    if X_base.shape[0] < 4:
+        raise ValueError(
+            f"Not enough trade history: got {X_base.shape[0]} window(s), "
+            f"need >=4 for relative-feature baseline."
+        )
+
+    detector = anomaly_scoring.get_detector()
+    # B5 fix: impute NaN network features with the training-set median
+    # per column instead of zero. Zero imputation pushed markets to the
+    # extreme-low corner of the network feature space, which looked like
+    # a sybil ring.
+    if np.isnan(X_net).any():
+        medians = detector._network_medians
+        logger.warning("live: wallet addresses missing for %s; network "
+                       "features imputed to training-set median.", url)
+        X_net = np.where(np.isnan(X_net), medians[None, :], X_net)
+
+    F = feature_matrix_streams_with_network(X_base, X_net, mid, widx)
+    scores = detector.score(F)
+    resolution_assessment = resolve_market(
+        market.question or url,
+        resolved=bool(market.resolved),
+    )
+    return _scores_to_marketscore(
+        url=url, as_of=as_of, market=market,
+        X_base=X_base, widx=widx, anomaly_scores=scores,
+        detector=detector,
+        resolution_assessment=resolution_assessment,
+    )
+
+
 # ── route ────────────────────────────────────────────────────────────────────
 
 @router.post("/score", response_model=MarketScore)
@@ -245,8 +337,9 @@ def live_score(req: ScoreRequest, request: Request) -> MarketScore:
         raise HTTPException(status_code=400,
                             detail="Expected a polymarket.com URL")
 
+    as_of = (req.as_of or date.today().isoformat())
     try:
-        market = fetch_market(url)
+        return render_live_snapshot(url, as_of)
     except IngestionUnavailable as exc:
         raise HTTPException(
             status_code=503,
@@ -256,34 +349,31 @@ def live_score(req: ScoreRequest, request: Request) -> MarketScore:
                     f"`python -m scripts.fetch_market --url ...`. "
                     f"({exc})"),
         )
-
-    X_base, X_net, mid, widx = from_trades_with_network(market)
-    if X_base.shape[0] < 3:
-        raise HTTPException(
-            status_code=422,
-            detail=(f"Not enough trade history: got {X_base.shape[0]} "
-                    f"window(s), need >=3 for relative-feature baseline."),
+    except ValueError as exc:
+        # Distinguish "market does not exist on Polymarket" (404) from
+        # "market exists but has insufficient data to score" (422). Both
+        # arrive as ValueError today — the message is the discriminator.
+        msg = str(exc)
+        if "No Gamma event" in msg or "has no markets" in msg:
+            raise HTTPException(
+                status_code=404,
+                detail=(f"This market doesn't appear to exist on Polymarket. "
+                        f"Verify the URL by opening it in a browser. ({msg})"),
+            )
+        raise HTTPException(status_code=422, detail=msg)
+    except httpx.HTTPStatusError as exc:
+        # Upstream Polymarket returned an error (e.g., 401 for a malformed
+        # token id, 404 for an unknown slug, 5xx during outage). Surface a
+        # 502 with the upstream code rather than crashing into a 500.
+        failed_url = str(exc.request.url) if exc.request else "<unknown>"
+        logger.warning(
+            "live: upstream Polymarket error %d on %s (event=%s)",
+            exc.response.status_code, failed_url, url,
         )
-
-    # If addresses are missing, X_net is NaN; impute with zero so the
-    # detector can still score, and log so the caller knows the network
-    # axes contributed nothing.
-    if np.isnan(X_net).any():
-        logger.warning("live: wallet addresses missing for %s; network "
-                       "features imputed to zero (score is base-only).", url)
-        X_net = np.where(np.isnan(X_net), 0.0, X_net)
-
-    F = feature_matrix_streams_with_network(X_base, X_net, mid, widx)
-    detector = anomaly_scoring.get_detector()
-    scores = detector.score(F)
-    resolution_assessment = resolve_market(
-        market.question or url,
-        resolved=bool(market.resolved),
-    )
-
-    as_of = (req.as_of or date.today().isoformat())
-    return _scores_to_marketscore(
-        url=url, as_of=as_of, market=market,
-        X_base=X_base, widx=widx, anomaly_scores=scores,
-        resolution_assessment=resolution_assessment,
-    )
+        raise HTTPException(
+            status_code=502,
+            detail=(f"Polymarket returned {exc.response.status_code} for "
+                    f"the upstream call to {failed_url}. The market URL "
+                    f"may be valid but the API may have changed shape. "
+                    f"Switch to Mock mode to keep browsing."),
+        )

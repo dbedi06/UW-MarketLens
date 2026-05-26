@@ -241,14 +241,20 @@ def from_trades(market, *, window_minutes: int = 15
         if end_date is not None:
             # Make sure both sides are TZ-aware for the subtraction.
             try:
-                ttr_days = max(0.0,
-                               (end_date - midpoint).total_seconds() / 86400.0)
+                raw_ttr = (end_date - midpoint).total_seconds() / 86400.0
             except TypeError:
                 # naive vs aware mismatch; coerce midpoint to UTC
                 midpoint_aware = midpoint.replace(tzinfo=timezone.utc) \
                     if midpoint.tzinfo is None else midpoint
-                ttr_days = max(0.0,
-                               (end_date - midpoint_aware).total_seconds() / 86400.0)
+                raw_ttr = (end_date - midpoint_aware).total_seconds() / 86400.0
+            # B4 calibration patch: training distribution (clean_streams_with_network)
+            # has ttr ∈ [1, 180]. Resolved/historical markets produce raw_ttr ≤ 0,
+            # which sits far outside training and makes every resolved market
+            # look anomalous on the ttr axis. Clip to the training bounds so the
+            # feature contributes a neutral value rather than a fake signal.
+            # The right fix is training a model that handles ttr correctly;
+            # this is a patch, not a feature value.
+            ttr_days = float(np.clip(raw_ttr, 1.0, 180.0))
         else:
             ttr_days = 30.0  # honest default; documented in plan
             import logging

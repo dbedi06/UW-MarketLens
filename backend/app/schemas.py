@@ -111,6 +111,7 @@ class MarketScore(BaseModel):
     as_of: str  # snapshot date (Pillar 2)
     snapshot_id: str  # stable id = hash(url + as_of) (Pillar 2)
     permalink: str  # /snapshot/<id> (Pillar 2)
+    source: Literal["live", "mock"] = "mock"  # which backend path produced this
 
 
 class PendingTag(BaseModel):

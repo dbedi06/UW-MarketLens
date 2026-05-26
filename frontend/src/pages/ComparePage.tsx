@@ -84,7 +84,7 @@ export default function ComparePage() {
         Compare
       </button>
 
-      {mode === "live" && !err && (
+      {mode === "live" && (
         <div className="mt-4 rounded border border-warn/30 bg-warn/10 px-4 py-3 text-[12.5px] text-warn">
           <span className="font-bold uppercase tracking-wider">Live mode</span>
           <span className="mx-2 opacity-60">·</span>

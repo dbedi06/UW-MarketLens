@@ -58,14 +58,31 @@ def snapshot_id(url: str, as_of: str) -> str:
     return hashlib.sha256(f"{url}|{as_of}".encode()).hexdigest()[:12]
 
 
-# Snapshot registry: id -> (url, as_of). Populated whenever a score is built.
-# In-memory (resets on restart) — acceptable because data is deterministic, so
-# re-running the same lookup regenerates the identical id and re-registers it.
-# Real S0/persistence would back this with a table.
-_SNAPSHOTS: dict[str, tuple[str, str]] = {}
+# Snapshot registry: id -> (url, as_of, source). Populated whenever a score
+# is built. In-memory (resets on restart) — acceptable for mock because data
+# is deterministic; for live, a cold cache after dyno wake means the snapshot
+# route returns 503 (not silently-different data). Real S0/persistence would
+# back this with a table.
+SnapshotSource = str  # "mock" | "live"
+_SNAPSHOTS: dict[str, tuple[str, str, SnapshotSource]] = {}
+
+
+def register_snapshot(sid: str, url: str, as_of: str, source: str) -> None:
+    """Record (url, as_of, source) for a snapshot id. Source must be 'live'
+    or 'mock'; the snapshot route dispatches on it (B2 fix)."""
+    if source not in {"live", "mock"}:
+        raise ValueError(f"source must be 'live' or 'mock', got {source!r}")
+    _SNAPSHOTS[sid] = (url, as_of, source)
 
 
 def resolve_snapshot(sid: str) -> tuple[str, str] | None:
+    """Back-compat: returns (url, as_of) without source. New callers should
+    use `resolve_snapshot_full` so they can dispatch on origin."""
+    row = _SNAPSHOTS.get(sid)
+    return (row[0], row[1]) if row else None
+
+
+def resolve_snapshot_full(sid: str) -> tuple[str, str, str] | None:
     return _SNAPSHOTS.get(sid)
 
 
@@ -216,7 +233,7 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
     reasons = _reasons(seed, liquidity, anomaly_sub, resolution_sub, meta)
     sid = snapshot_id(url, as_of)
     permalink = f"/snapshot/{sid}"
-    _SNAPSHOTS[sid] = (url, as_of)  # register so the permalink resolves
+    register_snapshot(sid, url, as_of, "mock")
 
     verdict_pool = ["HIGH", "MEDIUM", "LOW", "UNVERIFIABLE"]
     depts = [_DEPARTMENTS[seed % 4]]
@@ -252,6 +269,7 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
         as_of=as_of,
         snapshot_id=sid,
         permalink=permalink,
+        source="mock",
     )
 
 

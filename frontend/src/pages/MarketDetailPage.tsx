@@ -98,7 +98,7 @@ export default function MarketDetailPage() {
         )}
       </div>
 
-      {mode === "live" && !error && <LiveDisclaimer />}
+      {mode === "live" && <LiveDisclaimer />}
 
       {loading && <LoadingState />}
       {error && !loading && (
@@ -106,19 +106,24 @@ export default function MarketDetailPage() {
           <p className="text-lg font-semibold text-ink">
             {apiStatus === 503
               ? "This market isn't cached yet"
+              : apiStatus === 404
+              ? "Market not found on Polymarket"
               : apiStatus === 422
-              ? "Not enough trade history"
+              ? "Not enough data to score this market"
+              : apiStatus === 502
+              ? "Polymarket couldn't be reached"
               : "Couldn't analyze that market"}
           </p>
           <p className="mt-2 text-sm text-ink/55">{error.message}</p>
-          {(apiStatus === 503 || apiStatus === 422) && mode === "live" && (
-            <button
-              onClick={() => setMode("mock")}
-              className="btn-primary mt-5"
-            >
-              Switch to Mock mode
-            </button>
-          )}
+          {(apiStatus === 503 || apiStatus === 422 || apiStatus === 502) &&
+            mode === "live" && (
+              <button
+                onClick={() => setMode("mock")}
+                className="btn-primary mt-5"
+              >
+                Switch to Mock mode
+              </button>
+            )}
         </div>
       )}
       {data && !loading && <MarketReport data={data} />}
