@@ -12,7 +12,7 @@ from app.resolution import ResolutionAssessment
 
 class _FakeDetector:
     def score(self, features):
-        return np.array([0.2, 0.3, 0.4])
+        return np.array([0.2, 0.3, 0.4, 0.5])
 
 
 def _market() -> RawMarket:
@@ -44,18 +44,28 @@ def test_live_score_uses_s4_resolution_output(monkeypatch):
 
     def fake_from_trades_with_network(market_obj):
         assert market_obj is market
-        X_base = np.array([[0.10, 0.01], [0.12, 0.02], [0.11, 0.015]])
-        X_net = np.array([[0.0], [0.0], [0.0]])
-        mid = np.array([0.5, 0.5, 0.5])
-        widx = np.array([0, 1, 2])
+        X_base = np.array([
+            [0.10, 0.01],
+            [0.12, 0.02],
+            [0.11, 0.015],
+            [0.13, 0.018],
+        ])
+        X_net = np.array([[0.0], [0.0], [0.0], [0.0]])
+        mid = np.array([0.5, 0.5, 0.5, 0.5])
+        widx = np.array([0, 1, 2, 3])
         return X_base, X_net, mid, widx
 
     def fake_feature_matrix_streams_with_network(X_base, X_net, mid, widx):
-        assert X_base.shape == (3, 2)
-        assert X_net.shape == (3, 1)
-        assert mid.shape == (3,)
-        assert widx.tolist() == [0, 1, 2]
-        return np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]])
+        assert X_base.shape == (4, 2)
+        assert X_net.shape == (4, 1)
+        assert mid.shape == (4,)
+        assert widx.tolist() == [0, 1, 2, 3]
+        return np.array([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6],
+            [0.7, 0.8, 0.9],
+            [0.9, 0.8, 0.7],
+        ])
 
     def fake_resolve_market(question, resolved=False):
         assert question == market.question
