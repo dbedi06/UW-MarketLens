@@ -12,7 +12,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import score, library, citation, snapshot, admin, og
+from .routes import score, library, citation, snapshot, admin, og, live
 
 app = FastAPI(
     title="UW MarketLens API",
@@ -52,3 +52,4 @@ app.include_router(citation.router)
 app.include_router(snapshot.router)
 app.include_router(admin.router)
 app.include_router(og.router)
+app.include_router(live.router)

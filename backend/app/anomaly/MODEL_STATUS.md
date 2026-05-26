@@ -1,0 +1,127 @@
+# S3 Anomaly Model — Status
+
+A direct snapshot of what the model is, what just changed, and what's
+still gating the next half-point on the honest 0-10 rating. No
+marketing; if a number is uncertain, this doc says so.
+
+## What the model is today
+
+- **Detector**: a single `IsolationForest` (and a `BaggedIsoForest`
+  alternative kept for ablations) wrapped in `RobustScaler`. Trained
+  once per process on synthetic streams that now include four
+  trader-graph (network) columns. The live API route and the
+  labeled-eval scorer share the same fitted detector via
+  `app.anomaly.scoring.get_detector()`.
+
+- **Features** (column order in `FULL_FEATURE_NAMES_WITH_NETWORK`):
+  - **Base (5)**: volume, bid_ask_spread, unique_traders,
+    price_volatility, time_to_resolution.
+  - **Engineered (4)**: log_volume, vol_per_trader, spread_x_vol,
+    traders_per_logvol.
+  - **Microstructure (2)**: amihud_proxy, spread_per_logvol — the
+    Phase A illiquidity-tightness pair.
+  - **Per-market relative (4)**: trailing 20-window z-scores of
+    volume, volatility, vol_per_trader, spread. Real surveillance
+    systems compare each window to its own market's recent history;
+    these are the synthetic analog.
+  - **Network (4)**: net_unique_wallets, net_top_trader_hhi,
+    net_repeat_counterparty, net_largest_component — built from
+    maker/taker addresses on the trade tape.
+
+- **Inputs**: per-window aggregates from `from_trades_with_network`
+  for real markets; from `clean_streams_with_network` for synthetic
+  training.
+
+- **Evaluation**:
+  - **Synthetic eval** (`scripts/eval_anomaly.py`): operating-point
+    grid at {0.5%, 1%, 5%, 20%} FPR; Precision@{10, 50, 100};
+    ROC-AUC + PR-AUC; Wilson 95% CIs per recall point, bootstrap
+    95% CIs across seeds. Patterns: `volume_spike`,
+    `coordinated_swing`, `wash_trade_pair`, `coordinated_manip`, and
+    the new `sybil_ring` (network-feature lift case).
+  - **Labeled eval** (`scripts/eval_on_labeled.py --scorer
+    app.anomaly.scoring:score_market_url`): per-case score reduction
+    is `mean(top-3 per-window scores)`; reports ROC-AUC with a
+    percentile bootstrap CI (1000 iters) and a low-N warning when
+    n_scored < 20.
+
+## What changed in this push
+
+- Trader-graph (network) features are now end-to-end:
+  - synthetic stream generation emits plausible network feature
+    columns per market (heterogeneous baselines);
+  - a `sybil_ring` injection pattern perturbs only the network
+    columns — the lift case for network-aware detection;
+  - `from_trades_with_network` adds the network block at scoring
+    time, computed over the same window boundaries as the base
+    block;
+  - the live route trains on and scores against the wider matrix;
+  - the labeled-eval scorer uses the same detector.
+- Labeled set seeded with 10 candidate cases (5 controversial / 5
+  mundane), tagged `LK-candidate` for team review per `CANDIDATES.md`.
+- `eval_on_labeled.py` emits a bootstrap CI on ROC-AUC and a
+  `low_n_warning` flag.
+- The live route's detector is now lazy-fit once per process via the
+  shared singleton, instead of cached on FastAPI app state — same
+  behavior, less code, no risk of two detectors disagreeing.
+
+## Honest rating: ~4.5/10
+
+A 6/10 framing was drafted earlier; on second look it overstated the
+state. Three places it failed to be honest:
+
+- The `sybil_ring` injector perturbs exactly the four network feature
+  columns the new code added, leaving base features near-clean. Of
+  course the network-aware model "wins" on it — the test is
+  tautological by construction. The 0.472 → 0.906 AUC delta is real
+  arithmetic on synthetic data the author designed; it is not
+  evidence of detection skill on real sybil rings.
+- The labeled-cases file was previously seeded with 10 entries whose
+  evidence URLs were generated from intuition without verification.
+  Those entries were removed; the file ships empty pending team
+  verification against rubric v1.
+- The detector still trains on 100% synthetic data with hand-picked
+  parameter distributions (`Beta(2, 8)` for HHI, etc.). If real
+  Polymarket distributions diverge, every score on a real market is
+  miscalibrated.
+
+What is genuinely real:
+
+- The plumbing — network features through `from_trades_with_network`,
+  shared detector singleton across the live route and labeled-eval
+  scorer, bootstrap CI + `low_n_warning` in eval reporting. Code is
+  correct and tested (124 tests pass).
+- The synthetic capability check (operating-point grid, Precision@K,
+  Wilson/bootstrap CIs) reports the *shape* of detector behavior
+  honestly.
+- The labeled-eval pipeline is wired and ready to consume a real
+  case list and emit a real number. It just doesn't have one yet.
+
+## What gates a genuine 6/10
+
+See `UW_MarketLens_Push_To_Six.html` (project root) for the full
+breakdown. Short version:
+
+1. **Verified labeled set, N ≥ 20** under rubric v1 — team-produced,
+   evidence URLs confirmed to resolve.
+2. **Cached real-market corpus, ≥50 resolved markets**. Retrain the
+   IsoForest on the real feature distribution.
+3. **Non-circular injection patterns**. A `sybil_ring` that also
+   perturbs base features moderately so the lift demo isn't
+   tautological.
+4. **Re-run the labeled eval** and publish whatever AUC results —
+   probably substantially less than the synthetic figure, and that's
+   the honest number.
+
+S1 + Isolation Forest work is paused here on purpose. Resuming
+requires the team-side labeling effort + cache warming above; coding
+further before those land would only deepen the synthetic-overclaim
+problem.
+
+## Pointers
+
+- Module roadmap: this file.
+- Rubric: `data/labeling_rubric.md` (v1, locked 2026-05-19).
+- Candidate label notes: `data/CANDIDATES.md`.
+- How to run the labeled eval: `backend/README.md` → "Labeled
+  evaluation".

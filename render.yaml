@@ -21,6 +21,12 @@ services:
       # (e.g. https://marketlens-web.onrender.com), then redeploy.
       - key: FRONTEND_ORIGIN
         sync: false
+      # Allow POST /api/live/score to fetch from Polymarket on cache miss.
+      # Without this, the live route returns 503 for any URL the cache
+      # hasn't seen. Cached responses are written back to
+      # backend/app/ingestion/cache/ so each unique market is fetched once.
+      - key: MARKETLENS_POLYMARKET_LIVE
+        value: "1"
 
   # ---- Vite/React frontend (free static site; always-on) ----
   - type: web

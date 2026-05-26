@@ -10,10 +10,22 @@ export function ogImageUrl(id: string): string {
   return `${BASE}/api/og/${id}`;
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = "ApiError";
+  }
+}
+
 async function jsonOrThrow<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail ?? `Request failed (${res.status})`);
+    throw new ApiError(
+      res.status,
+      body.detail ?? `Request failed (${res.status})`,
+    );
   }
   return res.json() as Promise<T>;
 }
@@ -24,6 +36,29 @@ export function getScore(url: string, asOf?: string): Promise<MarketScore> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ url, as_of: asOf ?? null }),
   }).then((r) => jsonOrThrow<MarketScore>(r));
+}
+
+// Live path: real Polymarket ingestion + the S1→S2→S3 chain. The detector
+// is synthetic-trained; on cache miss without MARKETLENS_POLYMARKET_LIVE
+// the backend returns 503 (treat as "ask the user to switch to mock").
+export function getLiveScore(
+  url: string,
+  asOf?: string,
+): Promise<MarketScore> {
+  return fetch(`${BASE}/api/live/score`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url, as_of: asOf ?? null }),
+  }).then((r) => jsonOrThrow<MarketScore>(r));
+}
+
+// One-shot dispatcher: lets pages stay agnostic about which mode they're in.
+export function scoreInMode(
+  mode: "live" | "mock",
+  url: string,
+  asOf?: string,
+): Promise<MarketScore> {
+  return mode === "live" ? getLiveScore(url, asOf) : getScore(url, asOf);
 }
 
 export function getSnapshot(id: string): Promise<MarketScore> {

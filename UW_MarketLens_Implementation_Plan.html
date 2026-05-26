@@ -109,6 +109,34 @@
   .pill.dep  { background: #fcefd9; color: var(--amber); }
   .card .effort { position: absolute; top: 14px; right: 16px; font-size: 11px; color: var(--muted); }
 
+  /* Build status indicators (post-Phase-A) */
+  .card.done    { border-left: 4px solid var(--green); }
+  .card.partial { border-left: 4px solid var(--amber); }
+  .card.todo    { border-left: 4px solid #cbd5e1; }
+  .card .status {
+    position: absolute;
+    top: -8px;
+    right: 14px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+  .card .status.done    { color: var(--green); border-color: var(--green); }
+  .card .status.partial { color: var(--amber); border-color: var(--amber); }
+  .card .status.todo    { color: var(--muted); }
+  .card.done .effort, .card.partial .effort { display: none; }
+  .card .note {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
   /* Dependency diagram */
   .flow {
     background: #0f172a;
@@ -192,89 +220,116 @@
       <span><span class="dot free"></span>No dependencies — start immediately</span>
       <span><span class="dot dep"></span>Has a soft dependency — can start on mock data</span>
     </p>
+    <p class="legend" style="margin-top:4px;">
+      <span><b style="color:var(--green);">DONE</b> — shipped &amp; tested</span>
+      <span><b style="color:var(--amber);">PARTIAL</b> — plumbing in place, more work documented</span>
+      <span><b style="color:var(--muted);">TODO</b> — not started</span>
+    </p>
 
     <div class="grid">
 
-      <div class="card">
-        <span class="tag">S0</span><span class="effort">~½ day · together</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S0</span>
         <h3>Shared Contract</h3>
         <p>Define JSON schemas: MarketScore, AnomalyResult, ResolutionVerdict, Tags, Citation.</p>
         <p>Everything else builds against these.</p>
         <span class="pill free">Do first</span>
+        <p class="note">Schemas in <code>app/schemas.py</code>; route + frontend types reference them.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S1</span><span class="effort">~2–3 days</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S1</span>
         <h3>Polymarket Ingestion</h3>
         <p>API client; fetch markets + trade history; store raw data.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Gamma + CLOB; wallet addresses; on-disk cache; <code>fetch_market</code>, <code>fetch_library_markets</code>; offline-safe tests.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S2</span><span class="effort">~2 days</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S2</span>
         <h3>Feature Engineering</h3>
         <p>Raw trades → feature vectors: volume, spread, trader count, volatility, time-to-resolution.</p>
         <span class="pill dep">Soft dep: S1 format</span>
+        <p class="note">Base + engineered + microstructure + per-market relative + network columns via <code>from_trades_with_network</code>.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S3</span><span class="effort">~2–3 days</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S3</span>
         <h3>Anomaly Detection</h3>
         <p>Isolation Forest + synthetic anomaly injection + recall/FPR eval. Runs on synthetic data.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Upgrade path documented in <code>UW_MarketLens_Push_To_Six.html</code>.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S4</span><span class="effort">~2–3 days</span>
+      <div class="card todo">
+        <span class="status todo">Todo</span>
+        <span class="tag">S4</span>
         <h3>LLM Resolution Checker</h3>
         <p>NewsAPI fetch + Claude JSON-schema call + 30-market labeled set + agreement metric.</p>
         <span class="pill free">Independent</span>
       </div>
 
-      <div class="card">
-        <span class="tag">S5</span><span class="effort">~1–2 days</span>
+      <div class="card todo">
+        <span class="status todo">Todo</span>
+        <span class="tag">S5</span>
         <h3>LLM Course Tagger</h3>
         <p>Few-shot tagging prompt + caching + committed tagging rubric.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Dilshan picking this up alongside S4.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S6</span><span class="effort">~½–1 day</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S6</span>
         <h3>Citation Generator</h3>
         <p>APA/MLA strings + embedded reliability flag. Pure function — great warm-up.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Implemented in <code>app/mock.py:make_citation</code>; served via <code>POST /api/citation</code>.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S7</span><span class="effort">~1–2 days</span>
+      <div class="card todo">
+        <span class="status todo">Todo</span>
+        <span class="tag">S7</span>
         <h3>Composite Score</h3>
         <p>Combine anomaly + LLM verdict + liquidity rules → 0–100 score. The true integration point.</p>
         <span class="pill dep">Soft dep: S3/S4</span>
+        <p class="note">Mock composite shipped; real composite waits on S4 + S3 real-trained detector.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S8</span><span class="effort">~2 days</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S8</span>
         <h3>FastAPI Backend Shell</h3>
         <p>Routes, request/response wiring, error handling. Stubs first, real logic later.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Routes: score, library, citation, snapshot, admin, og, live. <code>/api/live/score</code> exercises the S1→S2→S3 chain end-to-end.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S9</span><span class="effort">~3–4 days</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S9</span>
         <h3>React Frontend</h3>
         <p>Lookup, score display, dynamic library, admin verify view. Built against mock JSON.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Multi-page; compare-markets, as-of date picker, Markdown export, OG card, dark theme.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S10</span><span class="effort">~½–1 day</span>
+      <div class="card done">
+        <span class="status done">Done</span>
+        <span class="tag">S10</span>
         <h3>Deploy + CI/CD</h3>
         <p>Vercel + Render + GitHub Actions. Set up empty on day 1.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Render Blueprint configured (<code>render.yaml</code>); Python pinned 3.12.7 for pydantic-core wheel compatibility.</p>
       </div>
 
-      <div class="card">
-        <span class="tag">S11</span><span class="effort">ongoing</span>
+      <div class="card todo">
+        <span class="status todo">Todo</span>
+        <span class="tag">S11</span>
         <h3>Website + User Testing</h3>
         <p>/about page, SUS survey, recruiting. Start recruiting early.</p>
         <span class="pill free">Independent</span>
@@ -378,6 +433,101 @@
       self-awareness, not bravado. Only the anomaly real-data set needs genuinely
       new work, and it has an explicit synthetic-only fallback so it can't block
       the deliverable.
+    </div>
+
+    <h2><span class="num">E</span>S3 Eval: Honest Findings &amp; Real-System Gaps</h2>
+    <p class="lead">After hardening the anomaly module (engineered features,
+    RobustScaler, per-market stream pipeline, multi-feature
+    <code>coordinated_manip</code> pattern, operating-point grid, Precision@K,
+    ROC/PR-AUC, SHAP attribution, bagged ensemble, drift smoke check, 30
+    pytest cases), the v3 multi-seed run produced an honest, calibrated
+    picture rather than a flattering headline number.</p>
+
+    <h3 style="color:var(--blue);font-size:15px;margin-top:14px;">What the numbers actually say (typical severity, ROC-AUC, n=3 seeds)</h3>
+    <table>
+      <thead>
+        <tr><th>Pattern</th><th>IF model</th><th>Best baseline</th><th>Winner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>volume_spike</td><td>0.651</td><td>0.720 (VolumeZ)</td><td>baseline</td></tr>
+        <tr><td>coordinated_swing</td><td>0.888</td><td>0.987 (VolatilityZ)</td><td>baseline</td></tr>
+        <tr><td>wash_trade_pair</td><td>0.591</td><td>0.663 (VolumeZ)</td><td>baseline</td></tr>
+        <tr><td><b>coordinated_manip</b> (multi-feature)</td><td><b>0.857</b></td><td>0.806 (VolatilityZ)</td><td><b>model (+0.051)</b></td></tr>
+      </tbody>
+    </table>
+    <p>Reading: IF earns its place precisely where the proposal expected
+    it to — when the manipulation signature is <b>correlated across
+    features</b>. On single-feature spikes, a properly chosen z-score is
+    by construction near-optimal and IF cannot beat it. This pattern is
+    consistent with published trade-surveillance literature: anomaly
+    models add value over rule packs on novel multi-feature
+    combinations, not on textbook single-axis red flags.</p>
+
+    <h3 style="color:var(--blue);font-size:15px;margin-top:14px;">Methodological caveat we don't hide</h3>
+    <p>Our row-level injectors perturb <i>every</i> test row, which means
+    a per-market z-score baseline sees a uniform shift and has no
+    within-market deviation to flag (ROC ≈ 0.500). On the sparse
+    episodic <code>coordinated_manip</code> pattern (the realistic
+    injection density) the per-market relative baselines do show signal.
+    This is itself a finding: <b>injection density matters</b>, and our
+    headline comparison would shift if we matched real surveillance's
+    sparse-anomaly setting throughout.</p>
+
+    <h3 style="color:var(--blue);font-size:15px;margin-top:14px;">What a production-grade surveillance system has that we don't (deferred, named)</h3>
+    <table>
+      <thead><tr><th>Gap</th><th>Why deferred</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Order-book / order-flow features.</b> Top-of-book imbalance, depth at K levels, quote-flicker rate, <b>order-to-trade ratio</b> (the single most cited spoofing signature), cancel-rate bursts.</td>
+          <td>Polymarket's public CLOB endpoints do not expose the depth-history granularity these features require.</td>
+        </tr>
+        <tr>
+          <td><b>Real labeled cases.</b> Historical confirmed manipulation incidents to evaluate against, instead of self-injection (which matches the model's inductive biases by construction).</td>
+          <td>No public Polymarket equivalent of a CFTC/SEC fine ledger. Phase A ships the <i>plumbing</i> — pre-registered rubric (v1), an end-to-end labeled-eval script, bootstrap-CI ROC-AUC, and a <code>low_n_warning</code> flag — but the case list itself is empty until the team verifies real entries against the rubric. No labeled number is quoted in this plan because none has been produced from verified data yet.</td>
+        </tr>
+        <tr>
+          <td><b>Trader-network / wallet-address graph features.</b> Repeat-counterparty ratio, connected-component analysis, USDC funding-chain clustering, sybil heuristics.</td>
+          <td>Phase A wires four graph features (<code>net_unique_wallets</code>, <code>net_top_trader_hhi</code>, <code>net_repeat_counterparty</code>, <code>net_largest_component</code>) end-to-end: synthetic training, the live <code>POST /api/live/score</code> route, and the labeled-eval scorer all see them. The synthetic <code>sybil_ring</code> injector exists to verify the code path runs, <i>not</i> as evidence of detection skill — it perturbs the same columns the new features target, so any AUC it produces is circular by construction. Real lift remains unmeasured pending a cached real-market corpus.</td>
+        </tr>
+        <tr>
+          <td><b>Multi-scale temporal context.</b> Simultaneous 1s/1m/5m/1h rolling windows + change-point detection (CUSUM, BOCPD) against each market's own history.</td>
+          <td>Our streams have per-market relative features (a partial proxy); a full multi-scale stack needs real time-stamped trades from S1.</td>
+        </tr>
+        <tr>
+          <td><b>Time-cross-validation</b> on real data (train month T, test T+1) + drift monitoring (PSI/KS divergence per feature, rolling re-fits, shadow deploys).</td>
+          <td>We ship a synthetic drift smoke test (AUC under a shifted distribution). True time-CV is deferred to post-S1.</td>
+        </tr>
+        <tr>
+          <td><b>Supervised tier + human review feedback loop.</b> Production stacks pair unsupervised IF with a supervised model on triaged alert outcomes; analyst feedback retrains.</td>
+          <td>No labeled alerts; no analyst pool. The closest UW analog (the LLM resolution checker, S4) operates downstream of scoring, not on alerts.</td>
+        </tr>
+        <tr>
+          <td><b>Realistic low-FPR operating point.</b> Real surveillance targets FPR ≤ 0.1–1% with Precision@K as the primary metric. Recall at 20% FPR is a tutorial number.</td>
+          <td>We now report the full grid (R@0.5%, R@1%, R@5%, R@20%) and Precision@{10,50,100}; the headline-friendly 20% figure is no longer the only one we surface.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <b>Bottom line — honest rating ≈ 4.5/10.</b> The headline
+      synthetic result (model wins on the multi-feature pattern,
+      loses on single-feature spikes) is the <i>shape</i> a properly
+      framed synthetic eval should produce. The Phase A plumbing —
+      trader-network features through training and scoring,
+      microstructure proxies, the labeled-eval pipeline with
+      bootstrap CIs — is real and runs end-to-end. But the model is
+      still trained on 100% synthetic data with hand-picked feature
+      distributions, the <code>sybil_ring</code> injector is circular
+      (perturbs the same columns the new features target), and the
+      labeled-cases file is empty pending team-verified entries. No
+      real-market AUC has been produced. The synthetic eval artifact
+      at <code>backend/app/anomaly/last_eval.json</code> carries the
+      verifiable numbers; <code>app/anomaly/MODEL_STATUS.md</code>
+      states the honest current rating; the path from 4.5/10 to
+      genuine 6/10 (and beyond) is documented in a separate local
+      file: <code>UW_MarketLens_Push_To_Six.html</code>. Stopping S1
+      and the Isolation Forest work here was a deliberate choice
+      against shipping unverifiable claims.
     </div>
 
     <footer>

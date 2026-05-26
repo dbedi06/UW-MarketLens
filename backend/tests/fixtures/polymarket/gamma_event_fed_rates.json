@@ -1,0 +1,26 @@
+[
+  {
+    "id": "100123",
+    "slug": "will-the-fed-cut-rates-in-2025",
+    "title": "Will the Fed cut rates in 2025?",
+    "endDate": "2025-12-31T23:59:59Z",
+    "markets": [
+      {
+        "conditionId": "0xabc123def456",
+        "questionID": "qid-fed-rates-2025",
+        "question": "Will the Fed cut rates in 2025?",
+        "tokens": [
+          {"token_id": "yes-token-0xdead", "outcome": "Yes"},
+          {"token_id": "no-token-0xbeef",  "outcome": "No"}
+        ],
+        "outcomePrices": ["0.62", "0.38"],
+        "volumeNum": 154300.75,
+        "liquidityNum": 12450.00,
+        "uniqueTraderCount": 0,
+        "closed": true,
+        "winner": "Yes",
+        "endDate": "2025-12-31T23:59:59Z"
+      }
+    ]
+  }
+]

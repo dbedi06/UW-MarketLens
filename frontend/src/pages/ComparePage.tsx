@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { MarketScore } from "../types";
-import { getScore } from "../api";
+import { ApiError, scoreInMode } from "../api";
+import { useScoringMode } from "../lib/scoringMode";
 import { metrics, leader } from "../lib/compare";
 import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
@@ -13,12 +14,13 @@ const SAMPLE_B = "https://polymarket.com/event/will-gpt-5-release-this-year";
 
 export default function ComparePage() {
   const [params, setParams] = useSearchParams();
+  const { mode, setMode } = useScoringMode();
   const [a, setA] = useState(params.get("a") || SAMPLE_A);
   const [b, setB] = useState(params.get("b") || SAMPLE_B);
   const [ra, setRa] = useState<MarketScore | null>(null);
   const [rb, setRb] = useState<MarketScore | null>(null);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState<ApiError | Error | null>(null);
 
   const qa = params.get("a");
   const qb = params.get("b");
@@ -26,23 +28,31 @@ export default function ComparePage() {
   useEffect(() => {
     if (!qa || !qb) return;
     if (!qa.includes("polymarket.com") || !qb.includes("polymarket.com")) {
-      setErr("Both URLs must be polymarket.com market links.");
+      setErr(new Error("Both URLs must be polymarket.com market links."));
       return;
     }
     setLoading(true);
     setErr(null);
-    Promise.all([getScore(qa), getScore(qb)])
+    Promise.all([scoreInMode(mode, qa), scoreInMode(mode, qb)])
       .then(([x, y]) => {
         setRa(x);
         setRb(y);
       })
-      .catch((e) => setErr(e instanceof Error ? e.message : "Comparison failed"))
+      .catch((e) =>
+        setErr(
+          e instanceof ApiError || e instanceof Error
+            ? e
+            : new Error("Comparison failed"),
+        ),
+      )
       .finally(() => setLoading(false));
-  }, [qa, qb]);
+  }, [qa, qb, mode]);
+
+  const apiStatus = err instanceof ApiError ? err.status : null;
 
   function run() {
     if (!a.includes("polymarket.com") || !b.includes("polymarket.com")) {
-      setErr("Both URLs must be polymarket.com market links.");
+      setErr(new Error("Both URLs must be polymarket.com market links."));
       return;
     }
     setParams({ a: a.trim(), b: b.trim() }, { replace: true });
@@ -74,7 +84,28 @@ export default function ComparePage() {
         Compare
       </button>
 
-      {err && <p className="mt-4 text-sm text-bad">{err}</p>}
+      {mode === "live" && !err && (
+        <div className="mt-4 rounded border border-warn/30 bg-warn/10 px-4 py-3 text-[12.5px] text-warn">
+          <span className="font-bold uppercase tracking-wider">Live mode</span>
+          <span className="mx-2 opacity-60">·</span>
+          Scores come from real Polymarket data via the S1→S2→S3 chain; the
+          detector is synthetic-trained, so treat as directional.
+        </div>
+      )}
+
+      {err && (
+        <div className="mt-4 text-sm text-bad">
+          <p>{err.message}</p>
+          {(apiStatus === 503 || apiStatus === 422) && mode === "live" && (
+            <button
+              onClick={() => setMode("mock")}
+              className="btn-primary mt-3"
+            >
+              Switch to Mock mode
+            </button>
+          )}
+        </div>
+      )}
 
       {loading && (
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

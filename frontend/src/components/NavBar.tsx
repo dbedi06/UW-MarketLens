@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
+import { useScoringMode } from "../lib/scoringMode";
 
 const links = [
   { to: "/", label: "Home", end: true },
@@ -51,6 +52,8 @@ export default function NavBar({
   toggleTheme: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const { mode, toggle } = useScoringMode();
+  const isLive = mode === "live";
 
   return (
     <header className="sticky top-0 z-40 border-b-2 border-ink bg-paper">
@@ -84,6 +87,31 @@ export default function NavBar({
               </NavLink>
             ))}
           </nav>
+
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={
+              isLive
+                ? "Switch scoring to mock data"
+                : "Switch scoring to live data"
+            }
+            aria-pressed={isLive}
+            title={
+              isLive
+                ? "Live: real Polymarket data via S1→S2→S3 (synthetic-trained, directional)"
+                : "Mock: deterministic placeholder data"
+            }
+            className="hidden items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink/75 transition-colors hover:text-ink sm:inline-flex"
+          >
+            <span
+              aria-hidden
+              className={`h-1.5 w-1.5 rounded-full ${
+                isLive ? "bg-good" : "bg-ink/30"
+              }`}
+            />
+            {isLive ? "Live" : "Mock"}
+          </button>
 
           <button
             type="button"
@@ -143,6 +171,25 @@ export default function NavBar({
               {l.label}
             </NavLink>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              toggle();
+              setOpen(false);
+            }}
+            className="flex w-full items-center justify-between py-3 text-sm text-ink/60"
+          >
+            <span>Scoring mode</span>
+            <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+              <span
+                aria-hidden
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isLive ? "bg-good" : "bg-ink/30"
+                }`}
+              />
+              {isLive ? "Live" : "Mock"}
+            </span>
+          </button>
         </nav>
       )}
     </header>

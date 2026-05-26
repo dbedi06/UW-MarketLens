@@ -1,0 +1,34 @@
+# UW MarketLens — Labeled cases for S3 sanity check
+#
+# Pre-registered against labeling_rubric.md v1 (locked 2026-05-19).
+# Edit by appending; do NOT delete entries without leaving a note.
+#
+# Each entry:
+#   - market_url: full Polymarket market URL (must point to a RESOLVED market)
+#   - label: one of {controversial, mundane}
+#   - evidence_url: a publicly-linkable URL meeting evidence standards
+#     (only required for `controversial`; can be null for `mundane`)
+#   - notes: short free-text rationale (one or two sentences)
+#   - date_documented: ISO date the labeler did the work
+#   - labeler: short identifier (initials or handle) — used for Cohen's
+#     kappa if multiple labelers cover the same market
+#   - rubric_version: v1  (bump when re-labeling against a new rubric)
+#
+# Each market may appear multiple times if labeled by more than one
+# person; the eval script deduplicates by market_url for headline
+# metrics and uses the per-labeler rows for inter-rater agreement.
+#
+# TARGET: 20-40 total entries by demo, roughly balanced. Today: 0.
+#
+# 2026-05-25: A previous draft seeded 10 candidate rows with
+# UNVERIFIED evidence URLs (see git history). Those were removed
+# because shipping fabricated evidence in a file the labeled-eval
+# script consumes risks producing a number that looks measured but
+# isn't. The pipeline (loader, eval script, scorer) is in place; this
+# file ships empty pending team-verified entries under rubric v1.
+# See app/anomaly/MODEL_STATUS.md and UW_MarketLens_Push_To_Six.html
+# for the verification protocol.
+
+schema_version: 1
+rubric_version: v1
+cases: []

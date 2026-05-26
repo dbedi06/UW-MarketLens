@@ -30,6 +30,7 @@ updating schemas.py and mock.py simultaneously.
 
 from __future__ import annotations
 
+import os
 import time
 import logging
 from dataclasses import dataclass, field
@@ -38,6 +39,8 @@ from typing import Optional
 from urllib.parse import urlparse, urlencode
 
 import httpx
+
+from .cache import IngestionUnavailable, cached_get
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +60,22 @@ _RETRY_BACKOFF_S = 1.5
 
 @dataclass
 class RawTrade:
-    """One matched trade from the CLOB."""
-    trade_id:   str
-    token_id:   str
-    price:      float          # 0–1 implied probability
-    size:       float          # USDC notional
-    side:       str            # "BUY" or "SELL"
-    timestamp:  datetime       # UTC
+    """One matched trade from the CLOB.
+
+    `maker_address` / `taker_address` are 0x... Polygon wallet addresses
+    when CLOB provides them, "" otherwise. Downstream consumers
+    (A3 network features, S2 unique_traders derivation) need these —
+    Lewi's first cut didn't extract them. Field-name tolerance: we try
+    `maker_address` first, then `maker`, then `""`.
+    """
+    trade_id:        str
+    token_id:        str
+    price:           float          # 0–1 implied probability
+    size:            float          # USDC notional
+    side:            str            # "BUY" or "SELL"
+    timestamp:       datetime       # UTC
+    maker_address:   str = ""
+    taker_address:   str = ""
 
 
 @dataclass
@@ -109,19 +121,28 @@ class RawMarket:
 
 # ── HTTP helpers ─────────────────────────────────────────────────────────────
 
-def _get(client: httpx.Client, url: str, params: dict | None = None) -> dict | list:
-    """GET with retries and rate-limit delay."""
-    time.sleep(_REQUEST_DELAY_S)
+def _get(client: httpx.Client, url: str,
+         params: dict | None = None) -> dict | list:
+    """GET via the on-disk cache (B4). Cache hit → no network. Cache
+    miss → live fetch only if MARKETLENS_POLYMARKET_LIVE=1 is set,
+    otherwise raises IngestionUnavailable. Wraps `cached_get` with the
+    retry-on-429 logic since CDN rate-limits can still hit on live
+    misses."""
     last_exc: Exception | None = None
     for attempt in range(_MAX_RETRIES):
         try:
-            r = client.get(url, params=params, timeout=15)
-            r.raise_for_status()
-            return r.json()
+            if attempt > 0 or os.environ.get("MARKETLENS_POLYMARKET_LIVE") == "1":
+                # Throttle only when an actual network call may happen
+                # (cache hits don't need to sleep).
+                time.sleep(_REQUEST_DELAY_S)
+            return cached_get(client, url, params=params)
+        except IngestionUnavailable:
+            raise
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 429:
                 wait = _RETRY_BACKOFF_S * (attempt + 1)
-                logger.warning("Rate-limited; waiting %.1fs before retry %d", wait, attempt + 1)
+                logger.warning("Rate-limited; waiting %.1fs before retry %d",
+                               wait, attempt + 1)
                 time.sleep(wait)
                 last_exc = exc
             else:
@@ -230,7 +251,11 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
         # S2 can derive an approximation from trade history if needed
         "unique_traders": int(primary.get("uniqueTraderCount", 0)),
         "yes_price":      yes_price,
-        "spread":         abs(1.0 - yes_price - (1.0 - yes_price)),  # best-effort
+        # Gamma doesn't carry a live spread on event objects. Real spread
+        # comes from CLOB /spread inside fetch_market; default to 0.0
+        # here so fetch_library_markets has a sane default until the
+        # caller does the per-token fetch.
+        "spread":         0.0,
         "end_date":       end_date,
         "resolved":       resolved,
         "resolution":     resolution,
@@ -267,6 +292,12 @@ def _fetch_clob_trades(
                 ts = datetime.fromisoformat(
                     str(ts_raw).replace("Z", "+00:00")
                 )
+            # B1: address tolerance — CLOB has used a few naming
+            # conventions historically. Try the most specific first.
+            maker = (t.get("maker_address") or t.get("maker")
+                     or t.get("makerAddress") or "")
+            taker = (t.get("taker_address") or t.get("taker")
+                     or t.get("takerAddress") or "")
             trades.append(
                 RawTrade(
                     trade_id=str(t.get("id", t.get("tradeId", ""))),
@@ -275,6 +306,8 @@ def _fetch_clob_trades(
                     size=float(t.get("size", t.get("usdcSize", 0))),
                     side=str(t.get("side", "BUY")).upper(),
                     timestamp=ts,
+                    maker_address=str(maker),
+                    taker_address=str(taker),
                 )
             )
         except Exception as exc:
@@ -282,6 +315,20 @@ def _fetch_clob_trades(
     # newest first
     trades.sort(key=lambda x: x.timestamp, reverse=True)
     return trades
+
+
+def _derive_unique_traders(trades: list[RawTrade]) -> int:
+    """B3: count distinct wallet addresses across maker + taker fields.
+    Empty strings (missing addresses) are excluded. Returns 0 if no
+    addresses are present anywhere — caller can then fall back to
+    Gamma's reported value (even if known-flaky)."""
+    addrs: set[str] = set()
+    for t in trades:
+        if t.maker_address:
+            addrs.add(t.maker_address)
+        if t.taker_address:
+            addrs.add(t.taker_address)
+    return len(addrs)
 
 
 def _fetch_clob_spread(client: httpx.Client, token_id: str) -> float:
@@ -334,6 +381,12 @@ def fetch_market(url: str, trade_limit: int = 500) -> RawMarket:
             trades = _fetch_clob_trades(client, yes_token, limit=trade_limit)
             spread = _fetch_clob_spread(client, yes_token) or spread
 
+    # B3: derive unique_traders from the trade tape (real). Fall back to
+    # Gamma's reported count only if no addresses surfaced — which
+    # should never happen for an actively traded market.
+    derived = _derive_unique_traders(trades)
+    unique_traders = derived if derived > 0 else parsed["unique_traders"]
+
     return RawMarket(
         market_url=url,
         condition_id=parsed["condition_id"],
@@ -342,7 +395,7 @@ def fetch_market(url: str, trade_limit: int = 500) -> RawMarket:
         token_ids=parsed["token_ids"],
         volume_usd=parsed["volume_usd"],
         liquidity_usd=parsed["liquidity_usd"],
-        unique_traders=parsed["unique_traders"],
+        unique_traders=unique_traders,
         yes_price=parsed["yes_price"],
         spread=spread,
         end_date=parsed["end_date"],

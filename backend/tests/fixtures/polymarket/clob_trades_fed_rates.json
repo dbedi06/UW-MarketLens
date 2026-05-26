@@ -1,0 +1,89 @@
+[
+  {
+    "id": "trade-001",
+    "price": "0.60",
+    "size": "500.00",
+    "side": "BUY",
+    "timestamp": "2025-11-01T10:00:00Z",
+    "maker_address": "0xWalletA",
+    "taker_address": "0xWalletB"
+  },
+  {
+    "id": "trade-002",
+    "price": "0.61",
+    "size": "300.00",
+    "side": "SELL",
+    "timestamp": "2025-11-01T10:05:30Z",
+    "maker_address": "0xWalletA",
+    "taker_address": "0xWalletC"
+  },
+  {
+    "id": "trade-003",
+    "price": "0.62",
+    "size": "1200.00",
+    "side": "BUY",
+    "matchTime": 1762020000,
+    "maker": "0xWalletD",
+    "taker": "0xWalletE"
+  },
+  {
+    "id": "trade-004",
+    "price": "0.63",
+    "size": "150.00",
+    "side": "BUY",
+    "timestamp": "2025-11-01T10:25:00Z",
+    "maker_address": "0xWalletA",
+    "taker_address": "0xWalletF"
+  },
+  {
+    "id": "trade-005",
+    "price": "0.64",
+    "size": "800.00",
+    "side": "SELL",
+    "timestamp": "2025-11-01T10:31:00Z",
+    "makerAddress": "0xWalletG",
+    "takerAddress": "0xWalletA"
+  },
+  {
+    "id": "trade-006",
+    "price": "0.65",
+    "size": "200.00",
+    "side": "BUY",
+    "timestamp": "2025-11-01T10:45:00Z",
+    "maker_address": "",
+    "taker_address": ""
+  },
+  {
+    "id": "trade-007",
+    "price": "0.66",
+    "size": "450.00",
+    "side": "SELL",
+    "timestamp": "2025-11-01T11:00:00Z",
+    "maker_address": "0xWalletH",
+    "taker_address": "0xWalletI"
+  },
+  {
+    "id": "trade-008",
+    "price": "0.67",
+    "size": "100.00",
+    "side": "BUY",
+    "timestamp": "2025-11-01T11:10:30Z",
+    "maker_address": "0xWalletJ",
+    "taker_address": "0xWalletK"
+  },
+  {
+    "id": "trade-009-malformed",
+    "side": "BUY",
+    "maker_address": "0xWalletL",
+    "taker_address": "0xWalletM"
+  },
+  {
+    "id": "trade-010",
+    "price": "0.68",
+    "size": "350.00",
+    "side": "SELL",
+    "timestamp": "2025-11-01T11:30:00Z",
+    "maker_address": "0xWalletN",
+    "taker_address": "0xWalletO"
+  }
+]

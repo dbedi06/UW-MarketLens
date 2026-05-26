@@ -1,4 +1,16 @@
 """S1 — Polymarket ingestion package."""
-from .polymarket import fetch_market, fetch_library_markets, RawMarket, RawTrade
+from .cache import IngestionUnavailable
+from .polymarket import (
+    RawMarket,
+    RawTrade,
+    fetch_library_markets,
+    fetch_market,
+)
 
-__all__ = ["fetch_market", "fetch_library_markets", "RawMarket", "RawTrade"]
+__all__ = [
+    "IngestionUnavailable",
+    "RawMarket",
+    "RawTrade",
+    "fetch_library_markets",
+    "fetch_market",
+]

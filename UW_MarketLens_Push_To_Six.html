@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UW MarketLens — Path to a genuine 6/10</title>
+<style>
+  :root {
+    --blue: #2E5C8A;
+    --blue-light: #E8EEF5;
+    --cream: #F5F2E8;
+    --line: #CCCCCC;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --green: #2f8a4e;
+    --amber: #b9770e;
+    --red: #b03a2e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Calibri", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    line-height: 1.5;
+    margin: 0;
+    background: #f3f4f6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page {
+    max-width: 920px;
+    margin: 32px auto;
+    background: #fff;
+    padding: 0 0 56px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+  header.hero {
+    background: var(--blue);
+    color: #fff;
+    padding: 26px 40px;
+  }
+  header.hero .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+  header.hero h1 { margin: 6px 0 4px; font-size: 28px; }
+  header.hero .sub { font-size: 14px; opacity: .92; }
+  header.hero .meta { font-size: 11px; opacity: .75; margin-top: 10px; }
+  .body { padding: 8px 40px 0; }
+  h2 {
+    color: var(--blue);
+    font-size: 19px;
+    margin: 30px 0 6px;
+    border-bottom: 2px solid var(--blue-light);
+    padding-bottom: 5px;
+  }
+  h2 .num {
+    display: inline-block;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    width: 24px; height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-radius: 5px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  h3 { font-size: 15px; margin: 18px 0 4px; color: var(--ink); }
+  p { margin: 8px 0; font-size: 14px; }
+  .lead { font-size: 14.5px; color: #374151; }
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12.5px; }
+
+  .callout {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--blue);
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  .callout b { color: var(--blue); }
+  .callout.warn { border-left-color: var(--amber); background: #fdf6e3; }
+  .callout.warn b { color: var(--amber); }
+  .callout.bad { border-left-color: var(--red); background: #fbe9e7; }
+  .callout.bad b { color: var(--red); }
+
+  .rating-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 14px;
+    align-items: center;
+    margin: 10px 0;
+  }
+  .rating {
+    background: var(--blue);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    padding: 12px 0;
+    border-radius: 8px;
+  }
+  .rating.now { background: var(--amber); }
+  .rating.next { background: var(--green); }
+  .rating.far { background: var(--blue); }
+  .rating-label { font-size: 13px; color: #4b5563; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--blue-light); color: var(--blue); }
+
+  .checklist {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin: 14px 0;
+  }
+  .checklist li {
+    list-style: none;
+    margin: 6px 0;
+    padding-left: 26px;
+    position: relative;
+    font-size: 13.5px;
+  }
+  .checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 4px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .checklist li.done::before { content: "☑"; color: var(--green); }
+
+  .flow {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12.5px;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.45;
+    margin: 14px 0;
+  }
+  .flow .hi { color: #fbbf24; }
+  .flow .ok { color: #34d399; }
+  .flow .muted { color: #94a3b8; }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    font-style: italic;
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--blue-light);
+  }
+  @media print {
+    body { background: #fff; }
+    .page { box-shadow: none; margin: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div class="kicker">DYOP · S3 Anomaly Model · Post-mortem &amp; Roadmap</div>
+    <h1>Path to a genuine 6/10</h1>
+    <div class="sub">An honest read on where the model stands and what it would actually take to move it.</div>
+    <div class="meta">Companion to UW_MarketLens_Implementation_Plan.html · Spring 2025</div>
+  </header>
+
+  <div class="body">
+
+    <p class="lead">
+      This document is local to the project, not a public deliverable.
+      It exists because the main implementation plan briefly claimed an
+      honest 6/10 rating for the S3 anomaly detector after the Phase A
+      push, and on review that claim didn't hold up. The actual rating
+      is closer to <b>4.5/10</b>. Below: what was overclaimed, what is
+      genuinely in place, and what each remaining half-point on the
+      rating actually requires.
+    </p>
+
+    <h2><span class="num">1</span>Where we honestly are</h2>
+
+    <div class="rating-row">
+      <div class="rating now">4.5</div>
+      <div class="rating-label">
+        <b>Today.</b> Plumbing for network features, microstructure
+        proxies, and labeled-eval is in place and tested. The model
+        trains on synthetic data with hand-picked feature
+        distributions; the labeled-cases file is empty; no real-market
+        AUC has been produced.
+      </div>
+    </div>
+    <div class="rating-row">
+      <div class="rating next">6</div>
+      <div class="rating-label">
+        <b>Reachable with Phase B.</b> Verified labeled set (N ≥ 20),
+        cached real-market corpus (≥ 50 markets), retrained detector,
+        non-circular sybil injector, labeled eval re-run. Reports a
+        real AUC with its CI — whatever that AUC turns out to be.
+      </div>
+    </div>
+    <div class="rating-row">
+      <div class="rating far">7–8</div>
+      <div class="rating-label">
+        <b>Phase C and beyond.</b> Per-case SHAP attribution exposed
+        to the frontend "why" panel, time-series CV harness, a small
+        supervised tier on triaged alerts. ≥ 100 labels for any of
+        these to mean much.
+      </div>
+    </div>
+
+    <h2><span class="num">2</span>What the 6/10 framing got wrong</h2>
+
+    <table>
+      <thead><tr><th style="width:32%">Claim made</th><th>What's actually true</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>"Sybil-ring AUC: 0.472 (base) → 0.906 (network-aware) — the operative lift number."</b></td>
+          <td>The <code>sybil_ring</code> injector perturbs exactly the four network-feature columns the new code added, and leaves the five base feature columns near-clean. The network-aware model wins because the test was designed to favor it. This is the same self-injection-matches-inductive-biases circularity Section E of the plan calls out as a known limitation. The number is real arithmetic; it is <i>not</i> evidence of detection skill on real sybil rings.</td>
+        </tr>
+        <tr>
+          <td><b>"Seeded 10 candidate labeled cases against rubric v1."</b></td>
+          <td>The evidence URLs (FT, The Block, X, CoinDesk) were generated from author intuition without verification. Several almost certainly do not resolve. They were marked <code>LK-candidate</code> with a <code>CANDIDATES.md</code> note saying "review before quoting," but feeding unverified entries into a labeled-eval pipeline is exactly how a synthetic-looking number gets quoted as evidence. The file now ships <b>empty</b>.</td>
+        </tr>
+        <tr>
+          <td><b>"Every column the live route shows the detector is a column the detector trained on."</b></td>
+          <td>True — but only in a synthetic sense. Both the training data <i>and</i> the scored data go through <code>feature_matrix_streams_with_network</code>; the <i>training</i> input is still <code>clean_streams_with_network</code> with hand-picked Beta distributions. A real Polymarket market may sit anywhere on those axes; we have no way to know without measurement.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2><span class="num">3</span>What <i>is</i> genuinely shipped</h2>
+
+    <div class="callout">
+      <b>The plumbing.</b> The code paths are correct, tested
+      (124 passing tests), and ready to consume real data when it
+      arrives:
+      <ul style="margin:8px 0 0 18px;font-size:13.5px;">
+        <li><code>from_trades_with_network()</code> — base + network feature blocks from a <code>RawMarket</code>, with NaN fallback when wallet addresses are missing.</li>
+        <li><code>feature_matrix_streams_with_network()</code> — one source of truth for column order; the live route and labeled-eval scorer share it.</li>
+        <li><code>anomaly.scoring.get_detector()</code> — lazy-fit singleton; the live route and the labeled-eval scorer use the same model.</li>
+        <li><code>scripts/eval_on_labeled.py</code> — bootstrap-CI ROC-AUC and a <code>low_n_warning</code> flag in <code>last_labeled_eval.json</code>.</li>
+        <li><code>scripts/seed_labeled_cache.py</code> — one-shot cache warmer once labels exist.</li>
+        <li><code>data/labeling_rubric.md</code> v1 (locked) + <code>CANDIDATES.md</code> labeling protocol.</li>
+      </ul>
+    </div>
+
+    <h2><span class="num">4</span>Phase B — gates to a genuine 6/10</h2>
+
+    <p>The order below is what matters for the rating, not what's easiest:</p>
+
+    <h3>B1. Verified labeled set (N ≥ 20, balanced)</h3>
+    <div class="checklist">
+      <ul>
+        <li>Each labeler reads <code>data/labeling_rubric.md</code> v1 before producing any rows.</li>
+        <li>For each <code>controversial</code> entry, the <code>evidence_url</code> is personally opened and confirmed to meet the rubric's evidence standards. Prefer an archive.org snapshot so the link stays stable.</li>
+        <li>If evidence cannot be produced to standard, the market is <b>dropped</b>, not downgraded to <code>mundane</code>.</li>
+        <li>At least two labelers cover at least two shared markets so Cohen's κ has something to compute.</li>
+        <li>Target balance: ~10 controversial / ~10 mundane minimum.</li>
+      </ul>
+    </div>
+    <p style="font-size:13px;color:#4b5563;margin-top:6px;">
+      <b>Why this gates the rating.</b> Without verified labels there
+      is no cross-check on the synthetic eval. We're stuck reporting
+      "the model wins on patterns we designed it to win on," which is
+      what 4.5/10 captures.
+    </p>
+
+    <h3>B2. Cached real-market corpus (≥ 50 resolved markets)</h3>
+    <div class="checklist">
+      <ul>
+        <li>Run <code>scripts/seed_labeled_cache.py</code> with <code>MARKETLENS_POLYMARKET_LIVE=1</code> on the labeled URLs + a top-N library pull (<code>scripts/fetch_market.py --library 40</code>).</li>
+        <li>Verify the cache has &gt; ~30 distinct resolved markets with non-trivial trade tape and address data.</li>
+        <li>Commit nothing under <code>backend/app/ingestion/cache/</code> — that directory is gitignored content; the corpus is a local artifact.</li>
+      </ul>
+    </div>
+    <p style="font-size:13px;color:#4b5563;margin-top:6px;">
+      <b>Why this gates the rating.</b> A real-trained detector
+      requires a real distribution to train on. Hand-picked
+      <code>Beta(2, 8)</code> for HHI is intuition; the real
+      distribution is what it is.
+    </p>
+
+    <h3>B3. Non-circular evaluation</h3>
+    <div class="checklist">
+      <ul>
+        <li>Add a <code>sybil_ring_v2</code> injector that also nudges base features moderately (volume +20-40%, traders -10-20%, spread −10-20%) so the lift demo isn't purely on the columns the new features target.</li>
+        <li>Add a base-feature-only injector that the network-aware model should <b>not</b> win on — to demonstrate the new features don't break detection of patterns base features should still see.</li>
+        <li>Report both AUCs side by side in <code>last_eval.json</code>; document the comparison in <code>MODEL_STATUS.md</code>.</li>
+      </ul>
+    </div>
+
+    <h3>B4. Retrain on real corpus &amp; re-run labeled eval</h3>
+    <div class="checklist">
+      <ul>
+        <li>Train <code>IsoForestDetector</code> on the real corpus (B2) instead of <code>clean_streams_with_network</code>; keep a synthetic ablation for comparison.</li>
+        <li>Run <code>scripts/eval_on_labeled.py --scorer app.anomaly.scoring:score_market_url</code> against the verified label set.</li>
+        <li>Publish whatever ROC-AUC results, with its bootstrap CI. <b>Do not</b> tune to make the number higher — that's how synthetic-overclaim happens.</li>
+        <li>Update <code>MODEL_STATUS.md</code> with the real number and its CI; update the implementation-plan HTML bottom-line callout to match.</li>
+      </ul>
+    </div>
+
+    <div class="callout warn">
+      <b>Honest expectation.</b> The real-data AUC will almost
+      certainly be lower than the synthetic 0.906. An honest 6/10
+      looks like AUC roughly 0.65-0.75 with a wide CI on N=20-30
+      labels — clearly better than chance on real data, clearly not a
+      production system. That's the number to aim for, not a higher
+      one.
+    </div>
+
+    <h2><span class="num">5</span>Phase C — gates to 7-8/10</h2>
+
+    <p>Only worth attempting once Phase B has produced verified numbers; otherwise these add complexity on top of an unmeasured base.</p>
+
+    <table>
+      <thead><tr><th style="width:32%">Capability</th><th>What it actually unlocks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>Per-case SHAP attribution</b> exposed via the live route.</td>
+          <td>The frontend "why" panel currently shows placeholder text from <code>mock.py</code>. SHAP TreeExplainer over the fitted IsoForest gives per-feature contributions on the scored windows, so the reason a market got the score it did becomes auditable.</td>
+        </tr>
+        <tr>
+          <td><b>Time-series cross-validation harness</b>.</td>
+          <td>Train on markets resolving before date T, evaluate on markets resolving after T. The canonical way to surface dataset-shift weakness and produce a number that survives the "but in production..." critique.</td>
+        </tr>
+        <tr>
+          <td><b>Order-book / depth features</b>.</td>
+          <td>Polymarket's CLOB does not currently expose depth history at the granularity required for top-of-book imbalance, quote-flicker, or order-to-trade ratio. Either depends on a separate scraping effort over time, or stays deferred. Top of the list for production-grade work.</td>
+        </tr>
+        <tr>
+          <td><b>Light supervised tier on triaged alerts</b>.</td>
+          <td>A small gradient-boosted model on labeled alert outcomes, riding on top of the IF score. Requires ≥ 100 labels and an analyst pool we don't have. Documented for completeness; not realistic at project scope.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2><span class="num">6</span>What good looks like, end-to-end</h2>
+
+    <div class="flow"><span class="muted"># Phase B execution</span>
+
+<span class="ok">[B1]</span> team labels ≥20 markets   →   <span class="hi">labeled_cases.yaml</span> (verified URLs)
+        ↓
+<span class="ok">[B2]</span> seed cache against labels + top-40 library
+        ↓                            <span class="muted"># MARKETLENS_POLYMARKET_LIVE=1</span>
+<span class="hi">backend/app/ingestion/cache/</span>  (≥50 markets)
+        ↓
+<span class="ok">[B3]</span> add sybil_ring_v2 + base-only injectors
+        ↓
+<span class="ok">[B4]</span> retrain detector on the cached corpus
+        ↓
+   python -m scripts.eval_on_labeled \
+       --scorer app.anomaly.scoring:score_market_url
+        ↓
+<span class="hi">last_labeled_eval.json</span>  ←  real ROC-AUC + bootstrap CI
+        ↓
+   update <span class="hi">MODEL_STATUS.md</span> + plan-HTML bottom-line
+        ↓
+<span class="ok">rating moves from 4.5  →  6 (or wherever the data lands)</span></div>
+
+    <h2><span class="num">7</span>What this document is for</h2>
+
+    <p>
+      Two purposes. First, internal accountability: if anyone (us,
+      reviewer, future self) opens the project six months from now and
+      wonders "did the team actually do what it said?", the answer
+      should be visible without needing to dig through commit
+      history. Second, a runbook: when Phase B begins, B1–B4 are the
+      task list. The pipeline already exists; what's missing is the
+      data and the discipline to publish the number that falls out of
+      it, not a prettier one.
+    </p>
+
+    <div class="callout bad">
+      <b>One rule when Phase B runs.</b> Whatever the real-data AUC
+      turns out to be is the number that goes in <code>MODEL_STATUS.md</code>
+      and the plan-HTML callout. We do not iterate the injector,
+      feature set, or training distribution until the labeled number
+      is published. That is how synthetic-overclaim happens: each
+      iteration nudges the model toward whatever the test set says,
+      and the headline AUC drifts upward without measuring anything
+      new.
+    </div>
+
+    <footer>
+      UW MarketLens · S3 honesty doc · companion to UW_MarketLens_Implementation_Plan.html
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>
