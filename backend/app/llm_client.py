@@ -28,8 +28,13 @@ strong JSON-output reliability. If free-tier rate limits become a
 problem, drop in a paid pennies-per-call model via the env var:
 
   $env:OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"             # ~$0.44/M in, $0.87/M out
-  $env:OPENROUTER_PROVIDER = "deepseek"                          # pin to cheap provider
-  $env:OPENROUTER_MODEL = "google/gemini-flash-1.5-8b"           # ~$0.04 / 1M tokens
+  $env:OPENROUTER_PROVIDER = "deepinfra"                         # pin to deepinfra (DeepSeek-direct
+                                                                 # provider requires opting into
+                                                                 # their data-retention policy at
+                                                                 # openrouter.ai/settings/privacy;
+                                                                 # deepinfra serves the same model
+                                                                 # with a standard privacy posture)
+  $env:OPENROUTER_MODEL = "google/gemini-2.0-flash-lite-001"     # ~$0.075/M in, $0.30/M out
   $env:OPENROUTER_MODEL = "openai/gpt-4o-mini"                   # ~$0.15 / 1M tokens
   $env:OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"          # if you have credit
 """
@@ -47,7 +52,13 @@ import httpx
 
 OPENROUTER_API_BASE = "https://openrouter.ai/api/v1/chat/completions"
 DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-DEFAULT_FALLBACK_MODEL = "google/gemini-flash-1.5-8b"
+# Real, currently-served slug. The previous default
+# `google/gemini-flash-1.5-8b` was renamed/retired by Google and
+# OpenRouter responds with `404 No endpoints found for ...` — which
+# turned every primary failure into a *double* failure in production.
+# 2.0-flash-lite-001 is cheap ($0.075/M in, $0.30/M out), JSON-mode
+# capable, and served by Google directly with no privacy-policy gate.
+DEFAULT_FALLBACK_MODEL = "google/gemini-2.0-flash-lite-001"
 DEFAULT_TIMEOUT_S = 30.0
 MAX_RETRIES = 2  # additional attempts on transient failure (3 total)
 RETRY_BACKOFF_S = 0.8

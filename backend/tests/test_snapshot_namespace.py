@@ -125,6 +125,12 @@ def test_live_snapshot_cold_cache_returns_503_not_500(tmp_path, monkeypatch):
     monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path / "empty")
     (tmp_path / "empty").mkdir(parents=True, exist_ok=True)
 
+    # Composite's in-process MarketScore cache also survives a dyno wake
+    # within the same process, so the snapshot-restart simulation must
+    # clear it explicitly to model a true cold start.
+    from app import composite
+    composite._LIVE_SCORE_CACHE.clear()
+
     with TestClient(app) as client:
         r2 = client.get(f"/api/snapshot/{sid}")
     assert r2.status_code == 503, r2.text

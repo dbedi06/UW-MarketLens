@@ -10,11 +10,33 @@ import type { AnomalyPoint } from "../types";
 import { fadeUp } from "../lib/motion";
 import SectionHeading from "../ui/SectionHeading";
 
+type FlaggedSpan = { x1: number; x2: number };
+
+// Group flagged windows into contiguous runs so the chart shades the
+// actual suspicious spans, not the entire range between the first and
+// last flag. With 700+ windows and flags at both ends (a market that
+// resolved with anomalous activity at open *and* close), shading the
+// whole span makes it look like 95% of the chart is suspicious.
+function flaggedSpans(series: AnomalyPoint[]): FlaggedSpan[] {
+  const out: FlaggedSpan[] = [];
+  let i = 0;
+  while (i < series.length) {
+    if (!series[i].flagged) { i += 1; continue; }
+    const start = series[i].window_index;
+    let end = start;
+    while (i < series.length && series[i].flagged) {
+      end = series[i].window_index;
+      i += 1;
+    }
+    out.push({ x1: start, x2: end });
+  }
+  return out;
+}
+
 export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
   const flagged = series.filter((p) => p.flagged);
   const hasFlag = flagged.length > 0;
-  const flagStart = hasFlag ? flagged[0].window_index : 0;
-  const flagEnd = hasFlag ? flagged[flagged.length - 1].window_index : 0;
+  const spans = flaggedSpans(series);
 
   // Auto-scale Y-axis when the implied probability barely moves
   // (e.g. a long-shot World Cup team trading between 16.7%–16.8%).
@@ -71,15 +93,20 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
                 fontFamily: "JetBrains Mono Variable, monospace",
               }}
             />
-            {hasFlag && (
+            {spans.map((s, i) => (
               <ReferenceArea
-                x1={flagStart}
-                x2={flagEnd}
+                key={`${s.x1}-${s.x2}-${i}`}
+                x1={s.x1}
+                x2={s.x2}
                 fill="#b3261e"
-                fillOpacity={0.07}
-                label={{ value: "flagged", fontSize: 10, fill: "#b3261e" }}
+                fillOpacity={0.18}
+                label={
+                  i === 0
+                    ? { value: "flagged", fontSize: 10, fill: "#b3261e" }
+                    : undefined
+                }
               />
-            )}
+            ))}
             <Area
               type="monotone"
               dataKey="price"

@@ -250,9 +250,33 @@ def has_live_pipeline() -> bool:
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
+# Process-local cache so the OG endpoint and the snapshot route return
+# the same MarketScore the user saw on the report page. Without this,
+# every render re-fetches Gamma and the favourite-pick can flip
+# between near-equal sub-markets (the "social preview shows a
+# different question than the verdict card" bug). Keyed by
+# (url, as_of); replaced on each fresh /api/live/score call.
+_LIVE_SCORE_CACHE: dict[tuple[str, str], "MarketScore"] = {}
+_LIVE_SCORE_CACHE_MAX = 64
+
+
+def _cache_put(key: tuple[str, str], score: "MarketScore") -> None:
+    if len(_LIVE_SCORE_CACHE) >= _LIVE_SCORE_CACHE_MAX:
+        # Evict the oldest entry (insertion-order in CPython 3.7+).
+        oldest = next(iter(_LIVE_SCORE_CACHE))
+        _LIVE_SCORE_CACHE.pop(oldest, None)
+    _LIVE_SCORE_CACHE[key] = score
+
+
 def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     """
     Full live pipeline: S1 → S3 → S4 → S5 → S6 → composite score.
+
+    Result is cached in-process by (url, as_of) so subsequent calls
+    for the same snapshot (typically /api/og/{sid} or
+    /api/snapshot/{sid} immediately after a report render) return the
+    same MarketScore the user saw. Without this, a re-fetch can flip
+    the favourite-pick to a different sub-market for the same URL.
 
     Graceful degradation
     --------------------
@@ -273,6 +297,11 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     import numpy as np
 
     as_of = as_of or _today()
+
+    cache_key = (url, as_of)
+    cached = _LIVE_SCORE_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
 
     # ── S1: Fetch real market data ────────────────────────────────────────────
     market = fetch_market(url)
@@ -453,7 +482,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     # Register snapshot so the permalink resolves
     mock.register_snapshot(sid, url, as_of, "live")
 
-    return MarketScore(
+    score = MarketScore(
         market_url=url,
         market_question=market.question,
         reliability_score=overall,
@@ -492,3 +521,5 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
         permalink=permalink,
         source="live",
     )
+    _cache_put(cache_key, score)
+    return score

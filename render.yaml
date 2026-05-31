@@ -35,11 +35,22 @@ services:
       #
       # Recommended paid setup (set both):
       #   OPENROUTER_MODEL    = deepseek/deepseek-v4-pro
-      #   OPENROUTER_PROVIDER = deepseek
-      # The provider pin matters — DeepSeek V4 Pro is ~5x more
-      # expensive via Fireworks/Together than via DeepSeek's own
-      # infra. Without the pin OpenRouter may silently route to the
-      # expensive provider during DeepSeek rate-limit spikes.
+      #   OPENROUTER_PROVIDER = deepinfra
+      # The provider pin matters — DeepSeek V4 Pro is several times
+      # more expensive via Fireworks/Together than via DeepInfra.
+      # Without the pin OpenRouter may silently route to the
+      # expensive provider during rate-limit spikes.
+      #
+      # Why DeepInfra and not the DeepSeek-direct provider:
+      # OpenRouter requires every account to opt into the DeepSeek
+      # provider's data-retention policy at
+      # https://openrouter.ai/settings/privacy before routing there
+      # — without that, requests pinned to `deepseek` return
+      # `404 "No endpoints available matching your guardrail
+      # restrictions"`. DeepInfra serves the same model under a
+      # standard OpenRouter privacy posture and doesn't need an
+      # extra opt-in. If you've already opted in, `deepseek` works
+      # too and is marginally cheaper.
       #
       # OPENROUTER_FALLBACK_MODEL (default google/gemini-flash-1.5-8b)
       # is what the client tries when the primary model exhausts its
