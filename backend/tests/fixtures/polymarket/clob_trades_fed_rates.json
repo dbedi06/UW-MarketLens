@@ -1,89 +1,111 @@
 [
   {
-    "id": "trade-001",
-    "price": "0.60",
-    "size": "500.00",
+    "proxyWallet": "0xWalletA",
     "side": "BUY",
-    "timestamp": "2025-11-01T10:00:00Z",
-    "maker_address": "0xWalletA",
-    "taker_address": "0xWalletB"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 500.00,
+    "price": 0.60,
+    "timestamp": 1762020000,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash001"
   },
   {
-    "id": "trade-002",
-    "price": "0.61",
-    "size": "300.00",
+    "proxyWallet": "0xWalletC",
     "side": "SELL",
-    "timestamp": "2025-11-01T10:05:30Z",
-    "maker_address": "0xWalletA",
-    "taker_address": "0xWalletC"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 300.00,
+    "price": 0.61,
+    "timestamp": 1762020330,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash002"
   },
   {
-    "id": "trade-003",
-    "price": "0.62",
-    "size": "1200.00",
+    "proxyWallet": "0xWalletD",
     "side": "BUY",
-    "matchTime": 1762020000,
-    "maker": "0xWalletD",
-    "taker": "0xWalletE"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 1200.00,
+    "price": 0.62,
+    "timestamp": 1762020900,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash003"
   },
   {
-    "id": "trade-004",
-    "price": "0.63",
-    "size": "150.00",
+    "proxyWallet": "0xWalletA",
     "side": "BUY",
-    "timestamp": "2025-11-01T10:25:00Z",
-    "maker_address": "0xWalletA",
-    "taker_address": "0xWalletF"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 150.00,
+    "price": 0.63,
+    "timestamp": 1762021500,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash004"
   },
   {
-    "id": "trade-005",
-    "price": "0.64",
-    "size": "800.00",
+    "proxyWallet": "0xWalletG",
     "side": "SELL",
-    "timestamp": "2025-11-01T10:31:00Z",
-    "makerAddress": "0xWalletG",
-    "takerAddress": "0xWalletA"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 800.00,
+    "price": 0.64,
+    "timestamp": 1762021860,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash005"
   },
   {
-    "id": "trade-006",
-    "price": "0.65",
-    "size": "200.00",
+    "proxyWallet": "no-token-trader",
     "side": "BUY",
-    "timestamp": "2025-11-01T10:45:00Z",
-    "maker_address": "",
-    "taker_address": ""
+    "asset": "no-token-0xbeef",
+    "conditionId": "0xabc123def456",
+    "size": 999.00,
+    "price": 0.35,
+    "timestamp": 1762022400,
+    "outcome": "No",
+    "transactionHash": "0xTxHashNoSide"
   },
   {
-    "id": "trade-007",
-    "price": "0.66",
-    "size": "450.00",
+    "proxyWallet": "0xWalletH",
     "side": "SELL",
-    "timestamp": "2025-11-01T11:00:00Z",
-    "maker_address": "0xWalletH",
-    "taker_address": "0xWalletI"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 450.00,
+    "price": 0.66,
+    "timestamp": 1762023600,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash007"
   },
   {
-    "id": "trade-008",
-    "price": "0.67",
-    "size": "100.00",
+    "proxyWallet": "0xWalletJ",
     "side": "BUY",
-    "timestamp": "2025-11-01T11:10:30Z",
-    "maker_address": "0xWalletJ",
-    "taker_address": "0xWalletK"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 100.00,
+    "price": 0.67,
+    "timestamp": 1762024230,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash008"
   },
   {
-    "id": "trade-009-malformed",
+    "proxyWallet": "0xWalletL",
     "side": "BUY",
-    "maker_address": "0xWalletL",
-    "taker_address": "0xWalletM"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 50.00,
+    "price": 0.68,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHashNoTimestamp"
   },
   {
-    "id": "trade-010",
-    "price": "0.68",
-    "size": "350.00",
+    "proxyWallet": "0xWalletN",
     "side": "SELL",
-    "timestamp": "2025-11-01T11:30:00Z",
-    "maker_address": "0xWalletN",
-    "taker_address": "0xWalletO"
+    "asset": "yes-token-0xdead",
+    "conditionId": "0xabc123def456",
+    "size": 350.00,
+    "price": 0.68,
+    "timestamp": 1762025400,
+    "outcome": "Yes",
+    "transactionHash": "0xTxHash010"
   }
 ]

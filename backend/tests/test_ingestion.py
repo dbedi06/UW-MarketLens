@@ -33,7 +33,7 @@ from app.ingestion.cache import (
 )
 from app.ingestion.polymarket import (
     _derive_unique_traders,
-    _fetch_clob_trades,
+    _fetch_market_trades,
     _parse_gamma_market,
     _slug_from_url,
 )
@@ -140,97 +140,93 @@ def test_gamma_parse_handles_clobtokenids_as_list():
     ]
 
 
-def test_clob_fetch_refuses_malformed_token_id(tmp_path, monkeypatch):
-    """Defensive guard: refuse to despatch a bare bracket to CLOB."""
+def test_market_trades_refuse_malformed_condition_id(tmp_path, monkeypatch):
+    """Defensive guard: refuse to despatch a bare bracket to the Data API."""
     monkeypatch.delenv(LIVE_ENV_FLAG, raising=False)
     monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
     with httpx.Client() as client:
-        with pytest.raises(ValueError, match="malformed token_id"):
-            _fetch_clob_trades(client, "[", limit=500)
+        with pytest.raises(ValueError, match="malformed condition_id"):
+            _fetch_market_trades(client, "[", "yes-token", limit=500)
 
 
 # --------------------------------------------------------------------------
-# CLOB trade parse — verifies B1 (addresses) and field-name tolerance
+# Data API trade parse — verifies proxyWallet + YES-token filter + Unix ts
 # --------------------------------------------------------------------------
 
-def _build_clob_client(payload):
-    """Wrap `_fetch_clob_trades` with a mock-transport client + a
-    pre-seeded cache so we don't need MARKETLENS_POLYMARKET_LIVE."""
-    handler = lambda req: httpx.Response(200, json=payload)
-    return httpx.Client(transport=httpx.MockTransport(handler))
+CONDITION_ID = "0xabc123def456"
+YES_TOKEN = "yes-token-0xdead"
 
 
-def test_clob_parse_extracts_addresses_with_field_name_tolerance(tmp_path,
-                                                                 monkeypatch):
-    """Records use a mix of maker_address / maker / makerAddress; the
-    parser must extract all three forms."""
-    monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
-    monkeypatch.setattr("app.ingestion.polymarket.CACHE_DIR", tmp_path,
-                        raising=False)
-    # Pre-seed the cache so cached_get returns the fixture
-    from app.ingestion.cache import cache_key as _ck, write as _w
-    key = _ck("GET", "https://clob.polymarket.com/trades",
-              {"market": "yes-token-0xdead", "limit": 500})
-    _w(key, {"method": "GET",
-             "url": "https://clob.polymarket.com/trades",
-             "params": {"market": "yes-token-0xdead", "limit": 500}},
-       CLOB_FIXTURE, cache_dir=tmp_path)
-
-    with httpx.Client() as client:
-        trades = _fetch_clob_trades(client, "yes-token-0xdead", limit=500)
-
-    # 10 fixture entries minus 1 malformed (no timestamp) = 9 successes
-    assert len(trades) == 9
-    # First trade has maker_address style
-    first = next(t for t in trades if t.trade_id == "trade-001")
-    assert first.maker_address == "0xWalletA"
-    assert first.taker_address == "0xWalletB"
-    # trade-003 uses bare maker/taker
-    third = next(t for t in trades if t.trade_id == "trade-003")
-    assert third.maker_address == "0xWalletD"
-    assert third.taker_address == "0xWalletE"
-    # trade-005 uses makerAddress/takerAddress
-    fifth = next(t for t in trades if t.trade_id == "trade-005")
-    assert fifth.maker_address == "0xWalletG"
-    assert fifth.taker_address == "0xWalletA"
-
-
-def test_clob_parse_handles_unix_and_iso_timestamps(tmp_path, monkeypatch):
-    """trade-003 uses `matchTime` (unix); others use `timestamp` (ISO)."""
+def _seed_data_api_cache(tmp_path, monkeypatch):
+    """Pre-seed the cache with the Data API trades response."""
+    monkeypatch.delenv(LIVE_ENV_FLAG, raising=False)
     monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
     from app.ingestion.cache import cache_key as _ck, write as _w
-    key = _ck("GET", "https://clob.polymarket.com/trades",
-              {"market": "yes-token-test", "limit": 500})
+    key = _ck(
+        "GET", "https://data-api.polymarket.com/trades",
+        {"market": CONDITION_ID, "limit": 500},
+    )
     _w(key, {"method": "GET",
-             "url": "https://clob.polymarket.com/trades",
-             "params": {"market": "yes-token-test", "limit": 500}},
+             "url": "https://data-api.polymarket.com/trades",
+             "params": {"market": CONDITION_ID, "limit": 500}},
        CLOB_FIXTURE, cache_dir=tmp_path)
 
+
+def test_data_api_parse_maps_proxywallet_to_maker_address(tmp_path,
+                                                          monkeypatch):
+    """Data API exposes only `proxyWallet` (the trade initiator). Our
+    parser maps it to `maker_address` and leaves `taker_address` empty
+    — documented loss of counterparty signal vs the auth-required CLOB."""
+    _seed_data_api_cache(tmp_path, monkeypatch)
     with httpx.Client() as client:
-        trades = _fetch_clob_trades(client, "yes-token-test", limit=500)
-    by_id = {t.trade_id: t for t in trades}
-    # ISO -> aware datetime
-    assert by_id["trade-001"].timestamp.tzinfo is not None
-    # Unix -> aware datetime via fromtimestamp(..., tz=utc)
-    assert by_id["trade-003"].timestamp.tzinfo is not None
+        trades = _fetch_market_trades(
+            client, CONDITION_ID, YES_TOKEN, limit=500,
+        )
+    # 10 fixture entries minus: 1 malformed (no timestamp) + 1 NO-side
+    # filtered out by YES-token client filter = 8 successes
+    assert len(trades) == 8
+    # All trades carry the YES token id and have proxyWallet → maker_address
+    for t in trades:
+        assert t.token_id == YES_TOKEN
+        assert t.maker_address  # non-empty proxyWallet
+        assert t.taker_address == ""  # Data API doesn't expose counterparty
+    # transactionHash propagates to trade_id
+    assert any(t.trade_id.startswith("0xTxHash") for t in trades)
 
 
-def test_clob_parse_skips_malformed_records(tmp_path, monkeypatch):
-    """The fixture includes one entry without a timestamp/matchTime;
-    parser should skip it silently rather than crashing."""
-    monkeypatch.setattr("app.ingestion.cache.CACHE_DIR", tmp_path)
-    from app.ingestion.cache import cache_key as _ck, write as _w
-    key = _ck("GET", "https://clob.polymarket.com/trades",
-              {"market": "yes-token-test", "limit": 500})
-    _w(key, {"method": "GET",
-             "url": "https://clob.polymarket.com/trades",
-             "params": {"market": "yes-token-test", "limit": 500}},
-       CLOB_FIXTURE, cache_dir=tmp_path)
-
+def test_data_api_filters_out_no_token_trades(tmp_path, monkeypatch):
+    """The fixture includes a single NO-side trade; the YES filter must
+    drop it from the returned list."""
+    _seed_data_api_cache(tmp_path, monkeypatch)
     with httpx.Client() as client:
-        trades = _fetch_clob_trades(client, "yes-token-test", limit=500)
-    ids = [t.trade_id for t in trades]
-    assert "trade-009-malformed" not in ids
+        trades = _fetch_market_trades(
+            client, CONDITION_ID, YES_TOKEN, limit=500,
+        )
+    # The no-side proxyWallet doesn't appear in any returned trade
+    assert all(t.maker_address != "no-token-trader" for t in trades)
+
+
+def test_data_api_parse_unix_timestamps_become_aware(tmp_path, monkeypatch):
+    """Data API returns Unix-int timestamps. Every parsed trade must
+    have a tz-aware datetime."""
+    _seed_data_api_cache(tmp_path, monkeypatch)
+    with httpx.Client() as client:
+        trades = _fetch_market_trades(
+            client, CONDITION_ID, YES_TOKEN, limit=500,
+        )
+    assert all(t.timestamp.tzinfo is not None for t in trades)
+
+
+def test_data_api_parse_skips_records_without_timestamp(tmp_path, monkeypatch):
+    """The fixture includes one entry without a timestamp; parser must
+    skip silently rather than crashing."""
+    _seed_data_api_cache(tmp_path, monkeypatch)
+    with httpx.Client() as client:
+        trades = _fetch_market_trades(
+            client, CONDITION_ID, YES_TOKEN, limit=500,
+        )
+    # The malformed record's tx hash must NOT appear
+    assert all(t.trade_id != "0xTxHashNoTimestamp" for t in trades)
 
 
 # --------------------------------------------------------------------------
@@ -354,9 +350,9 @@ def test_fetch_market_e2e_offline(tmp_path, monkeypatch):
     # Gamma /events?slug=
     _w(_ck("GET", "https://gamma-api.polymarket.com/events", {"slug": slug}),
        {}, GAMMA_FIXTURE, cache_dir=tmp_path)
-    # CLOB /trades?market=...&limit=500
-    _w(_ck("GET", "https://clob.polymarket.com/trades",
-           {"market": "yes-token-0xdead", "limit": 500}),
+    # Data API /trades?market=<conditionId>&limit=500
+    _w(_ck("GET", "https://data-api.polymarket.com/trades",
+           {"market": "0xabc123def456", "limit": 500}),
        {}, CLOB_FIXTURE, cache_dir=tmp_path)
     # CLOB /spread?token_id=...
     _w(_ck("GET", "https://clob.polymarket.com/spread",
@@ -367,11 +363,13 @@ def test_fetch_market_e2e_offline(tmp_path, monkeypatch):
     assert isinstance(market, RawMarket)
     assert market.condition_id == "0xabc123def456"
     assert market.question == "Will the Fed cut rates in 2025?"
-    # 9 trades survived (10 minus the malformed one).
-    assert len(market.trades) == 9
-    # Addresses extracted (B1).
-    assert all(t.maker_address for t in market.trades
-               if t.trade_id != "trade-006")
+    # 10 fixture entries minus: 1 malformed (no timestamp) + 1 NO-side
+    # (filtered by YES-token client filter) = 8 trades.
+    assert len(market.trades) == 8
+    # proxyWallet → maker_address on every trade; taker_address always
+    # empty (Data API doesn't expose the counterparty).
+    assert all(t.maker_address for t in market.trades)
+    assert all(t.taker_address == "" for t in market.trades)
     # unique_traders is derived from the wallet set, not Gamma's bogus 0.
     assert market.unique_traders > 0
     # spread came from the CLOB endpoint.
@@ -396,8 +394,8 @@ def test_live_route_returns_market_score_against_cache(tmp_path, monkeypatch):
     slug = "will-the-fed-cut-rates-in-2025"
     _w(_ck("GET", "https://gamma-api.polymarket.com/events", {"slug": slug}),
        {}, GAMMA_FIXTURE, cache_dir=tmp_path)
-    _w(_ck("GET", "https://clob.polymarket.com/trades",
-           {"market": "yes-token-0xdead", "limit": 500}),
+    _w(_ck("GET", "https://data-api.polymarket.com/trades",
+           {"market": "0xabc123def456", "limit": 500}),
        {}, CLOB_FIXTURE, cache_dir=tmp_path)
     _w(_ck("GET", "https://clob.polymarket.com/spread",
            {"token_id": "yes-token-0xdead"}),

@@ -34,8 +34,8 @@ def _seed_cache(tmp_path: Path, monkeypatch) -> str:
     slug = "will-the-fed-cut-rates-in-2025"
     _w(_ck("GET", "https://gamma-api.polymarket.com/events", {"slug": slug}),
        {}, GAMMA_FIXTURE, cache_dir=tmp_path)
-    _w(_ck("GET", "https://clob.polymarket.com/trades",
-           {"market": "yes-token-0xdead", "limit": 500}),
+    _w(_ck("GET", "https://data-api.polymarket.com/trades",
+           {"market": "0xabc123def456", "limit": 500}),
        {}, CLOB_FIXTURE, cache_dir=tmp_path)
     _w(_ck("GET", "https://clob.polymarket.com/spread",
            {"token_id": "yes-token-0xdead"}),

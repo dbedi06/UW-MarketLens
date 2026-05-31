@@ -16,14 +16,19 @@ non-obvious shape choices below.
   each so we exercise the `outcomePrices`/`tokens` path. Includes
   `winner: "Yes"` to test resolution parsing.
 
-- **`clob_trades_fed_rates.json`** — list of 10 trades for the YES
-  token. Mix of:
-  - ISO-string `timestamp` and Unix-int `matchTime` (parser tolerates both)
-  - both `maker_address`/`taker_address` and bare `maker`/`taker` field
-    name variants
-  - one intentionally malformed record (missing price) the parser
+- **`clob_trades_fed_rates.json`** — list of 10 trade records in the
+  **Data API** response shape (`https://data-api.polymarket.com/trades`).
+  Despite the historical filename, the content matches what
+  `_fetch_market_trades` actually consumes today. Mix of:
+  - Unix-int `timestamp` field (Data API's native shape)
+  - `proxyWallet` per trade (initiator only — Data API does not expose
+    the counterparty; our parser maps to `maker_address` and leaves
+    `taker_address` empty)
+  - `asset` field identifying the YES vs NO token; one record uses the
+    NO token (`no-token-0xbeef`) to verify our client-side YES filter
+  - one intentionally malformed record (missing timestamp) the parser
     should skip silently
-  - two trades sharing a maker address (proves `_derive_unique_traders`
+  - two trades sharing a proxyWallet (proves `_derive_unique_traders`
     deduplicates)
 
 ## Regenerating from live data

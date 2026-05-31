@@ -1,12 +1,33 @@
 """
 S1 — Polymarket Ingestion
 =========================
-Fetches real market data from Polymarket's public APIs (no auth required).
+Fetches real market data from Polymarket's public APIs (no auth required
+on the paths we use).
 
-Two APIs in play:
-  - Gamma API  https://gamma-api.polymarket.com  — market metadata, volume,
-    liquidity, end date, resolution status.
-  - CLOB API   https://clob.polymarket.com       — trade history per token.
+Three APIs in play
+------------------
+  - Gamma API     https://gamma-api.polymarket.com   — market metadata,
+                                                       volume, liquidity,
+                                                       end date, resolution.
+  - Data API      https://data-api.polymarket.com    — public trade history
+                                                       (no auth). Polymarket's
+                                                       public alternative to
+                                                       CLOB /trades, which is
+                                                       L2-auth-gated.
+  - CLOB API      https://clob.polymarket.com        — used only for /spread
+                                                       (point-in-time spread
+                                                       snapshot, best-effort).
+
+Why three hosts and not the obvious two
+---------------------------------------
+The original implementation used CLOB /trades. Polymarket's own docs
+(`llms.txt`) and the official `py-clob-client` SDK both state that
+`/trades` requires Level 2 (EIP-712-signed) authentication. Production
+was returning 401 for every real market URL because we were hitting an
+auth-gated endpoint without credentials. The Data API (described in
+`llms.txt` as the public surface for "trades, activity, and holder
+information") is the supported public path. Probing confirmed it
+returns trade JSON with no auth headers.
 
 Public entry points
 -------------------
@@ -19,9 +40,11 @@ Public entry points
 
 Internal flow
 -------------
-  URL slug  -->  Gamma /markets?slug=  -->  market + token IDs
-                                        -->  CLOB /trades?token_id=  (per token)
-                                        -->  RawMarket
+  URL slug  -->  Gamma /events?slug=         -->  condition_id + token_ids
+                                              -->  Data API /trades?market=<condition_id>
+                                                   (filtered client-side to YES token)
+                                              -->  CLOB /spread?token_id=
+                                              -->  RawMarket
 
 RawMarket is the S1 output contract that S2 (feature engineering) and
 mock.py's swap-out point both read. Do not change field names without
@@ -45,8 +68,13 @@ from .cache import IngestionUnavailable, cached_get
 logger = logging.getLogger(__name__)
 
 # ── API base URLs ────────────────────────────────────────────────────────────
-GAMMA_BASE = "https://gamma-api.polymarket.com"
-CLOB_BASE  = "https://clob.polymarket.com"
+GAMMA_BASE    = "https://gamma-api.polymarket.com"
+CLOB_BASE     = "https://clob.polymarket.com"
+# Data API — Polymarket's public, no-auth endpoint for trade history. The
+# CLOB `/trades` endpoint requires Level 2 (EIP-712-signed) authentication
+# per Polymarket's docs + py-clob-client SDK; the Data API is the public
+# alternative described in their llms.txt index.
+DATA_API_BASE = "https://data-api.polymarket.com"
 
 # ── Rate-limit guard: stay well inside Cloudflare's burst allowance ──────────
 _REQUEST_DELAY_S = 0.15   # 150 ms between requests → ~6 req/s
@@ -299,62 +327,84 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
     }
 
 
-# ── CLOB API calls ────────────────────────────────────────────────────────────
+# ── Data API calls (public trades) ───────────────────────────────────────────
 
-def _fetch_clob_trades(
+def _fetch_market_trades(
     client: httpx.Client,
-    token_id: str,
+    condition_id: str,
+    yes_token_id: str,
     limit: int = 500,
 ) -> list[RawTrade]:
     """
-    GET /trades?token_id=<id>&limit=<n>
+    GET data-api.polymarket.com/trades?market=<condition_id>&limit=<n>
 
-    Returns up to `limit` most recent trades for this token.
-    The CLOB /trades endpoint is public (no auth).
+    Returns up to `limit` most recent trades for the YES side of the market
+    (filtered client-side by `asset == yes_token_id`).
+
+    Why this exists
+    ---------------
+    CLOB `/trades` (the previous implementation) requires Level 2
+    EIP-712-signed authentication per Polymarket's own docs and the
+    `py-clob-client` SDK (which calls `assert_level_2_auth()` before any
+    /trades request). Our existing production 401s were caused by hitting
+    that auth-gated endpoint without credentials. The Data API is the
+    public-no-auth alternative explicitly described in Polymarket's
+    `llms.txt` docs index.
+
+    Honest loss of signal
+    ---------------------
+    The Data API response includes only `proxyWallet` (the trade
+    initiator) — not the counterparty. Our trader-graph features
+    therefore see only one side of each edge. We map `proxyWallet` to
+    `maker_address` and leave `taker_address` empty so downstream code
+    (`_derive_unique_traders`, network features) continues to function
+    on a reduced graph. The alternative is auth-required CLOB access,
+    which is out of scope for this fix.
     """
-    # Defensive: a malformed token_id (empty string, single bracket char,
-    # short JSON-fragment) would otherwise reach Polymarket as
-    # `?market=[` and be answered with an opaque 401 Unauthorized. Refuse
-    # locally with a clearer error so the cause is obvious in the logs.
-    if not isinstance(token_id, str) or len(token_id) < 4:
+    if not isinstance(condition_id, str) or len(condition_id) < 4:
         raise ValueError(
-            f"Refusing to query CLOB with malformed token_id "
-            f"{token_id!r} (likely a Gamma parse bug — see "
-            f"`_extract_token_ids`)."
+            f"Refusing to query Data API with malformed condition_id "
+            f"{condition_id!r} (likely a Gamma parse bug)."
         )
     data = _get(
         client,
-        f"{CLOB_BASE}/trades",
-        params={"market": token_id, "limit": limit},
+        f"{DATA_API_BASE}/trades",
+        params={"market": condition_id, "limit": limit},
     )
     trades: list[RawTrade] = []
     raw_list = data if isinstance(data, list) else data.get("data", [])
     for t in raw_list:
         try:
-            ts_raw = t.get("timestamp") or t.get("matchTime", "")
-            # Timestamps come as ISO strings or Unix seconds
+            # Filter to the YES token if provided; the market endpoint
+            # returns both YES and NO outcome trades by default.
+            asset = str(t.get("asset", ""))
+            if yes_token_id and asset and asset != yes_token_id:
+                continue
+
+            ts_raw = t.get("timestamp")
+            # Data API returns Unix seconds (int). Fall back to ISO parse
+            # for robustness in case the shape ever changes.
             if isinstance(ts_raw, (int, float)):
                 ts = datetime.fromtimestamp(float(ts_raw), tz=timezone.utc)
-            else:
+            elif ts_raw:
                 ts = datetime.fromisoformat(
                     str(ts_raw).replace("Z", "+00:00")
                 )
-            # B1: address tolerance — CLOB has used a few naming
-            # conventions historically. Try the most specific first.
-            maker = (t.get("maker_address") or t.get("maker")
-                     or t.get("makerAddress") or "")
-            taker = (t.get("taker_address") or t.get("taker")
-                     or t.get("takerAddress") or "")
+            else:
+                continue  # skip malformed (no timestamp)
+
+            wallet = str(t.get("proxyWallet", "") or "")
+            tx_hash = str(t.get("transactionHash", "") or "")
             trades.append(
                 RawTrade(
-                    trade_id=str(t.get("id", t.get("tradeId", ""))),
-                    token_id=token_id,
+                    trade_id=tx_hash or str(t.get("id", "")),
+                    token_id=asset or (yes_token_id or ""),
                     price=float(t.get("price", 0)),
-                    size=float(t.get("size", t.get("usdcSize", 0))),
+                    size=float(t.get("size", 0)),
                     side=str(t.get("side", "BUY")).upper(),
                     timestamp=ts,
-                    maker_address=str(maker),
-                    taker_address=str(taker),
+                    maker_address=wallet,
+                    taker_address="",  # Data API doesn't expose counterparty
                 )
             )
         except Exception as exc:
@@ -362,6 +412,8 @@ def _fetch_clob_trades(
     # newest first
     trades.sort(key=lambda x: x.timestamp, reverse=True)
     return trades
+
+
 
 
 def _derive_unique_traders(trades: list[RawTrade]) -> int:
@@ -400,9 +452,11 @@ def fetch_market(url: str, trade_limit: int = 500) -> RawMarket:
     Steps
     -----
     1. Parse URL → slug
-    2. Gamma /events?slug=  → metadata
-    3. CLOB /trades?market=  → trade history for YES token
-    4. CLOB /spread?token_id= → current spread
+    2. Gamma /events?slug=  → metadata + condition_id + token_ids
+    3. Data API /trades?market=<condition_id> → trade history (filtered
+       client-side to the YES token)
+    4. CLOB /spread?token_id= → current spread (best-effort; falls back
+       to 0.0 if CLOB tightens auth on this endpoint too)
     5. Assemble RawMarket
 
     Raises
@@ -420,12 +474,16 @@ def fetch_market(url: str, trade_limit: int = 500) -> RawMarket:
         parsed  = _parse_gamma_market(event, url)
 
         # Fetch trades for the YES token (index 0) — that's what S2 uses for
-        # the price series and feature vectors
+        # the price series and feature vectors. The Data API takes the
+        # condition_id; we filter client-side to the YES token.
         trades: list[RawTrade] = []
         spread = parsed["spread"]
-        if parsed["token_ids"]:
+        condition_id = parsed["condition_id"]
+        if parsed["token_ids"] and condition_id:
             yes_token = parsed["token_ids"][0]
-            trades = _fetch_clob_trades(client, yes_token, limit=trade_limit)
+            trades = _fetch_market_trades(
+                client, condition_id, yes_token, limit=trade_limit,
+            )
             spread = _fetch_clob_spread(client, yes_token) or spread
 
     # B3: derive unique_traders from the trade tape (real). Fall back to

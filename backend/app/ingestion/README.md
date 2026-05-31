@@ -46,21 +46,48 @@ python -m scripts.fetch_market --url <...> --save-fixture   # also copy into tes
 The script prints the parsed `RawMarket` and the cache path. Without
 the env flag, only URLs already in the cache will succeed.
 
+## Three-host architecture
+
+Polymarket splits its public surface across three hosts. Our adapter
+talks to each for a different concern:
+
+| Host | What we fetch | Auth |
+|------|---------------|------|
+| `gamma-api.polymarket.com` | Market metadata, `clobTokenIds`, `volumeNum`, `endDate`, `closed`, `winner` | Public |
+| `data-api.polymarket.com`  | Trade history (`?market=<conditionId>`) | **Public, no auth** |
+| `clob.polymarket.com`      | Point-in-time `/spread` snapshot | Public (best-effort) |
+
+**Do not switch trade history back to `clob.polymarket.com/trades`.**
+That endpoint requires Level 2 (EIP-712-signed) authentication per
+Polymarket's `llms.txt` docs index and the official `py-clob-client`
+SDK (which calls `assert_level_2_auth()` before any /trades request).
+Production was returning 401 on every real market for two weeks
+because of this. The fix is to use the Data API.
+
 ## API quirks (known, documented)
 
-The Polymarket APIs have shifted field names over time. The current
-parser tolerates the following variants explicitly:
-
-- **Trade timestamps**: `timestamp` (ISO 8601 string) or `matchTime`
-  (Unix int). Either works; both produce a tz-aware `datetime`.
-- **Trade addresses**: `maker_address` / `taker_address`, plain
-  `maker` / `taker`, or `makerAddress` / `takerAddress`. We try in
-  that order; missing → `""`.
+- **Data API doesn't expose the trade counterparty.** Each trade record
+  carries only `proxyWallet` (the initiator). We map this to
+  `maker_address` and leave `taker_address` empty. Our trader-graph
+  features therefore see only one side of each edge — documented loss
+  of signal vs the (unavailable) authenticated CLOB endpoint.
+- **Filter client-side by `asset == yes_token_id`** to keep only YES-side
+  trades. The Data API returns both YES and NO outcome trades for the
+  market by default.
+- **Trade timestamps** are Unix-int seconds on the Data API. The parser
+  falls back to ISO 8601 parsing for robustness.
 - **`uniqueTraderCount`** on Gamma market objects is unreliable
   (often 0). The parser overrides it with `_derive_unique_traders`
-  which counts distinct addresses across all fetched trades.
+  which counts distinct wallets across all fetched trades.
+- **`clobTokenIds`** comes back as a JSON-encoded *string* on modern
+  Gamma responses (e.g., `'["0x...", "0x..."]'`). `_extract_token_ids`
+  parses the string before subscripting — naively reading the first
+  character (an open bracket) and sending it to CLOB was the original
+  production 401 trigger before this fix.
 - **`spread`** is fetched separately from CLOB `/spread`; the Gamma
-  response does not include it.
+  response does not include it. If CLOB tightens auth on /spread
+  too, the call fails silently and `RawMarket.spread` stays at 0.0
+  — feature engineering tolerates this.
 
 If Polymarket renames a field we depend on, the offline tests will
 still pass (they use committed fixtures) but the manual live smoke
