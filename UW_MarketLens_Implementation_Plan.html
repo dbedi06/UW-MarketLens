@@ -265,21 +265,22 @@
         <p class="note">Upgrade path documented in <code>UW_MarketLens_Push_To_Six.html</code>.</p>
       </div>
 
-      <div class="card todo">
-        <span class="status todo">Todo</span>
+      <div class="card done">
+        <span class="status done">Done</span>
         <span class="tag">S4</span>
         <h3>LLM Resolution Checker</h3>
         <p>NewsAPI fetch + Claude JSON-schema call + 30-market labeled set + agreement metric.</p>
         <span class="pill free">Independent</span>
+        <p class="note">Inference path in <code>app/resolution.py</code>; graceful UNVERIFIABLE fallback when <code>NEWS_API_KEY</code> / <code>ANTHROPIC_API_KEY</code> missing. Wired through to the live route. 30-market labeled set + agreement metric still pending.</p>
       </div>
 
-      <div class="card todo">
-        <span class="status todo">Todo</span>
+      <div class="card done">
+        <span class="status done">Done</span>
         <span class="tag">S5</span>
         <h3>LLM Course Tagger</h3>
         <p>Few-shot tagging prompt + caching + committed tagging rubric.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Dilshan picking this up alongside S4.</p>
+        <p class="note">Claude few-shot in <code>app/tagger.py</code> with keyword fallback; rubric committed at <code>app/data/tagging_rubric.md</code>; wired into the live route via S7.</p>
       </div>
 
       <div class="card done">
@@ -288,16 +289,16 @@
         <h3>Citation Generator</h3>
         <p>APA/MLA strings + embedded reliability flag. Pure function — great warm-up.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Implemented in <code>app/mock.py:make_citation</code>; served via <code>POST /api/citation</code>.</p>
+        <p class="note">Real implementation in <code>app/citation_gen.py</code> (APA + MLA + BibTeX with deterministic key); served via <code>POST /api/citation</code> and embedded in every live MarketScore.</p>
       </div>
 
-      <div class="card todo">
-        <span class="status todo">Todo</span>
+      <div class="card done">
+        <span class="status done">Done</span>
         <span class="tag">S7</span>
         <h3>Composite Score</h3>
         <p>Combine anomaly + LLM verdict + liquidity rules → 0–100 score. The true integration point.</p>
         <span class="pill dep">Soft dep: S3/S4</span>
-        <p class="note">Mock composite shipped; real composite waits on S4 + S3 real-trained detector.</p>
+        <p class="note">Weighted composite (35% liquidity / 40% anomaly / 25% resolution) in <code>app/composite.py</code> drives <code>POST /api/live/score</code>. Weights uncalibrated.</p>
       </div>
 
       <div class="card done">
@@ -324,7 +325,7 @@
         <h3>Deploy + CI/CD</h3>
         <p>Vercel + Render + GitHub Actions. Set up empty on day 1.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Render Blueprint configured (<code>render.yaml</code>); Python pinned 3.12.7 for pydantic-core wheel compatibility.</p>
+        <p class="note">Render Blueprint configured (<code>render.yaml</code>); Python pinned 3.12.7. GitHub Actions workflow at <code>.github/workflows/test.yml</code> runs <code>pytest</code> + frontend typecheck + build on every push.</p>
       </div>
 
       <div class="card todo">

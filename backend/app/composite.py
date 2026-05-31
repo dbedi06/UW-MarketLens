@@ -80,8 +80,13 @@ def _log_scale(value: float, reference: float) -> float:
     """
     Normalise value against reference using log scaling.
     Returns 0-100. A value equal to reference gives ~63.
+
+    Guards against NaN / non-finite inputs (B3 fix carried into the
+    composite from the old inline liquidity_subscore): if the upstream
+    API returns NaN for volume or spread, treat as the neutral 0 floor
+    rather than letting NaN propagate through to int().
     """
-    if value <= 0:
+    if not math.isfinite(value) or value <= 0:
         return 0.0
     raw = math.log1p(value) / math.log1p(reference)
     return min(100.0, raw * 100)
@@ -223,17 +228,44 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     top_features: list[str] = []
     flagged_windows = 0
 
+    X_base, X_net, mid, widx = from_trades_with_network(market)
+    # B9 (preserved from previous live route): relative features
+    # require min_n=3 prior windows; with <4 windows the per-market
+    # z-scores are all zero and the score is meaningless. Refuse rather
+    # than emit a misleading number. Raised outside the try/except below
+    # so it propagates to the route handler (→ HTTP 422).
+    if 0 < X_base.shape[0] < 4:
+        raise ValueError(
+            f"Not enough trade history: got {X_base.shape[0]} "
+            f"window(s), need >=4 for relative-feature baseline."
+        )
+
     try:
-        X_base, X_net, mid, widx = from_trades_with_network(market)
         if X_base.shape[0] > 0:
             det = get_detector()
-            if np.isnan(X_net).any():
-                X_net = np.where(np.isnan(X_net), det._network_medians[None, :], X_net)
+            medians = getattr(det, "_network_medians", None)
+            if np.isnan(X_net).any() and medians is not None:
+                X_net = np.where(np.isnan(X_net), medians[None, :], X_net)
+            elif np.isnan(X_net).any():
+                # No medians attached (test detector or unfit detector) —
+                # fall back to zero so the matrix is at least finite.
+                X_net = np.where(np.isnan(X_net), 0.0, X_net)
             F = feature_matrix_streams_with_network(X_base, X_net, mid, widx)
             per_window = det.score(F)
             top_k = min(3, per_window.shape[0])
             stat = float(np.mean(np.sort(per_window)[-top_k:]))
-            anomaly_percentile = percentile_from_reference(stat, det._reference_scores)
+            ref = getattr(det, "_reference_scores", None)
+            if ref is not None and ref.size:
+                anomaly_percentile = percentile_from_reference(stat, ref)
+            elif per_window.size:
+                # Defensive fallback for fake/uncalibrated detectors:
+                # min-max normalize within this batch. Mirrors the
+                # pre-composite live-route behavior.
+                lo, hi = float(per_window.min()), float(per_window.max())
+                anomaly_percentile = (
+                    0.5 if hi <= lo
+                    else float((stat - lo) / (hi - lo))
+                )
 
             # Build AnomalyPoint series for the chart
             threshold = float(np.percentile(per_window, 85))

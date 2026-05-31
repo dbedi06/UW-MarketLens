@@ -2,10 +2,23 @@
 
 AI-Powered Prediction Market Reliability Platform — DYOP project.
 
-> **Status: placeholder build.** Backend returns deterministic mock data
-> (`backend/app/mock.py`). The real pipeline (S1 ingestion → S3 anomaly →
-> S4/S5 LLM → S7 composite) plugs in behind that file with no frontend changes.
-> See `UW_MarketLens_Implementation_Plan.html` for the section breakdown.
+**Live demo:** https://marketlens-web.onrender.com  
+**API:** https://marketlens-api.onrender.com — see `/docs` for the interactive schema, `/health` for liveness.
+
+> **Free-tier note.** Both services sleep after 15 minutes of inactivity;
+> the first request after a sleep takes ~30–60 seconds to wake the dyno.
+> Subsequent requests are fast.
+
+> **Status: real pipeline live.** Frontend defaults to **Live** mode,
+> which runs the full chain — S1 Polymarket ingestion → S2 features →
+> S3 Isolation Forest → S4 LLM resolution checker → S5 LLM course
+> tagger → S6 citation → S7 weighted composite (35% liquidity / 40%
+> anomaly / 25% resolution). The deterministic mock at
+> `backend/app/mock.py` is still available behind a Mock toggle in the
+> nav. See `UW_MarketLens_Implementation_Plan.html` for the section
+> breakdown and `backend/app/anomaly/MODEL_STATUS.md` for the honest
+> ML rating (currently ~4.5/10, with the upgrade path in
+> `UW_MarketLens_Push_To_Six.html`).
 
 ## Run locally (two terminals)
 
@@ -37,9 +50,15 @@ http://localhost:8000/docs
 
 | Path | What |
 |------|------|
-| `backend/app/schemas.py` | PLACEHOLDER Pydantic contract (finalized in S0) |
-| `backend/app/mock.py` | All fake data — the single swap-out point |
-| `backend/app/routes/` | Thin handlers: `/api/score`, `/api/library`, `/api/citation` |
+| `backend/app/schemas.py` | Pydantic contract (S0) |
+| `backend/app/ingestion/` | S1 Polymarket adapter (Gamma + CLOB, on-disk cache) |
+| `backend/app/anomaly/` | S2 features + S3 Isolation Forest + labeled-eval |
+| `backend/app/resolution.py` | S4 LLM resolution checker (Claude + NewsAPI) |
+| `backend/app/tagger.py` | S5 course tagger (Claude few-shot + `data/tagging_rubric.md`) |
+| `backend/app/citation_gen.py` | S6 pure-function APA/MLA/BibTeX generator |
+| `backend/app/composite.py` | S7 weighted composite — the live `make_market_score` |
+| `backend/app/mock.py` | Deterministic mock — still backs `/api/score` and `/api/citation` |
+| `backend/app/routes/` | Thin handlers — `/api/score`, `/api/live/score`, `/api/library`, `/api/citation`, `/api/snapshot/{id}`, `/api/admin/*`, `/api/og/{id}` |
 | `frontend/src/types.ts` | TS mirror of the schema |
 | `frontend/src/api.ts` | Backend URL lives here only |
-| `frontend/src/components/` | ScoreCard, CitationBox, Library |
+| `frontend/src/components/` | MarketReport, AnomalyChart, SubscoreBars, CitationBox, etc. |

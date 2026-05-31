@@ -131,20 +131,17 @@ def test_startup_prefits_detector(monkeypatch):
 
 # ── B3: liquidity subscore robust to NaN spread/volume ──────────────────────
 
-def test_liquidity_subscore_handles_nan_spread_and_volume():
-    from app.routes.live import _liquidity_subscore
-    from app.ingestion.polymarket import RawMarket
-
-    bad = RawMarket(
-        market_url="x", condition_id="c", question_id="q", question="?",
-        token_ids=[], volume_usd=float("nan"), liquidity_usd=0.0,
-        unique_traders=0, yes_price=0.5, spread=float("nan"),
-        end_date=None, resolved=False, resolution=None,
-    )
-    out = _liquidity_subscore(bad)
-    # Must be a valid int in [0, 100] — must not raise ValueError on int(NaN)
+def test_liquidity_subscore_handles_nan_inputs():
+    """B3 (moved to composite): composite._liquidity_score must not
+    crash on NaN volume / liquidity. log1p(NaN) is NaN, so the function
+    needs an explicit guard."""
+    from app.composite import _liquidity_score
+    import math
+    # NaN volume + NaN liquidity → must not raise; must return a finite int.
+    out = _liquidity_score(float("nan"), float("nan"), 0)
     assert isinstance(out, int)
     assert 0 <= out <= 100
+    assert not math.isnan(out)
 
 
 # ── B4: ttr clipped to training-range [1, 180] ──────────────────────────────
