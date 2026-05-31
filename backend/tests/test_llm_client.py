@@ -160,8 +160,12 @@ def test_provider_env_var_adds_provider_block_to_request(monkeypatch):
 
     prov = captured["body"].get("provider")
     assert prov is not None
-    assert prov.get("order") == ["deepseek"]
-    assert prov.get("allow_fallbacks") is False
+    # Modern OpenRouter pin syntax: `only` replaces the older
+    # `order + allow_fallbacks: false` pair which started returning
+    # hard 404s under transient conditions. Same cost guarantee.
+    assert prov.get("only") == ["deepseek"]
+    assert "order" not in prov
+    assert "allow_fallbacks" not in prov
 
 
 def test_provider_env_var_unset_omits_provider_block(monkeypatch):
@@ -189,7 +193,7 @@ def test_provider_env_var_supports_comma_list(monkeypatch):
 
     client = httpx.Client(transport=httpx.MockTransport(handler))
     call_chat([{"role": "user", "content": "hi"}], client=client)
-    assert captured["body"]["provider"]["order"] == ["deepseek", "deepinfra"]
+    assert captured["body"]["provider"]["only"] == ["deepseek", "deepinfra"]
 
 
 # ── Retry + fallback ───────────────────────────────────────────────────────

@@ -269,6 +269,14 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
     Pull the fields we need out of a Gamma event object.
     Gamma nests individual outcome markets under event["markets"].
     We aggregate volume/liquidity across all outcomes for the event.
+
+    For multi-outcome events (e.g. "World Cup Winner" with 60 per-team
+    markets), `markets[0]` is whatever Gamma listed first — often
+    arbitrary. We pick the most-traded sub-market by `volume24hr`
+    instead, so the per-outcome question we use downstream ("Will France
+    win the 2026 FIFA World Cup?") is the one with the most recent
+    real activity. Binary markets land here too — a one-market event
+    trivially picks itself.
     """
     markets = event.get("markets", [])
 
@@ -276,15 +284,33 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
     volume_usd    = sum(float(m.get("volumeNum", 0) or 0) for m in markets)
     liquidity_usd = sum(float(m.get("liquidityNum", 0) or 0) for m in markets)
 
-    # Use the first (YES) market for token IDs, price, and metadata
-    primary = markets[0]
+    # Pick the most-active sub-market by 24hr volume. Falls back to
+    # markets[0] when no market reports volume24hr (all zeros).
+    primary = max(
+        markets,
+        key=lambda m: float(m.get("volume24hr", 0) or 0),
+    )
     token_ids = _extract_token_ids(primary)
 
-    # Outcome prices: ["0.62", "0.38"] → YES price is index 0
-    outcome_prices = primary.get("outcomePrices", ["0.5", "0.5"])
+    # Outcome prices: Gamma serves this as either a real list
+    # `["0.62", "0.38"]` or — increasingly common — a JSON-encoded
+    # *string* `'["0.62", "0.38"]'`. Naively indexing the string gives
+    # back the literal `[` character and float() raises → silent
+    # fallback to 0.5 (which was the "yes_price came back as 0.5
+    # despite real trades at 0.001" bug). JSON-decode strings first,
+    # mirroring the `_extract_token_ids` approach.
+    import json as _json
+    outcome_prices_raw = primary.get("outcomePrices", ["0.5", "0.5"])
+    if isinstance(outcome_prices_raw, str):
+        try:
+            outcome_prices = _json.loads(outcome_prices_raw)
+        except _json.JSONDecodeError:
+            outcome_prices = ["0.5", "0.5"]
+    else:
+        outcome_prices = outcome_prices_raw
     try:
         yes_price = float(outcome_prices[0])
-    except (IndexError, ValueError):
+    except (IndexError, ValueError, TypeError):
         yes_price = 0.5
 
     # Resolution
@@ -308,7 +334,12 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
     return {
         "condition_id":   primary.get("conditionId", ""),
         "question_id":    primary.get("questionID", ""),
-        "question":       event.get("title") or primary.get("question", ""),
+        # Prefer the per-outcome question ("Will France win the 2026
+        # FIFA World Cup?"); fall back to the event title only when a
+        # sub-market doesn't carry its own question text. The per-
+        # outcome question is what S4 needs to query NewsAPI usefully —
+        # the event title ("World Cup Winner") returns junk articles.
+        "question":       primary.get("question") or event.get("title", ""),
         "token_ids":      token_ids,
         "volume_usd":     volume_usd,
         "liquidity_usd":  liquidity_usd,

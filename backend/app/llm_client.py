@@ -103,17 +103,20 @@ def _resolve_provider_block() -> dict | None:
     providers = [p.strip() for p in raw.split(",") if p.strip()]
     if not providers:
         return None
-    # `order` + `allow_fallbacks: false` is the documented OpenRouter
-    # pattern for "only these providers, fail if none available."
-    # Critical for cost control: DeepSeek V4 Pro is ~$0.44/M input
+    # OpenRouter's `provider.only` is the modern "must route to one of
+    # these providers" knob. Same cost guarantee as the older
+    # `order + allow_fallbacks: false` pair, but the latter started
+    # returning hard 404s ("No endpoints found for {model}") under
+    # transient provider conditions instead of waiting briefly or
+    # surfacing a more diagnosable error. `only` is the documented
+    # replacement and behaves consistently.
+    #
+    # Cost rationale (unchanged): DeepSeek V4 Pro is ~$0.44/M input
     # via the `deepseek` provider but several times that via
-    # Fireworks / Together / etc. Without this, OpenRouter may
+    # Fireworks / Together / etc. Without this pin, OpenRouter may
     # silently route to a more expensive provider during DeepSeek
     # rate-limit spikes.
-    return {
-        "order": providers,
-        "allow_fallbacks": False,
-    }
+    return {"only": providers}
 
 
 def _single_attempt(

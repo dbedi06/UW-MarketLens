@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
 import httpx
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 NEWS_API_BASE = "https://newsapi.org/v2/everything"
 DEFAULT_TIMEOUT_S = 15.0
@@ -219,5 +222,14 @@ def resolve_market(
             model_used=model_used,
             model_was_fallback=model_was_fallback,
         )
-    except Exception:
-        return _fallback_assessment("Resolution checking failed; falling back to UNVERIFIABLE.")
+    except Exception as exc:
+        # Without this log the live route silently returns
+        # resolution_quality=0 whenever OpenRouter, NewsAPI, or JSON
+        # parsing throws — and the production deploy has no way to
+        # diagnose why. Log the full exception so Render logs surface
+        # the real failure ("OpenRouter HTTP 401: ...", "expecting
+        # value: line 1 column 1", etc.).
+        logger.exception("resolve_market failed (%s); returning UNVERIFIABLE", exc)
+        return _fallback_assessment(
+            f"Resolution checking failed ({type(exc).__name__}); falling back to UNVERIFIABLE."
+        )

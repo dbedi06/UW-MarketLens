@@ -16,15 +16,32 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
   const flagStart = hasFlag ? flagged[0].window_index : 0;
   const flagEnd = hasFlag ? flagged[flagged.length - 1].window_index : 0;
 
+  // Auto-scale Y-axis when the implied probability barely moves
+  // (e.g. a long-shot World Cup team trading between 16.7%–16.8%).
+  // On the hardcoded [0, 1] axis those reads as a flat line — visually
+  // identical to the pre-fix bug where every window got `yes_price`.
+  // Widen to at least an 8pp window so the movement is visible.
+  const prices = series.map((p) => p.price).filter((v) => Number.isFinite(v));
+  const pMin = prices.length ? Math.min(...prices) : 0;
+  const pMax = prices.length ? Math.max(...prices) : 1;
+  const rangeNarrow = prices.length > 1 && pMax - pMin < 0.08;
+  const yDomain: [number, number] = rangeNarrow
+    ? [Math.max(0, pMin - 0.02), Math.min(1, pMax + 0.02)]
+    : [0, 1];
+  const yAutoScaled = rangeNarrow;
+
   return (
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading
         eyebrow="Evidence"
         title="Trade-window price path"
         sub={
-          hasFlag
+          (hasFlag
             ? "The shaded span is the window the anomaly model flagged: an unusual price move on thin volume."
-            : "No window was flagged: the price path stays within normal market behavior."
+            : "No window was flagged: the price path stays within normal market behavior.")
+          + (yAutoScaled
+            ? " Y-axis zoomed to the traded range — this outcome moved less than 8pp."
+            : "")
         }
       />
       <div className="h-64 w-full">
@@ -38,11 +55,11 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
               axisLine={{ stroke: "#E4DFD5" }}
             />
             <YAxis
-              domain={[0, 1]}
+              domain={yDomain}
               tick={{ fontSize: 11, fill: "#8a8278", fontFamily: "JetBrains Mono Variable, monospace" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => `${Math.round(v * 100)}%`}
+              tickFormatter={(v) => `${(v * 100).toFixed(yAutoScaled ? 1 : 0)}%`}
             />
             <Tooltip
               formatter={(v) => [`${Math.round(Number(v) * 100)}%`, "Implied prob."]}
