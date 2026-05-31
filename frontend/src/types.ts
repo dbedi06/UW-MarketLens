@@ -8,6 +8,11 @@ export interface Subscores {
   liquidity_health: number;
   anomaly: number;
   resolution_quality: number;
+  // False when the market is unresolved AND S4 returned UNVERIFIABLE
+  // (event hasn't happened yet, so no news can corroborate it). The
+  // composite drops the resolution leg in that case and the
+  // breakdown shows "N/A" instead of "0/100".
+  resolution_applicable?: boolean;
 }
 
 export interface FeatureContribution {

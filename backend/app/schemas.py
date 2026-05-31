@@ -37,6 +37,13 @@ class Subscores(BaseModel):
     liquidity_health: int = Field(..., ge=0, le=100)
     anomaly: int = Field(..., ge=0, le=100)
     resolution_quality: int = Field(..., ge=0, le=100)
+    # True when S4 actually produced a verifiable verdict against
+    # independent reporting. False for unresolved future markets where
+    # the LLM correctly returns UNVERIFIABLE because the event hasn't
+    # happened yet — in that case `resolution_quality` is still 0 for
+    # honesty but the composite reweights to liquidity+anomaly only,
+    # rather than penalising the market for being future-dated.
+    resolution_applicable: bool = True
 
 
 class AnomalyResult(BaseModel):

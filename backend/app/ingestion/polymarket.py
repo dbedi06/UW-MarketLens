@@ -264,6 +264,29 @@ def _extract_token_ids(primary: dict) -> list[str]:
     return []
 
 
+def _extract_yes_price(market: dict) -> float:
+    """Pull the YES-side implied probability from one market's
+    `outcomePrices`. Same JSON-encoded-string trap that bit
+    `clobTokenIds` and `outcomePrices` itself: Gamma now serves it as
+    `'["0.62", "0.38"]'` (a string) instead of a real list. Indexing
+    the string gives the literal `[` character. Returns 0.5 (neutral)
+    on any parse failure so callers can still compare safely."""
+    import json as _json
+
+    raw = market.get("outcomePrices", ["0.5", "0.5"])
+    if isinstance(raw, str):
+        try:
+            parsed = _json.loads(raw)
+        except _json.JSONDecodeError:
+            return 0.5
+    else:
+        parsed = raw
+    try:
+        return float(parsed[0])
+    except (IndexError, ValueError, TypeError):
+        return 0.5
+
+
 def _parse_gamma_market(event: dict, url: str) -> dict:
     """
     Pull the fields we need out of a Gamma event object.
@@ -272,11 +295,15 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
 
     For multi-outcome events (e.g. "World Cup Winner" with 60 per-team
     markets), `markets[0]` is whatever Gamma listed first — often
-    arbitrary. We pick the most-traded sub-market by `volume24hr`
-    instead, so the per-outcome question we use downstream ("Will France
-    win the 2026 FIFA World Cup?") is the one with the most recent
-    real activity. Binary markets land here too — a one-market event
-    trivially picks itself.
+    arbitrary. We pick the **favourite**: the sub-market with the
+    highest YES-side implied probability. For World Cup Winner that's
+    the team the market thinks is most likely to win (France ~17%,
+    Argentina ~9%, ...). An earlier iteration picked by `volume24hr`
+    but that landed on speculative pump-and-dump long-shots (DR Congo
+    at 0.1% with high 24h volume) — useless to score. The favourite
+    is what people mean by "the World Cup market" and gives the score
+    something stable to track over time. Binary markets land here too
+    — a one-market event trivially picks itself.
     """
     markets = event.get("markets", [])
 
@@ -284,34 +311,27 @@ def _parse_gamma_market(event: dict, url: str) -> dict:
     volume_usd    = sum(float(m.get("volumeNum", 0) or 0) for m in markets)
     liquidity_usd = sum(float(m.get("liquidityNum", 0) or 0) for m in markets)
 
-    # Pick the most-active sub-market by 24hr volume. Falls back to
-    # markets[0] when no market reports volume24hr (all zeros).
+    # Pick the favourite by YES-side implied probability, *among
+    # markets that have ever traded*. Polymarket events for future
+    # tournaments include placeholder markets ("Will Team AM win the
+    # 2026 FIFA World Cup?") for not-yet-qualified slots; these sit at
+    # yes_price=0.5 with zero volume and would otherwise beat every
+    # real team. Falls back to the unfiltered set if nothing has
+    # traded (very small / very new event).
+    candidates = [m for m in markets if float(m.get("volumeNum", 0) or 0) > 0]
+    if not candidates:
+        candidates = markets
+    # Ties on yes_price broken by volume24hr so two equally-priced
+    # outcomes prefer the more actively traded one.
     primary = max(
-        markets,
-        key=lambda m: float(m.get("volume24hr", 0) or 0),
+        candidates,
+        key=lambda m: (
+            _extract_yes_price(m),
+            float(m.get("volume24hr", 0) or 0),
+        ),
     )
     token_ids = _extract_token_ids(primary)
-
-    # Outcome prices: Gamma serves this as either a real list
-    # `["0.62", "0.38"]` or — increasingly common — a JSON-encoded
-    # *string* `'["0.62", "0.38"]'`. Naively indexing the string gives
-    # back the literal `[` character and float() raises → silent
-    # fallback to 0.5 (which was the "yes_price came back as 0.5
-    # despite real trades at 0.001" bug). JSON-decode strings first,
-    # mirroring the `_extract_token_ids` approach.
-    import json as _json
-    outcome_prices_raw = primary.get("outcomePrices", ["0.5", "0.5"])
-    if isinstance(outcome_prices_raw, str):
-        try:
-            outcome_prices = _json.loads(outcome_prices_raw)
-        except _json.JSONDecodeError:
-            outcome_prices = ["0.5", "0.5"]
-    else:
-        outcome_prices = outcome_prices_raw
-    try:
-        yes_price = float(outcome_prices[0])
-    except (IndexError, ValueError, TypeError):
-        yes_price = 0.5
+    yes_price = _extract_yes_price(primary)
 
     # Resolution
     resolved = bool(primary.get("closed", False))

@@ -154,6 +154,7 @@ def _build_reasons(
     resolution_sub: int,
     meta: MarketMeta,
     anomaly_series: list[AnomalyPoint],
+    resolution_applicable: bool = True,
 ) -> list[ReasonItem]:
     flagged = [p for p in anomaly_series if p.flagged]
 
@@ -197,21 +198,34 @@ def _build_reasons(
         detail=ano_detail,
     )
 
-    res = ReasonItem(
-        factor="resolution",
-        severity=_sev(resolution_sub),
-        headline=(
-            "Resolution well-corroborated" if resolution_sub >= 70
-            else "Resolution unverifiable" if resolution_sub < 40
-            else "Resolution partially corroborated"
-        ),
-        detail=(
-            "The resolution is corroborated by multiple independent sources."
-            if resolution_sub >= 70 else
-            "The resolution could not be matched against independent reporting — "
-            "cite the outcome with an explicit caveat."
-        ),
-    )
+    if not resolution_applicable:
+        res = ReasonItem(
+            factor="resolution",
+            severity="warn",
+            headline="Resolution check not applicable",
+            detail=(
+                "This market is not yet resolved, so no independent "
+                "reporting can confirm or refute the outcome. The "
+                "composite score excludes the resolution leg and "
+                "reweights liquidity and trading-pattern integrity."
+            ),
+        )
+    else:
+        res = ReasonItem(
+            factor="resolution",
+            severity=_sev(resolution_sub),
+            headline=(
+                "Resolution well-corroborated" if resolution_sub >= 70
+                else "Resolution unverifiable" if resolution_sub < 40
+                else "Resolution partially corroborated"
+            ),
+            detail=(
+                "The resolution is corroborated by multiple independent sources."
+                if resolution_sub >= 70 else
+                "The resolution could not be matched against independent reporting — "
+                "cite the outcome with an explicit caveat."
+            ),
+        )
 
     return [liq, ano, res]
 
@@ -372,11 +386,29 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     )
 
     # ── S7: Composite score ───────────────────────────────────────────────────
-    overall = round(
-        _W_LIQUIDITY  * liquidity +
-        _W_ANOMALY    * anomaly_sub +
-        _W_RESOLUTION * resolution_sub
+    # Futures-aware reweighting: when the market is unresolved AND S4
+    # returned UNVERIFIABLE, the resolution check is not applicable —
+    # the event hasn't happened so no news article can support or
+    # refute it. Penalising the composite by a full 25 points for
+    # being future-dated would make every prediction market on a
+    # future event look unreliable. Drop the resolution leg and
+    # renormalise liquidity (35 → ~47) and anomaly (40 → ~53) so the
+    # composite reflects the signals we actually measured.
+    resolution_applicable = not (
+        not market.resolved and resolution.verdict == "UNVERIFIABLE"
     )
+    if resolution_applicable:
+        overall = round(
+            _W_LIQUIDITY  * liquidity +
+            _W_ANOMALY    * anomaly_sub +
+            _W_RESOLUTION * resolution_sub
+        )
+    else:
+        denom = _W_LIQUIDITY + _W_ANOMALY
+        overall = round(
+            (_W_LIQUIDITY / denom) * liquidity +
+            (_W_ANOMALY   / denom) * anomaly_sub
+        )
 
     # ── S5: Tagger ────────────────────────────────────────────────────────────
     tags = tag_market(market.question)
@@ -394,7 +426,10 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
         resolved=market.resolved,
     )
 
-    reasons = _build_reasons(liquidity, anomaly_sub, resolution_sub, meta, anomaly_series)
+    reasons = _build_reasons(
+        liquidity, anomaly_sub, resolution_sub, meta, anomaly_series,
+        resolution_applicable=resolution_applicable,
+    )
     headline = _build_headline(overall, reasons)
 
     # ── S6: Citation ──────────────────────────────────────────────────────────
@@ -431,6 +466,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             liquidity_health=liquidity,
             anomaly=anomaly_sub,
             resolution_quality=resolution_sub,
+            resolution_applicable=resolution_applicable,
         ),
         anomaly=AnomalyResult(
             score=round(anomaly_percentile, 3),
