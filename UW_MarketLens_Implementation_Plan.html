@@ -271,7 +271,7 @@
         <h3>LLM Resolution Checker</h3>
         <p>NewsAPI fetch + Claude JSON-schema call + 30-market labeled set + agreement metric.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Inference path in <code>app/resolution.py</code>; graceful UNVERIFIABLE fallback when <code>NEWS_API_KEY</code> / <code>ANTHROPIC_API_KEY</code> missing. Wired through to the live route. 30-market labeled set + agreement metric still pending.</p>
+        <p class="note">Inference path in <code>app/resolution.py</code>; LLM calls routed through OpenRouter (default: Llama 3.3 70B free; configurable via <code>OPENROUTER_MODEL</code>). Graceful UNVERIFIABLE fallback when <code>NEWS_API_KEY</code> / <code>OPENROUTER_API_KEY</code> missing. 30-market labeled set + agreement metric still pending.</p>
       </div>
 
       <div class="card done">
@@ -280,7 +280,7 @@
         <h3>LLM Course Tagger</h3>
         <p>Few-shot tagging prompt + caching + committed tagging rubric.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Claude few-shot in <code>app/tagger.py</code> with keyword fallback; rubric committed at <code>app/data/tagging_rubric.md</code>; wired into the live route via S7.</p>
+        <p class="note">Few-shot prompt in <code>app/tagger.py</code> routed through OpenRouter (default: Llama 3.3 70B free); keyword fallback when <code>OPENROUTER_API_KEY</code> missing; rubric committed at <code>app/data/tagging_rubric.md</code>; wired into the live route via S7.</p>
       </div>
 
       <div class="card done">

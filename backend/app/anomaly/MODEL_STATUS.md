@@ -101,7 +101,15 @@ What is genuinely real:
 - The plumbing — network features through `from_trades_with_network`,
   shared detector singleton across the live route and labeled-eval
   scorer, bootstrap CI + `low_n_warning` in eval reporting. Code is
-  correct and tested (124 tests pass).
+  correct and tested (198 tests pass).
+- **LLM provider**: S4 and S5 now call OpenRouter (default model
+  `meta-llama/llama-3.3-70b-instruct:free`) instead of Anthropic
+  Claude directly. Cost change, not capability change — the model
+  ceiling at ~4.5/10 is unchanged. Free-tier models can
+  rate-limit during peak hours; the documented fallback paths
+  (UNVERIFIABLE / keyword tags) handle this without crashing.
+  See `backend/README.md` for env var setup and overriding the
+  model choice.
 - The synthetic capability check (operating-point grid, Precision@K,
   Wilson/bootstrap CIs) reports the *shape* of detector behavior
   honestly.

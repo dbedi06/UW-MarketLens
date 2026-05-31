@@ -26,18 +26,36 @@ On Render, `MARKETLENS_POLYMARKET_LIVE=1` is set declaratively in
 is gitkept but its contents are not tracked, so each environment
 warms its own cache from real Polymarket calls.
 
-## S4 Resolution Checker
+## S4 + S5 LLM calls (resolution + tagger)
 
-Set these environment variables to enable S4 live resolution checks:
+Both LLM calls go through **OpenRouter** — an OpenAI-compatible API
+gateway that routes to hundreds of models, including free-tier ones.
+We switched off Anthropic's direct API because Claude is too
+expensive for a class demo where every `/api/live/score` request
+fires two LLM calls.
+
+Set these env vars to enable the live S4 + S5 paths:
 
 ```powershell
 $env:NEWS_API_KEY = "<your-newsapi-key>"
-$env:ANTHROPIC_API_KEY = "<your-anthropic-key>"
+$env:OPENROUTER_API_KEY = "<your-openrouter-key>"
+# Optional — override the model. Default is the free Llama 3.3 70B:
+$env:OPENROUTER_MODEL = "google/gemini-flash-1.5-8b"   # pennies / 1M tokens
 ```
 
-If either key is missing, `/api/live/score` falls back to
-`UNVERIFIABLE` and `resolution_quality = 0` so the API still responds
-cleanly rather than failing the request.
+If `OPENROUTER_API_KEY` is missing, both S4 (resolution) and S5
+(tagger) fall back gracefully — `/api/live/score` still responds
+cleanly with `verdict=UNVERIFIABLE` and rule-based keyword tags
+instead of failing the request. If `NEWS_API_KEY` is missing, S4
+falls back regardless of the OpenRouter key (no evidence to weigh).
+
+Default model: `meta-llama/llama-3.3-70b-instruct:free`. Free-tier
+models can hit rate limits during peak hours; if that becomes a
+problem in production, point `OPENROUTER_MODEL` at a paid pennies-
+per-call model. Anyone with existing Anthropic credit can also use
+Claude models through OpenRouter (`anthropic/claude-3.5-sonnet`).
+
+Browse the catalog: <https://openrouter.ai/models>.
 
 ## Endpoints
 

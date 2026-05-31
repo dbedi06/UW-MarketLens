@@ -16,10 +16,10 @@ from app.tagger import (
 
 @pytest.fixture(autouse=True)
 def _isolate_cache(monkeypatch):
-    """Drop the ANTHROPIC_API_KEY for every test so we exercise the
+    """Drop the OPENROUTER_API_KEY for every test so we exercise the
     fallback path deterministically. Each test starts with a clean
     cache."""
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     clear_cache()
     yield
     clear_cache()

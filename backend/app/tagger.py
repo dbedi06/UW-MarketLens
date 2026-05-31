@@ -34,7 +34,6 @@ from pathlib import Path
 
 import httpx
 
-CLAUDE_API_BASE = "https://api.anthropic.com/v1/messages"
 DEFAULT_TIMEOUT_S = 20.0
 
 DEPARTMENTS = ["POLS", "ECON", "INFO", "EVANS"]
@@ -124,7 +123,7 @@ _FEW_SHOT = [
 
 
 def has_tagger_key() -> bool:
-    return bool(os.environ.get("ANTHROPIC_API_KEY"))
+    return bool(os.environ.get("OPENROUTER_API_KEY"))
 
 
 def _fallback(question: str) -> TagResult:
@@ -163,9 +162,11 @@ def tag_market(
     """
     Tag a market question with UW departments and a course applicability score.
 
-    Falls back gracefully if ANTHROPIC_API_KEY is not set or the call fails.
-    Results are cached by question text.
+    Falls back gracefully if OPENROUTER_API_KEY is not set or the call
+    fails. Results are cached by question text.
     """
+    from .llm_client import call_chat
+
     cache_key = question.strip().lower()
     if cache_key in _CACHE:
         return _CACHE[cache_key]
@@ -175,31 +176,17 @@ def tag_market(
         _CACHE[cache_key] = result
         return result
 
-    http_client = client or httpx.Client(timeout=DEFAULT_TIMEOUT_S)
-    close_client = client is None
     try:
-        messages = _FEW_SHOT + [{"role": "user", "content": question}]
-        response = http_client.post(
-            CLAUDE_API_BASE,
-            headers={
-                "x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-20250514"),
-                "max_tokens": 128,
-                "system": _SYSTEM,
-                "messages": messages,
-            },
+        # OpenAI-format: prepend the system rubric as the first
+        # message instead of using Anthropic's top-level `system`
+        # field. Few-shot examples follow, then the user question.
+        messages = (
+            [{"role": "system", "content": _SYSTEM}]
+            + _FEW_SHOT
+            + [{"role": "user", "content": question}]
         )
-        response.raise_for_status()
-        payload = response.json()
-        text = payload.get("content", [])
-        if isinstance(text, list):
-            text = "".join(
-                item.get("text", "") for item in text if isinstance(item, dict)
-            )
+        text = call_chat(messages, max_tokens=128, json_mode=True,
+                          client=client)
         parsed = _parse_response(text)
 
         # Validate departments against the allowed set
@@ -215,9 +202,6 @@ def tag_market(
         result = _fallback(question)
         _CACHE[cache_key] = result
         return result
-    finally:
-        if close_client:
-            http_client.close()
 
 
 def clear_cache() -> None:

@@ -4,6 +4,36 @@ Notable changes per tagged release. Newest first. Tags created
 retroactively from the commits where each section landed; the project
 shipped iteratively, not in a single big bang.
 
+## v0.8-openrouter — 2026-05-31
+
+Cost fix: every `/api/live/score` request fires two LLM calls (S4
+resolution + S5 tagger). Claude direct-API costs were not sustainable
+for a class demo. Swapped both call sites to OpenRouter — an
+OpenAI-compatible gateway routing to hundreds of models, including
+free-tier ones. Default model is now `meta-llama/llama-3.3-70b-instruct:free`
+(no card on file). Team can override via `OPENROUTER_MODEL` env var
+to any model in the OpenRouter catalog, including Claude itself
+(`anthropic/claude-3.5-sonnet`) for anyone with existing credit.
+
+- New `backend/app/llm_client.py` is the single place that talks to
+  OpenRouter. Bearer-auth, OpenAI-format messages, optional
+  `response_format: {"type": "json_object"}` for JSON-mode-aware
+  models, OpenRouter analytics headers (`HTTP-Referer`, `X-Title`).
+- `resolution.py` and `tagger.py` are now thin wrappers around
+  `llm_client.call_chat`. The fallback paths (UNVERIFIABLE / keyword
+  tags) are unchanged — graceful degradation when the key is unset
+  or the call fails.
+- Env var renamed: `ANTHROPIC_API_KEY` → `OPENROUTER_API_KEY`.
+  Tests retargeted accordingly. The `render.yaml` declares
+  `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, and `NEWS_API_KEY` as
+  `sync: false` so the team pastes them once in the dashboard.
+- 9 new tests in `test_llm_client.py`. Suite at 198 passing.
+
+Honest caveats documented in README + `MODEL_STATUS.md`: free-tier
+models can rate-limit during peak hours; output quality is plausibly
+lower than Claude Sonnet for the LLM-as-judge case; OpenRouter
+sees our prompts (their privacy policy applies).
+
 ## v0.7-rubric-pass — 2026-05-30
 
 Closes the named gaps from `PISAN-Suggest.md` that were within reach

@@ -9,7 +9,6 @@ import httpx
 from pydantic import BaseModel, Field
 
 NEWS_API_BASE = "https://newsapi.org/v2/everything"
-CLAUDE_API_BASE = "https://api.anthropic.com/v1/messages"
 DEFAULT_TIMEOUT_S = 15.0
 MAX_SOURCES = 3
 
@@ -37,7 +36,10 @@ class ResolutionAssessment:
 
 
 def has_resolution_keys() -> bool:
-    return bool(os.environ.get("NEWS_API_KEY") and os.environ.get("ANTHROPIC_API_KEY"))
+    return bool(
+        os.environ.get("NEWS_API_KEY")
+        and os.environ.get("OPENROUTER_API_KEY")
+    )
 
 
 def _fallback_assessment(reason: str) -> ResolutionAssessment:
@@ -149,39 +151,32 @@ def fetch_news_articles(question: str, client: httpx.Client | None = None) -> li
             http_client.close()
 
 
-def call_claude(question: str, snippets: list[str], *, resolved: bool = False, client: httpx.Client | None = None) -> ClaudePayload:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        raise RuntimeError("ANTHROPIC_API_KEY is not set")
+def call_llm(
+    question: str,
+    snippets: list[str],
+    *,
+    resolved: bool = False,
+    client: httpx.Client | None = None,
+) -> ClaudePayload:
+    """Run the LLM-as-judge prompt through OpenRouter and parse the
+    structured JSON response. The class is still called `ClaudePayload`
+    for backward-compat but the call is provider-agnostic."""
+    from .llm_client import call_chat
 
     prompt = _build_prompt(question, resolved, snippets)
-    http_client = client or httpx.Client(timeout=DEFAULT_TIMEOUT_S)
-    close_client = client is None
-    try:
-        response = http_client.post(
-            CLAUDE_API_BASE,
-            headers={
-                "x-api-key": os.environ["ANTHROPIC_API_KEY"],
-                "anthropic-version": "2023-06-01",
-                "content-type": "application/json",
-            },
-            json={
-                "model": os.environ.get("CLAUDE_MODEL", "claude-3-5-sonnet-20240620"),
-                "max_tokens": 512,
-                "messages": [{"role": "user", "content": prompt}],
-            },
-        )
-        response.raise_for_status()
-        payload = response.json()
-        text = payload.get("content")
-        if isinstance(text, list):
-            text = "".join(item.get("text", "") for item in text if isinstance(item, dict))
-        if not isinstance(text, str):
-            raise ValueError("Claude response missing text content")
-        parsed = json.loads(text)
-        return ClaudePayload.model_validate(parsed)
-    finally:
-        if close_client:
-            http_client.close()
+    text = call_chat(
+        [{"role": "user", "content": prompt}],
+        max_tokens=512,
+        json_mode=True,
+        client=client,
+    )
+    parsed = json.loads(text)
+    return ClaudePayload.model_validate(parsed)
+
+
+# Back-compat alias for any external caller that still imports the
+# old function name. New code should call `call_llm`.
+call_claude = call_llm
 
 
 def resolve_market(
@@ -201,7 +196,7 @@ def resolve_market(
         if not snippets:
             return _fallback_assessment("No independent reporting snippets were available for verification.")
 
-        payload = call_claude(question, snippets, resolved=resolved, client=client)
+        payload = call_llm(question, snippets, resolved=resolved, client=client)
         sources = _clean_sources(payload.supporting_sources)
         reasoning = payload.reasoning.strip() or "No reasoning was returned by the checker."
         return ResolutionAssessment(
