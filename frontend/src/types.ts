@@ -16,10 +16,17 @@ export interface AnomalyResult {
   top_features: string[];
 }
 
+export interface ResolutionSnippet {
+  title?: string;
+  description?: string;
+  url: string;
+}
+
 export interface ResolutionVerdict {
   verdict: Verdict;
   reasoning: string;
   supporting_sources: string[];
+  supporting_snippets?: ResolutionSnippet[];
 }
 
 export interface Tags {

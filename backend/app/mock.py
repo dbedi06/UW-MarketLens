@@ -1,15 +1,43 @@
 """
-Deterministic mock data — THE SWAP-OUT POINT.
+Deterministic mock data — the offline / "Mock mode" fallback.
 
-Everything fake lives here. When real sections land (S1 ingestion, S2/S3
-anomaly, S4 resolution, S5 tagger, S6 citation, S7 composite), the route
-handlers call those modules instead and this file is deleted. Route
-signatures and the frontend do not change.
+Status (as of S7 wiring)
+------------------------
+S1-S7 are now real and the live route (`/api/live/score`) goes through
+`app.composite.make_market_score`. The frontend defaults to Live mode.
+This module is still useful for:
 
-"Deterministic" = the same (url, as_of) always yields identical output. We
-hash that pair into a seed and derive every value from it, so a snapshot
-permalink reopened next month renders byte-identical — which is the whole
-point of Pillar 2 (a citation must be reproducible).
+  - `/api/score`                — Mock-mode toggle in the nav. Always
+                                  responds even when Polymarket is down,
+                                  the cache is cold, or API keys are
+                                  missing. Useful for demos.
+  - `/api/library`              — Mock-only today. The library page
+                                  always shows mock data regardless of
+                                  the frontend Live/Mock toggle (the
+                                  page subtitle says so).
+  - `/api/admin/pending-tags`   — Mock placeholder for the S5 tagger
+                                  human-review queue.
+  - `mock.register_snapshot` /  — Shared snapshot registry. Live snapshots
+    `mock.resolve_snapshot_full`  use this too so the snapshot route can
+                                  dispatch to live vs mock.
+
+Determinism contract
+--------------------
+The same (url, as_of) always yields byte-identical output. We hash the
+pair into a seed and derive every value from it, so a snapshot permalink
+reopened next month renders the same number — Pillar 2 of the project
+(a citation must be reproducible). This is the property that makes the
+mock route safe as a fallback.
+
+Field-by-field this is "real Pydantic models populated with placeholder
+data" — the *shape* is the same shape `composite.make_market_score`
+returns. That's why the frontend doesn't care which path served the
+request beyond the `source` badge.
+
+Future: when the live route has been validated end-to-end on real
+markets with real labels, the project can swap `/api/score` to delegate
+to `composite.make_market_score` and reduce this file to only the
+library + admin mocks. Not yet.
 """
 
 import hashlib

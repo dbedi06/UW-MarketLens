@@ -60,6 +60,19 @@ export default function AdminPage() {
       </motion.div>
       {err && <p className="text-sm text-bad">{err}</p>}
 
+      {tags.length === 0 && !err && (
+        <div className="card p-10 text-center">
+          <p className="text-sm italic text-ink/55">
+            No tags are pending review right now.
+          </p>
+          <p className="caption mt-2">
+            The S5 LLM tagger emits suggestions as new markets are scored.
+            Score a market on the home page, then return here to verify the
+            tags it produced.
+          </p>
+        </div>
+      )}
+
       <motion.div
         variants={stagger}
         initial="hidden"

@@ -47,10 +47,13 @@ class AnomalyResult(BaseModel):
 
 
 class ResolutionVerdict(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S4 LLM-as-judge)
     verdict: Literal["HIGH", "MEDIUM", "LOW", "UNVERIFIABLE"]
     reasoning: str
     supporting_sources: List[str] = Field(default_factory=list)
+    # Article snippets the LLM saw (title + description + url). Lets a
+    # reader audit the evidence Claude actually weighed. Empty when the
+    # fallback path runs (no API keys or no news returned).
+    supporting_snippets: List[dict] = Field(default_factory=list)
 
 
 class Tags(BaseModel):

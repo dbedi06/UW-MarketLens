@@ -103,8 +103,28 @@ export default function LibraryPage() {
           </li>
         ))}
         {sorted.length === 0 && !err && (
-          <li className="py-16 text-center text-sm italic text-ink/40">
-            No markets match this filter.
+          <li className="py-16 text-center">
+            <p className="text-sm italic text-ink/55">
+              No markets match this filter.
+            </p>
+            <p className="caption mt-2">
+              {q || dept !== "ALL"
+                ? "Try a different department or a broader search term."
+                : "The library may be loading, or the backend may be cold-starting (~30s on free tier)."}
+            </p>
+            {(q || dept !== "ALL") && (
+              <button
+                onClick={() => {
+                  setQ("");
+                  setDept("ALL");
+                }}
+                className="mt-4 font-mono text-xs font-medium uppercase
+                  tracking-wider text-brand-600 hover:text-brand-700
+                  hover:underline underline-offset-4"
+              >
+                Reset filters
+              </button>
+            )}
           </li>
         )}
       </ul>

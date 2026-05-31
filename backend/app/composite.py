@@ -374,6 +374,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             verdict=resolution.verdict,
             reasoning=resolution.reasoning,
             supporting_sources=resolution.supporting_sources,
+            supporting_snippets=getattr(resolution, "supporting_snippets", []),
         ),
         tags=Tags(
             departments=tags.departments,

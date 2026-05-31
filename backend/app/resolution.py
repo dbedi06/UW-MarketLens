@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 import httpx
@@ -29,6 +29,11 @@ class ResolutionAssessment:
     confidence: float
     resolution_quality: int
     used_fallback: bool
+    # PISAN-flagged honesty fix: surface the actual NewsAPI snippets
+    # Claude was given, so a reader can audit the evidence behind the
+    # verdict rather than trusting the verdict + URL list alone. Each
+    # entry: {title, description, url}.
+    supporting_snippets: list[dict[str, str]] = field(default_factory=list)
 
 
 def has_resolution_keys() -> bool:
@@ -206,6 +211,7 @@ def resolve_market(
             confidence=float(payload.confidence),
             resolution_quality=_quality_from_payload(payload),
             used_fallback=False,
+            supporting_snippets=articles,
         )
     except Exception:
         return _fallback_assessment("Resolution checking failed; falling back to UNVERIFIABLE.")

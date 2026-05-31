@@ -97,13 +97,23 @@ export default function HomePage() {
                 Check reliability
               </button>
             </div>
-            <p
-              className={`mt-2.5 font-mono text-xs ${
-                err ? "text-bad" : "text-ink/65"
-              }`}
-            >
-              {err ?? "Try the sample URL above, or paste any market link."}
-            </p>
+            <div className="mt-2.5 flex items-center justify-between gap-3">
+              <p
+                className={`font-mono text-xs ${
+                  err ? "text-bad" : "text-ink/65"
+                }`}
+              >
+                {err ?? "Try the sample URL above, or paste any market link."}
+              </p>
+              <button
+                onClick={() => go(SAMPLE)}
+                className="shrink-0 font-mono text-xs font-medium uppercase
+                  tracking-wider text-brand-600 hover:text-brand-700
+                  hover:underline underline-offset-4"
+              >
+                Open sample report →
+              </button>
+            </div>
           </motion.div>
         </motion.div>
       </section>

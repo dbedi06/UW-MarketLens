@@ -17,6 +17,7 @@ const LibraryPage = lazy(() => import("./pages/LibraryPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 type Theme = "light" | "dark";
 
@@ -102,14 +103,7 @@ export default function App() {
               <Route path="/compare" element={<ComparePage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/about" element={<AboutPage />} />
-              <Route
-                path="*"
-                element={
-                  <p className="mx-auto max-w-prose px-5 py-24 text-center text-ink/50">
-                    Page not found.
-                  </p>
-                }
-              />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
         </motion.main>

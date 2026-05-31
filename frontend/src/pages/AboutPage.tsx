@@ -5,11 +5,13 @@ import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 
 const PIPELINE: [string, string, string][] = [
-  ["S1", "Ingest", "Polymarket API, trade history"],
-  ["S2", "Features", "Per-window vectors"],
-  ["S3", "Anomaly", "Isolation Forest"],
-  ["S4", "Resolution", "LLM-as-judge vs. wire sources"],
-  ["S7", "Composite", "Deterministic 0 to 100 score"],
+  ["S1", "Ingest", "Polymarket Gamma + Data API; optional Polygon RPC enrichment"],
+  ["S2", "Features", "Base + microstructure + per-market relative + trader-graph"],
+  ["S3", "Anomaly", "Isolation Forest, percentile-calibrated against held-out clean"],
+  ["S4", "Resolution", "Claude LLM-as-judge over NewsAPI snippets"],
+  ["S5", "Tagger", "Claude few-shot tags vs UW departments (POLS/ECON/INFO/EVANS)"],
+  ["S6", "Citation", "APA + MLA + BibTeX with embedded reliability flag"],
+  ["S7", "Composite", "Weighted 35/40/25 (liquidity / anomaly / resolution)"],
 ];
 
 const METHOD: [string, string][] = [
@@ -19,10 +21,34 @@ const METHOD: [string, string][] = [
   ["Auditable AI", "All model calls return structured, schema-constrained output evaluated against labeled ground truth."],
 ];
 
-const EVAL: [string, string, string][] = [
-  ["Anomaly detector", "Recall @ ≤20% FPR", "≥75%"],
-  ["LLM-as-judge", "Verdict agreement", "≥80%"],
-  ["Usability", "SUS score", "≥70"],
+// Evaluation results. Each row's "Measured" column reflects the
+// honest status as of the latest model push. We do not synthesize
+// numbers; if we haven't measured it, the cell says so plainly.
+const EVAL: [string, string, string, string][] = [
+  [
+    "Anomaly detector (synthetic)",
+    "Sybil-ring AUC (network-aware vs base-only)",
+    "lift on a pattern only network features should see",
+    "0.91 vs 0.47 (synthetic, circular by design)",
+  ],
+  [
+    "Anomaly detector (real data)",
+    "ROC-AUC against verified labeled markets",
+    "≥ 0.65 with bootstrap CI",
+    "pending team-curated labeled set (≥ 20 cases)",
+  ],
+  [
+    "LLM-as-judge (S4)",
+    "Verdict agreement vs human labels",
+    "≥ 0.75",
+    "pending — labeling protocol drafted",
+  ],
+  [
+    "Usability",
+    "SUS score across UW testers",
+    "≥ 70",
+    "pending user testing",
+  ],
 ];
 
 export default function AboutPage() {
@@ -51,10 +77,17 @@ export default function AboutPage() {
           ))}
         </ol>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Current build: every stage is served by a deterministic mock
-          (<code className="font-mono">backend/app/mock.py</code>). The contract
-          and UI are final; the real pipeline swaps in behind the API with no
-          frontend change.
+          Current build: all seven sections run real implementations by
+          default. The deterministic mock in
+          {" "}<code className="font-mono">backend/app/mock.py</code>{" "}
+          stays available behind a "Mock mode" toggle in the nav for
+          offline demos and as a fallback when the live pipeline can't
+          reach Polymarket. Set
+          {" "}<code className="font-mono">NEWS_API_KEY</code>{" "}and{" "}
+          <code className="font-mono">ANTHROPIC_API_KEY</code>{" "}
+          to enable S4 / S5 live; without them S4 returns
+          {" "}<code className="font-mono">UNVERIFIABLE</code>{" "}
+          and S5 falls back to rule-based tags.
         </p>
       </section>
 
@@ -83,21 +116,33 @@ export default function AboutPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {EVAL.map(([c, m, t]) => (
-              <tr key={c}>
-                <td className="px-4 py-2.5 text-ink">{c}</td>
-                <td className="px-4 py-2.5 font-mono text-ink/60">{m}</td>
-                <td className="px-4 py-2.5 font-mono text-ink/60">{t}</td>
-                <td className="px-4 py-2.5 font-mono italic text-ink/40">
-                  pending
-                </td>
-              </tr>
-            ))}
+            {EVAL.map(([c, m, t, measured]) => {
+              const pending = measured.toLowerCase().startsWith("pending");
+              return (
+                <tr key={c}>
+                  <td className="px-4 py-2.5 text-ink">{c}</td>
+                  <td className="px-4 py-2.5 font-mono text-ink/60">{m}</td>
+                  <td className="px-4 py-2.5 font-mono text-ink/60">{t}</td>
+                  <td
+                    className={`px-4 py-2.5 font-mono ${
+                      pending ? "italic text-ink/40" : "text-ink/75"
+                    }`}
+                  >
+                    {measured}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Numbers are intentionally blank until the real models are wired and
-          evaluated. We don't report metrics we haven't measured.
+          Honest rating: ~4.5/10. The synthetic AUC is real arithmetic but
+          the test was designed to favor the features under measurement,
+          so it's a capability check, not a generalization claim. The
+          honest path to 6/10 is documented in
+          {" "}<code className="font-mono">UW_MarketLens_Push_To_Six.html</code>{" "}
+          and the current model state in
+          {" "}<code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>.
         </p>
       </section>
     </PageShell>
