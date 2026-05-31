@@ -200,6 +200,12 @@ def test_enrich_no_cache_no_live_passes_through(tmp_path, monkeypatch,
     assert any("unavailable" in r.message for r in caplog.records)
 
 
-def test_enrich_empty_input_returns_empty():
-    client = PolygonClient(cache_dir=Path("/nonexistent"))
+def test_enrich_empty_input_returns_empty(tmp_path):
+    # Use pytest's tmp_path instead of a hardcoded "/nonexistent". On
+    # Windows the latter resolved to D:\nonexistent (writable) and
+    # passed locally; on Linux CI it's a root-fs path the runner can't
+    # mkdir, so PolygonClient.__post_init__ raised PermissionError
+    # before the test body ever ran. Tmp dir gives a guaranteed-
+    # writable, test-scoped path.
+    client = PolygonClient(cache_dir=tmp_path / "polygon-cache")
     assert enrich_with_takers(client, [], "yes-token-x") == []
