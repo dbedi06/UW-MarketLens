@@ -40,6 +40,7 @@ import os
 from datetime import date, datetime, timezone
 from typing import Optional
 
+from .anomaly.scoring import get_detector
 from .schemas import (
     AnomalyPoint, AnomalyResult, Citation, LibraryEntry, MarketMeta,
     MarketScore, PendingTag, ReasonItem, ResolutionVerdict, Subscores, Tags,
@@ -470,6 +471,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
         as_of=as_of,
         permalink=permalink,
         score=overall,
+        resolution_applicable=resolution_applicable,
     )
     citation = Citation(
         apa=citation_out.apa,
@@ -481,6 +483,8 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
 
     # Register snapshot so the permalink resolves
     mock.register_snapshot(sid, url, as_of, "live")
+
+    trained_on = getattr(get_detector(), "_trained_on", "unknown")
 
     score = MarketScore(
         market_url=url,
@@ -502,6 +506,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             flagged_windows=flagged_windows,
             top_features=top_features,
             top_contributions=top_contributions,
+            trained_on=trained_on,
         ),
         resolution=ResolutionVerdict(
             verdict=resolution.verdict,

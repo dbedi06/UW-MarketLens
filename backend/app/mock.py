@@ -286,6 +286,7 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
             score=round((100 - anomaly_sub) / 100, 3),
             flagged_windows=sum(1 for p in series if p.flagged),
             top_features=["volume_spike", "spread_widening", "trader_concentration"][: 1 + seed % 3],
+            trained_on="synthetic",
         ),
         resolution=ResolutionVerdict(
             verdict=verdict_pool[seed % 4],

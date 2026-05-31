@@ -182,6 +182,8 @@ def main() -> int:
     p.add_argument("--max-controversial", type=int, default=8)
     p.add_argument("--max-mundane", type=int, default=6)
     p.add_argument("--cases", type=Path, default=DEFAULT_CASES_PATH)
+    p.add_argument("--dry-run", action="store_true",
+                   help="Run candidate discovery without modifying labeled_cases.yaml.")
     args = p.parse_args()
 
     if not os.environ.get("NEWS_API_KEY"):
@@ -276,6 +278,12 @@ def main() -> int:
     new_cases = controversial + mundane
     if not new_cases:
         print("[done] no new candidates discovered.")
+        return 0
+
+    if args.dry_run:
+        print(f"[dry-run] would append {len(controversial)} controversial "
+              f"({inferred_count} slug-inferred) + {len(mundane)} mundane "
+              f"candidates to {args.cases}")
         return 0
 
     # Append + write back. YAML output: we re-serialize the whole file

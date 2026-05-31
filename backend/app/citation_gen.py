@@ -40,7 +40,15 @@ class CitationOutput:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _reliability_flag(score: int) -> str:
+def _reliability_flag(score: int, resolution_applicable: bool = True) -> str:
+    if not resolution_applicable:
+        if score >= 70:
+            return "PROVISIONALLY RELIABLE (future market; resolution not yet applicable)"
+        elif score >= 40:
+            return "USE WITH CAUTION (future market; resolution not yet applicable)"
+        else:
+            return "NOT YET VERIFIABLE (future market; resolution not yet applicable)"
+
     if score >= 70:
         return "RELIABLE (score >= 70)"
     elif score >= 40:
@@ -155,6 +163,7 @@ def make_citation(
     as_of: str,
     permalink: str,
     score: int,
+    resolution_applicable: bool = True,
 ) -> CitationOutput:
     """
     Generate APA, MLA, and BibTeX citations for a market snapshot.
@@ -172,7 +181,7 @@ def make_citation(
     CitationOutput with apa, mla, bibtex, and reliability_flag fields
     """
     q    = _clean_question(question)
-    flag = _reliability_flag(score)
+    flag = _reliability_flag(score, resolution_applicable=resolution_applicable)
     key  = _bibtex_key(permalink)
 
     return CitationOutput(

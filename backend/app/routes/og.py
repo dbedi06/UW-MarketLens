@@ -118,7 +118,7 @@ def _subbars(subs) -> str:
 
 
 def _card(question, headline, score, band, as_of, subs=None,
-          series=None) -> str:
+          series=None, resolution_applicable: bool = True) -> str:
     color = _BAND.get(band, "#B7A57A")
     q_svg = "".join(
         f'<text x="470" y="{170 + i*62}" font-family="Archivo, Arial, '
@@ -134,6 +134,14 @@ def _card(question, headline, score, band, as_of, subs=None,
         f"{_esc(ln)}</text>"
         for i, ln in enumerate(_wrap(headline, 52, 2))
     )
+    resolution_note = ""
+    if not resolution_applicable:
+        resolution_note = (
+            f'<text x="470" y="{h_y + 74}" font-family="monospace" '
+            f'font-size="18" fill="#F6F4EF" opacity="0.55">'
+            "Resolution not yet applicable for this open market."
+            "</text>"
+        )
     gauge = _gauge(score, color) if isinstance(score, int) else f"""
   <text x="200" y="288" text-anchor="middle"
         font-family="Archivo, Arial, sans-serif" font-size="120"
@@ -178,6 +186,7 @@ def _card(question, headline, score, band, as_of, subs=None,
 
   {q_svg}
   {h_svg}
+  {resolution_note}
   {_sparkline(series or [])}
   {_subbars(subs)}
 
@@ -223,6 +232,7 @@ def og_card(sid: str) -> Response:
         svg = _card(
             m.market_question, m.headline, m.reliability_score, m.band,
             m.as_of, m.subscores, m.anomaly_series,
+            m.subscores.resolution_applicable,
         )
     return Response(
         content=svg,

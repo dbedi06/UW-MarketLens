@@ -35,7 +35,7 @@ function SourceBadge({ source }: { source: "live" | "mock" }) {
         }`}
       title={
         isLive
-          ? "Score produced by the live S1→S2→S3 chain on real Polymarket data (synthetic-trained detector)."
+          ? "Score produced by the live S1→S2→S3 chain on real Polymarket data."
           : "Score produced by the deterministic mock data path."
       }
     >
@@ -46,6 +46,20 @@ function SourceBadge({ source }: { source: "live" | "mock" }) {
         }`}
       />
       {isLive ? "Live" : "Mock"}
+    </span>
+  );
+}
+
+function TrainingBadge({ trainedOn }: { trainedOn?: string }) {
+  const label =
+    trainedOn === "real-corpus"
+      ? "Detector trained on real corpus"
+      : trainedOn === "synthetic"
+        ? "Detector trained on synthetic streams"
+        : "Detector training provenance unknown";
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border bg-panel px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-ink/75">
+      {label}
     </span>
   );
 }
@@ -92,8 +106,9 @@ export default function MarketReport({
 
       <div className="space-y-10">
         {data.source && (
-          <div className="-mb-6 flex items-center justify-end">
+          <div className="-mb-6 flex flex-wrap items-center justify-end gap-2">
             <SourceBadge source={data.source} />
+            <TrainingBadge trainedOn={data.anomaly.trained_on} />
           </div>
         )}
         <WhyPanel reasons={data.reasons} />
@@ -106,21 +121,23 @@ export default function MarketReport({
         <ComputationNote />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
-        {!hideSocialPreview && (
-          <SocialPreview snapshotId={data.snapshot_id} />
-        )}
+        {!hideSocialPreview && <SocialPreview snapshotId={data.snapshot_id} />}
         <p className="pt-1 text-center text-xs italic text-ink/40">
           {data.source === "live" ? (
             <>
-              Live data via the S1→S2→S3 chain. The detector is
-              synthetic-trained, so this score is directional, not
-              authoritative — see <code>MODEL_STATUS.md</code>.
+              Live data via the S1→S2→S3 chain. Detector training provenance:{" "}
+              {data.anomaly.trained_on === "real-corpus"
+                ? "real corpus"
+                : data.anomaly.trained_on === "synthetic"
+                  ? "synthetic streams"
+                  : "unknown"}
+              . See <code>MODEL_STATUS.md</code>.
             </>
           ) : (
             <>
               Deterministic mock data (backend <code>app/mock.py</code>). The
-              same URL and date always yield this exact report. The real
-              S1-S7 pipeline replaces it later with no frontend change.
+              same URL and date always yield this exact report. The real S1-S7
+              pipeline replaces it later with no frontend change.
             </>
           )}
         </p>

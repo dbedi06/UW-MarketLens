@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "n_cases": 10,
+  "n_cases": 0,
   "class_balance": {
-    "controversial": 5,
-    "mundane": 5
+    "controversial": 0,
+    "mundane": 0
   },
   "pairwise_kappa": [],
   "framing": "Scaffold mode (no scorer). The real per-case AUC/recall report becomes possible once a Polymarket-URL -> score function is provided via --scorer."

@@ -26,6 +26,7 @@ export interface AnomalyResult {
   flagged_windows: number;
   top_features: string[];
   top_contributions?: FeatureContribution[];
+  trained_on?: string;
 }
 
 export interface ResolutionSnippet {

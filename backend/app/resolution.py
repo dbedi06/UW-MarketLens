@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -97,6 +98,33 @@ def _clean_sources(sources: list[str]) -> list[str]:
 
 def _quality_from_payload(payload: ClaudePayload) -> int:
     return max(0, min(100, int(round(payload.confidence * 100))))
+
+
+def _consensus_payload(
+    responses: list[tuple[ClaudePayload, str, bool]],
+) -> tuple[ClaudePayload, str, bool]:
+    if not responses:
+        raise ValueError("No LLM responses available for self-consistency voting.")
+
+    verdict_counts = Counter(payload.verdict for payload, _, _ in responses)
+    most_common, count = verdict_counts.most_common(1)[0]
+    if count >= 2:
+        chosen = next((resp for resp in responses if resp[0].verdict == most_common), responses[0])
+        if len(verdict_counts) > 1:
+            logger.info(
+                "S4 self-consistency majority %s from %s",
+                most_common,
+                dict(verdict_counts),
+            )
+        return chosen
+
+    chosen = max(responses, key=lambda item: item[0].confidence)
+    logger.info(
+        "S4 self-consistency no strict majority; picking highest-confidence verdict %s (%s)",
+        chosen[0].verdict,
+        chosen[0].confidence,
+    )
+    return chosen
 
 
 def _extract_articles(payload: Any) -> list[dict[str, str]]:
@@ -197,7 +225,7 @@ def resolve_market(
 ) -> ResolutionAssessment:
     if not has_resolution_keys():
         return _fallback_assessment(
-            "Resolution checking is not configured; NEWS_API_KEY and ANTHROPIC_API_KEY are required."
+            "Resolution checking is not configured; NEWS_API_KEY and OPENROUTER_API_KEY are required."
         )
 
     try:
@@ -206,9 +234,23 @@ def resolve_market(
         if not snippets:
             return _fallback_assessment("No independent reporting snippets were available for verification.")
 
-        payload, model_used, model_was_fallback = call_llm(
-            question, snippets, resolved=resolved, client=client,
-        )
+        responses: list[tuple[ClaudePayload, str, bool]] = []
+        for attempt in range(3):
+            try:
+                responses.append(
+                    call_llm(question, snippets, resolved=resolved, client=client)
+                )
+            except Exception as exc:
+                logger.warning(
+                    "resolve_market LLM attempt %d failed: %s",
+                    attempt + 1,
+                    exc,
+                )
+
+        if not responses:
+            raise RuntimeError("All self-consistency LLM attempts failed")
+
+        payload, model_used, model_was_fallback = _consensus_payload(responses)
         sources = _clean_sources(payload.supporting_sources)
         reasoning = payload.reasoning.strip() or "No reasoning was returned by the checker."
         return ResolutionAssessment(

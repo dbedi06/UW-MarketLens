@@ -55,6 +55,9 @@ class AnomalyResult(BaseModel):
     # by |shap| descending. Empty when SHAP is unavailable or when there
     # are no scored windows.
     top_contributions: List[dict] = Field(default_factory=list)
+    # Recorded provenance describing whether the detector was loaded from
+    # a real trained model or trained synthetically in-process.
+    trained_on: str = "unknown"
 
 
 class ResolutionVerdict(BaseModel):
