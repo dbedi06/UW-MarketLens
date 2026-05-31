@@ -46,7 +46,7 @@ python -m scripts.fetch_market --url <...> --save-fixture   # also copy into tes
 The script prints the parsed `RawMarket` and the cache path. Without
 the env flag, only URLs already in the cache will succeed.
 
-## Three-host architecture
+## Three-host architecture + optional on-chain enrichment
 
 Polymarket splits its public surface across three hosts. Our adapter
 talks to each for a different concern:
@@ -63,6 +63,41 @@ Polymarket's `llms.txt` docs index and the official `py-clob-client`
 SDK (which calls `assert_level_2_auth()` before any /trades request).
 Production was returning 401 on every real market for two weeks
 because of this. The fix is to use the Data API.
+
+### Optional: on-chain enrichment for trade counterparties
+
+The Data API exposes only `proxyWallet` (the trade initiator), not
+the counterparty. To recover the counterparty wallet for each trade
+— and with it, real graph topology for the wallet-network anomaly
+features — `fetch_market` runs an optional enrichment step against
+Polygon RPC. It reads the Polymarket Exchange contracts'
+`OrderFilled` events (see [app/anomaly/network/exchange.py](../anomaly/network/exchange.py)
+for the addresses + event ABI + topic hash) and joins them back to
+the Data API trades by `transactionHash`.
+
+Setup:
+
+```powershell
+# Required (Data API is already public, but the on-chain step still
+# needs MARKETLENS_POLYGON_LIVE to actually hit the RPC).
+$env:MARKETLENS_POLYGON_LIVE = "1"
+
+# Optional but recommended: point at an archive node. The default
+# public RPC (polygon-bor-rpc.publicnode.com) prunes historical
+# blocks aggressively; markets whose trades fall outside its
+# retention window won't get enriched.
+$env:MARKETLENS_POLYGON_RPC_URL = "https://polygon-mainnet.g.alchemy.com/v2/<your-key>"
+```
+
+Without these flags set, ingestion runs unchanged — every trade
+returned from the Data API has `taker_address=""`, and the network
+features run on a one-sided graph (documented in `MODEL_STATUS.md`).
+Adding the flags is purely additive: any trade whose tx hash matches
+an indexed OrderFilled event gets its counterparty backfilled.
+Trades that fall outside the chunked block window
+(`_MAX_QUERY_CHUNKS × _MAX_BLOCKS_PER_QUERY` ≈ 4.4 days back from
+latest on the public node) pass through unchanged. We never
+fabricate a taker.
 
 ## API quirks (known, documented)
 

@@ -486,6 +486,24 @@ def fetch_market(url: str, trade_limit: int = 500) -> RawMarket:
             )
             spread = _fetch_clob_spread(client, yes_token) or spread
 
+            # On-chain enrichment: backfill taker_address from Polygon
+            # OrderFilled events. Purely additive — if Polygon RPC is
+            # unavailable (no MARKETLENS_POLYGON_LIVE flag + no cached
+            # response), the function returns the input unchanged. We
+            # never let a crash here break the live route.
+            if trades:
+                try:
+                    from ..anomaly.network import (
+                        PolygonClient, enrich_with_takers,
+                    )
+                    polygon = PolygonClient()
+                    trades = enrich_with_takers(polygon, trades, yes_token)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "Polygon enrichment skipped (%s); trades will "
+                        "have taker_address=''", exc,
+                    )
+
     # B3: derive unique_traders from the trade tape (real). Fall back to
     # Gamma's reported count only if no addresses surfaced — which
     # should never happen for an actively traded market.

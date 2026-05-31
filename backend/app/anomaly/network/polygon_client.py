@@ -31,6 +31,12 @@ import httpx
 CACHE_DIR = Path(__file__).parent / "cache"
 DEFAULT_RPC_URL = "https://polygon-bor-rpc.publicnode.com"
 LIVE_ENV_FLAG = "MARKETLENS_POLYGON_LIVE"
+# Optional override for the RPC URL. Free public nodes prune historical
+# blocks aggressively (typically anything older than ~128 blocks).
+# Markets whose trades fall outside that window won't get on-chain
+# enrichment unless you point at an archive node (e.g., Alchemy free
+# tier, QuickNode). See ingestion/README.md for setup notes.
+RPC_URL_ENV = "MARKETLENS_POLYGON_RPC_URL"
 DEFAULT_TIMEOUT_S = 15.0
 
 
@@ -54,6 +60,11 @@ class PolygonClient:
 
     def __post_init__(self) -> None:
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        # Env override takes precedence so a deploy can point at an
+        # archive node without code changes.
+        env_url = os.environ.get(RPC_URL_ENV)
+        if env_url and self.rpc_url == DEFAULT_RPC_URL:
+            self.rpc_url = env_url
 
     # ---------------------------------------------------------------- raw
     def _rpc(self, method: str, params: list[Any]) -> Any:

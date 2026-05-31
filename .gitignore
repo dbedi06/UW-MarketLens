@@ -15,6 +15,9 @@ frontend/.vite/
 # Ingestion cache contents (dir is gitkept; per-market JSON is not)
 backend/app/ingestion/cache/*.json
 
+# Polygon RPC cache (same pattern; on-chain enrichment artifacts)
+backend/app/anomaly/network/cache/*.json
+
 # OS / editor
 .DS_Store
 Thumbs.db

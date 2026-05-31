@@ -244,7 +244,7 @@
         <h3>Polymarket Ingestion</h3>
         <p>API client; fetch markets + trade history; store raw data.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Gamma + CLOB; wallet addresses; on-disk cache; <code>fetch_market</code>, <code>fetch_library_markets</code>; offline-safe tests.</p>
+        <p class="note">Gamma + Data API (trades) + CLOB (spread); wallet addresses; on-disk cache; <code>fetch_market</code>, <code>fetch_library_markets</code>; offline-safe tests. Optional Polygon RPC enrichment (<code>MARKETLENS_POLYGON_LIVE=1</code>) recovers trade counterparties from on-chain <code>OrderFilled</code> events.</p>
       </div>
 
       <div class="card done">

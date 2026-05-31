@@ -84,6 +84,17 @@ state. Three places it failed to be honest:
   parameter distributions (`Beta(2, 8)` for HHI, etc.). If real
   Polymarket distributions diverge, every score on a real market is
   miscalibrated.
+- **Counterparty signal recovery (Polygon enrichment).** The Data API
+  exposes only the trade initiator (`proxyWallet`). When
+  `MARKETLENS_POLYGON_LIVE=1` is also set, `fetch_market` reads the
+  Polymarket Exchange contracts' `OrderFilled` events directly from
+  Polygon RPC and backfills `taker_address`, giving the network
+  features both sides of every (matched) edge. Without the flag,
+  trades pass through with `taker_address=""` and the graph stays
+  one-sided. The default public RPC prunes historical blocks; for
+  full coverage on older trades, set `MARKETLENS_POLYGON_RPC_URL`
+  to an archive node (Alchemy/QuickNode free tier covers demo scale).
+  See `app/ingestion/README.md` for setup.
 
 What is genuinely real:
 
