@@ -27,17 +27,33 @@ services:
       # backend/app/ingestion/cache/ so each unique market is fetched once.
       - key: MARKETLENS_POLYMARKET_LIVE
         value: "1"
-      # S4 LLM-as-judge (resolution checker). Paste your NewsAPI key
-      # and OpenRouter key in the Render dashboard once. Without
-      # NEWS_API_KEY or OPENROUTER_API_KEY, the resolution leg falls
-      # back to UNVERIFIABLE / resolution_quality=0 (documented).
-      # Default model is meta-llama/llama-3.3-70b-instruct:free; set
-      # OPENROUTER_MODEL to override (e.g. google/gemini-flash-1.5-8b).
+      # S4 LLM-as-judge (resolution checker) + S5 tagger. Paste your
+      # NewsAPI key and OpenRouter key in the Render dashboard once.
+      # Without NEWS_API_KEY or OPENROUTER_API_KEY the resolution leg
+      # falls back to UNVERIFIABLE / resolution_quality=0 (documented).
+      # Default model: meta-llama/llama-3.3-70b-instruct:free.
+      #
+      # Recommended paid setup (set both):
+      #   OPENROUTER_MODEL    = deepseek/deepseek-v4-pro
+      #   OPENROUTER_PROVIDER = deepseek
+      # The provider pin matters — DeepSeek V4 Pro is ~5x more
+      # expensive via Fireworks/Together than via DeepSeek's own
+      # infra. Without the pin OpenRouter may silently route to the
+      # expensive provider during DeepSeek rate-limit spikes.
+      #
+      # OPENROUTER_FALLBACK_MODEL (default google/gemini-flash-1.5-8b)
+      # is what the client tries when the primary model exhausts its
+      # retries. The fallback runs without the provider pin so it has
+      # a clean path even if DeepSeek itself is down.
       - key: NEWS_API_KEY
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
+        sync: false
+      - key: OPENROUTER_PROVIDER
+        sync: false
+      - key: OPENROUTER_FALLBACK_MODEL
         sync: false
 
   # ---- Vite/React frontend (free static site; always-on) ----

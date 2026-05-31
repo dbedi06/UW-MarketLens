@@ -4,6 +4,34 @@ Notable changes per tagged release. Newest first. Tags created
 retroactively from the commits where each section landed; the project
 shipped iteratively, not in a single big bang.
 
+## v0.8.1-llm-reliability — 2026-05-31
+
+Three additions on top of v0.8 to harden the OpenRouter integration
+for production use of expensive-via-wrong-provider models like
+DeepSeek V4 Pro:
+
+- **Provider pinning.** New `OPENROUTER_PROVIDER` env var (comma-
+  separated allowlist). When set, requests carry
+  `provider: {order: [...], allow_fallbacks: false}` so OpenRouter
+  never silently routes to a more expensive provider (DeepSeek V4
+  Pro is ~$0.44/M via the `deepseek` provider but ~5x via
+  Fireworks). Critical for cost control.
+- **Retry + automatic model fallback.** Primary model is tried up
+  to 3 times with brief backoff (transient errors clear). If all
+  retries fail, one shot at `OPENROUTER_FALLBACK_MODEL` (default
+  `google/gemini-flash-1.5-8b`), provider pin removed for the
+  fallback request so it has a clean path even when the pinned
+  provider is down.
+- **Surface which model produced each verdict.** `call_chat` returns
+  an `LlmResponse(content, model, used_fallback)` instead of a bare
+  string. `ResolutionAssessment` + `TagResult` carry the model name
+  and a `model_was_fallback` flag. Plumbed through the schema and
+  the frontend — the resolution evidence panel shows
+  `model: deepseek/deepseek-v4-pro`, or `(fallback)` in amber when
+  the secondary fired.
+
+7 new tests in `test_llm_client.py`. Suite at 205 passing.
+
 ## v0.8-openrouter — 2026-05-31
 
 Cost fix: every `/api/live/score` request fires two LLM calls (S4

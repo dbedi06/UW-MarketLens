@@ -34,6 +34,8 @@ export interface ResolutionVerdict {
   reasoning: string;
   supporting_sources: string[];
   supporting_snippets?: ResolutionSnippet[];
+  model_used?: string;
+  model_was_fallback?: boolean;
 }
 
 export interface Tags {

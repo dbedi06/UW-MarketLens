@@ -39,7 +39,8 @@ export default function ResolutionEvidence({
         sub="The S4 resolution checker gave Claude the snippets below — title plus description from NewsAPI — and asked for a verdict. Read them yourself to audit the call."
       />
 
-      <div className="mt-4 flex items-center gap-3 border-b border-line pb-3">
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1
+        border-b border-line pb-3">
         <span className="caption">Verdict</span>
         <span
           className={`font-sans text-sm font-extrabold tracking-tight
@@ -49,6 +50,26 @@ export default function ResolutionEvidence({
         </span>
         <span className="text-ink/30">·</span>
         <span className="caption">{snippets.length} snippet{snippets.length === 1 ? "" : "s"} considered</span>
+        {resolution.model_used && (
+          <>
+            <span className="text-ink/30">·</span>
+            <span
+              className={`caption font-mono ${
+                resolution.model_was_fallback
+                  ? "text-warn"
+                  : "text-ink/55"
+              }`}
+              title={
+                resolution.model_was_fallback
+                  ? "Primary model failed; fallback model produced this verdict."
+                  : "Model that produced this verdict."
+              }
+            >
+              model: {resolution.model_used}
+              {resolution.model_was_fallback && " (fallback)"}
+            </span>
+          </>
+        )}
       </div>
 
       <ul className="mt-4 space-y-4">

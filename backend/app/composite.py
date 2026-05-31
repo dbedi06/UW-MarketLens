@@ -443,6 +443,8 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             reasoning=resolution.reasoning,
             supporting_sources=resolution.supporting_sources,
             supporting_snippets=getattr(resolution, "supporting_snippets", []),
+            model_used=getattr(resolution, "model_used", ""),
+            model_was_fallback=getattr(resolution, "model_was_fallback", False),
         ),
         tags=Tags(
             departments=tags.departments,

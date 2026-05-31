@@ -29,10 +29,15 @@ class ResolutionAssessment:
     resolution_quality: int
     used_fallback: bool
     # PISAN-flagged honesty fix: surface the actual NewsAPI snippets
-    # Claude was given, so a reader can audit the evidence behind the
-    # verdict rather than trusting the verdict + URL list alone. Each
-    # entry: {title, description, url}.
+    # the LLM was given, so a reader can audit the evidence behind
+    # the verdict. Each entry: {title, description, url}.
     supporting_snippets: list[dict[str, str]] = field(default_factory=list)
+    # Which LLM produced this verdict — surfaces in the UI as
+    # "Model: deepseek/deepseek-v4-pro" so users can see when a
+    # fallback fired. Empty for fallback-assessment cases (no LLM
+    # ever ran).
+    model_used: str = ""
+    model_was_fallback: bool = False
 
 
 def has_resolution_keys() -> bool:
@@ -157,21 +162,23 @@ def call_llm(
     *,
     resolved: bool = False,
     client: httpx.Client | None = None,
-) -> ClaudePayload:
+) -> tuple[ClaudePayload, str, bool]:
     """Run the LLM-as-judge prompt through OpenRouter and parse the
-    structured JSON response. The class is still called `ClaudePayload`
-    for backward-compat but the call is provider-agnostic."""
+    structured JSON response. Returns (payload, model_used,
+    used_fallback) so callers can surface which model ran. The class
+    is still called `ClaudePayload` for backward-compat but the call
+    is provider-agnostic."""
     from .llm_client import call_chat
 
     prompt = _build_prompt(question, resolved, snippets)
-    text = call_chat(
+    resp = call_chat(
         [{"role": "user", "content": prompt}],
         max_tokens=512,
         json_mode=True,
         client=client,
     )
-    parsed = json.loads(text)
-    return ClaudePayload.model_validate(parsed)
+    parsed = json.loads(resp.content)
+    return ClaudePayload.model_validate(parsed), resp.model, resp.used_fallback
 
 
 # Back-compat alias for any external caller that still imports the
@@ -196,7 +203,9 @@ def resolve_market(
         if not snippets:
             return _fallback_assessment("No independent reporting snippets were available for verification.")
 
-        payload = call_llm(question, snippets, resolved=resolved, client=client)
+        payload, model_used, model_was_fallback = call_llm(
+            question, snippets, resolved=resolved, client=client,
+        )
         sources = _clean_sources(payload.supporting_sources)
         reasoning = payload.reasoning.strip() or "No reasoning was returned by the checker."
         return ResolutionAssessment(
@@ -207,6 +216,8 @@ def resolve_market(
             resolution_quality=_quality_from_payload(payload),
             used_fallback=False,
             supporting_snippets=articles,
+            model_used=model_used,
+            model_was_fallback=model_was_fallback,
         )
     except Exception:
         return _fallback_assessment("Resolution checking failed; falling back to UNVERIFIABLE.")

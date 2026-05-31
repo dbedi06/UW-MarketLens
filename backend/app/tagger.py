@@ -54,7 +54,9 @@ _CACHE: dict[str, "TagResult"] = {}
 class TagResult:
     departments: list[str]          # subset of DEPARTMENTS
     course_applicability: int       # 0-100
-    used_fallback: bool = False
+    used_fallback: bool = False     # rule-based keyword fallback fired
+    model_used: str = ""            # which LLM produced the tags (if any)
+    model_was_fallback: bool = False  # llm_client fell back to secondary model
 
 
 # ── Prompt (rubric loaded from data/tagging_rubric.md) ──────────────────────
@@ -185,16 +187,21 @@ def tag_market(
             + _FEW_SHOT
             + [{"role": "user", "content": question}]
         )
-        text = call_chat(messages, max_tokens=128, json_mode=True,
-                          client=client)
-        parsed = _parse_response(text)
+        resp = call_chat(messages, max_tokens=128, json_mode=True,
+                         client=client)
+        parsed = _parse_response(resp.content)
 
         # Validate departments against the allowed set
         raw_depts = parsed.get("departments", [])
         depts = [d for d in raw_depts if d in DEPARTMENTS]
         score = max(0, min(100, int(parsed.get("course_applicability", 50))))
 
-        result = TagResult(departments=depts, course_applicability=score)
+        result = TagResult(
+            departments=depts,
+            course_applicability=score,
+            model_used=resp.model,
+            model_was_fallback=resp.used_fallback,
+        )
         _CACHE[cache_key] = result
         return result
 

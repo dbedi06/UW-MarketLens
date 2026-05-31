@@ -58,6 +58,11 @@ class ResolutionVerdict(BaseModel):
     # reader audit the evidence Claude actually weighed. Empty when the
     # fallback path runs (no API keys or no news returned).
     supporting_snippets: List[dict] = Field(default_factory=list)
+    # Which OpenRouter model produced this verdict. Empty for the
+    # no-key fallback. `model_was_fallback=True` means the primary
+    # model failed and we used the secondary (UI labels it accordingly).
+    model_used: str = ""
+    model_was_fallback: bool = False
 
 
 class Tags(BaseModel):
