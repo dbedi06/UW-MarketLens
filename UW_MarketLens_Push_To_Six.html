@@ -185,13 +185,15 @@
     <h2><span class="num">1</span>Where we honestly are</h2>
 
     <div class="rating-row">
-      <div class="rating now">4.5</div>
+      <div class="rating now">5.5</div>
       <div class="rating-label">
-        <b>Today.</b> Plumbing for network features, microstructure
-        proxies, and labeled-eval is in place and tested. The model
-        trains on synthetic data with hand-picked feature
-        distributions; the labeled-cases file is empty; no real-market
-        AUC has been produced.
+        <b>Today (post-v0.9).</b> Detector now trains on a real
+        54-market Polymarket corpus; the synthetic fallback is for
+        contributors who haven't built the pickle. Reference
+        distribution reflects real score ranges. Plumbing for
+        network features + microstructure + labeled-eval is in
+        place. Labeled-cases file remains empty pending team
+        verification; no real-market AUC has been produced yet.
       </div>
     </div>
     <div class="rating-row">
@@ -256,8 +258,9 @@
     <h3>B1. Verified labeled set (N ≥ 20, balanced)</h3>
     <div class="checklist">
       <ul>
-        <li>Each labeler reads <code>data/labeling_rubric.md</code> v1 before producing any rows.</li>
-        <li>For each <code>controversial</code> entry, the <code>evidence_url</code> is personally opened and confirmed to meet the rubric's evidence standards. Prefer an archive.org snapshot so the link stays stable.</li>
+        <li>Run <code>python -m scripts.discover_labeled_candidates</code> with <code>NEWS_API_KEY</code> set — appends <code>LK-candidate-v2</code> rows to <code>labeled_cases.yaml</code> from NewsAPI manipulation queries plus mundane samples from the v0.9 corpus.</li>
+        <li>Each labeler reads <code>data/labeling_rubric.md</code> v1 before verifying any rows.</li>
+        <li>For each <code>controversial</code> candidate, the <code>evidence_url</code> is personally opened and confirmed to meet the rubric's evidence standards. Prefer an archive.org snapshot so the link stays stable.</li>
         <li>If evidence cannot be produced to standard, the market is <b>dropped</b>, not downgraded to <code>mundane</code>.</li>
         <li>At least two labelers cover at least two shared markets so Cohen's κ has something to compute.</li>
         <li>Target balance: ~10 controversial / ~10 mundane minimum.</li>
@@ -267,22 +270,26 @@
       <b>Why this gates the rating.</b> Without verified labels there
       is no cross-check on the synthetic eval. We're stuck reporting
       "the model wins on patterns we designed it to win on," which is
-      what 4.5/10 captures.
+      what 4.5/10 captured. After v0.9 the detector finally learns from
+      real data, but the AUC headline is still empty until a labeler
+      verifies what the model is being measured against.
     </p>
 
-    <h3>B2. Cached real-market corpus (≥ 50 resolved markets)</h3>
+    <h3>B2. Cached real-market corpus (≥ 50 resolved markets) — <span style="color: var(--green);">DONE in v0.9</span></h3>
     <div class="checklist">
       <ul>
-        <li>Run <code>scripts/seed_labeled_cache.py</code> with <code>MARKETLENS_POLYMARKET_LIVE=1</code> on the labeled URLs + a top-N library pull (<code>scripts/fetch_market.py --library 40</code>).</li>
-        <li>Verify the cache has &gt; ~30 distinct resolved markets with non-trivial trade tape and address data.</li>
-        <li>Commit nothing under <code>backend/app/ingestion/cache/</code> — that directory is gitignored content; the corpus is a local artifact.</li>
+        <li class="done"><code>scripts/build_real_corpus.py</code> fetches top-N resolved Polymarket events via Gamma + Data API + optional Polygon enrichment. Saves JSON snapshots to <code>backend/app/anomaly/data/corpus/</code>.</li>
+        <li class="done">Local corpus has 54 distinct resolved markets with non-trivial trade tape (median ~280 trades / market).</li>
+        <li class="done">Corpus JSONs are gitignored; the trained pickle (<code>trained_model.pkl</code>, ~1.3 MB) is committed so the model is reproducible without re-fetching.</li>
       </ul>
     </div>
     <p style="font-size:13px;color:#4b5563;margin-top:6px;">
-      <b>Why this gates the rating.</b> A real-trained detector
-      requires a real distribution to train on. Hand-picked
-      <code>Beta(2, 8)</code> for HHI is intuition; the real
-      distribution is what it is.
+      <b>What landed.</b> <code>train_from_corpus()</code> fits the
+      IsoForest on the real per-market feature matrix instead of
+      <code>clean_streams_with_network</code>. Reference distribution
+      and per-column network medians come from real markets.
+      <code>get_detector()</code> loads the pickle on import; the
+      synthetic path is now a fallback only.
     </p>
 
     <h3>B3. Non-circular evaluation</h3>
@@ -294,11 +301,11 @@
       </ul>
     </div>
 
-    <h3>B4. Retrain on real corpus &amp; re-run labeled eval</h3>
+    <h3>B4. Retrain on real corpus &amp; re-run labeled eval — <span style="color: var(--amber);">PARTIALLY DONE in v0.9</span></h3>
     <div class="checklist">
       <ul>
-        <li>Train <code>IsoForestDetector</code> on the real corpus (B2) instead of <code>clean_streams_with_network</code>; keep a synthetic ablation for comparison.</li>
-        <li>Run <code>scripts/eval_on_labeled.py --scorer app.anomaly.scoring:score_market_url</code> against the verified label set.</li>
+        <li class="done"><code>IsoForestDetector</code> now trained on the real corpus via <code>scripts/train_from_corpus.py</code>; synthetic remains as fallback via <code>get_detector()</code> resolution order.</li>
+        <li>Run <code>scripts/eval_on_labeled.py --scorer app.anomaly.scoring:score_market_url</code> against the verified label set <em>(blocked on B1)</em>.</li>
         <li>Publish whatever ROC-AUC results, with its bootstrap CI. <b>Do not</b> tune to make the number higher — that's how synthetic-overclaim happens.</li>
         <li>Update <code>MODEL_STATUS.md</code> with the real number and its CI; update the implementation-plan HTML bottom-line callout to match.</li>
       </ul>

@@ -4,14 +4,39 @@ A direct snapshot of what the model is, what just changed, and what's
 still gating the next half-point on the honest 0-10 rating. No
 marketing; if a number is uncertain, this doc says so.
 
+## v0.9 update — trained on real data
+
+**The detector is no longer synthetic-only.** A corpus of 54 resolved
+Polymarket markets (~4000 windowed feature rows) lives at
+`app/anomaly/data/corpus/` and the IsoForest is now fitted on that
+real distribution instead of the hand-picked `Beta(2,8)` synthetic
+streams. The fitted model is committed at
+`app/anomaly/data/trained_model.pkl` (~1.3 MB); `get_detector()` loads
+it on import in <1 s. The synthetic fallback path remains for cases
+where the pickle is absent (CI workers without the artifact,
+contributors who haven't run the corpus builder).
+
+The reference distribution used for percentile-converting raw
+detector scores now reflects real-market score ranges
+(`-0.123 .. 0.262` empirically) instead of the synthetic `-0.055 ..
+0.066`. Markets that are genuinely high-volatility now score
+differently from the trained baseline — a behavioral lift the
+synthetic model didn't have.
+
+**Still missing for the full Push-to-Six story:** a verified labeled
+set. `labeled_cases.yaml` remains empty pending team curation under
+rubric v1. The script `scripts/discover_labeled_candidates.py` is
+ready to seed candidates from NewsAPI for team review whenever
+someone runs it with `NEWS_API_KEY` set.
+
 ## What the model is today
 
 - **Detector**: a single `IsolationForest` (and a `BaggedIsoForest`
   alternative kept for ablations) wrapped in `RobustScaler`. Trained
-  once per process on synthetic streams that now include four
-  trader-graph (network) columns. The live API route and the
-  labeled-eval scorer share the same fitted detector via
-  `app.anomaly.scoring.get_detector()`.
+  on the **real-market corpus** (54 markets, ~4000 windows) when the
+  pickle is on disk; falls back to synthetic streams otherwise. The
+  live API route and the labeled-eval scorer share the same fitted
+  detector via `app.anomaly.scoring.get_detector()`.
 
 - **Features** (column order in `FULL_FEATURE_NAMES_WITH_NETWORK`):
   - **Base (5)**: volume, bid_ask_spread, unique_traders,
@@ -65,7 +90,7 @@ marketing; if a number is uncertain, this doc says so.
   shared singleton, instead of cached on FastAPI app state — same
   behavior, less code, no risk of two detectors disagreeing.
 
-## Honest rating: ~4.5/10
+## Honest rating: ~5.5/10 (was 4.5 before v0.9)
 
 A 6/10 framing was drafted earlier; on second look it overstated the
 state. Three places it failed to be honest:
@@ -80,10 +105,18 @@ state. Three places it failed to be honest:
   evidence URLs were generated from intuition without verification.
   Those entries were removed; the file ships empty pending team
   verification against rubric v1.
-- The detector still trains on 100% synthetic data with hand-picked
-  parameter distributions (`Beta(2, 8)` for HHI, etc.). If real
-  Polymarket distributions diverge, every score on a real market is
-  miscalibrated.
+- ~~The detector still trains on 100% synthetic data with hand-picked
+  parameter distributions.~~ **Resolved in v0.9** — the detector now
+  trains on a 54-market real corpus and the reference distribution
+  is computed from it. The synthetic fallback only fires when the
+  pickle is missing (CI, fresh contributor).
+- **Labeled set still empty.** `labeled_cases.yaml` carries no
+  verified rows. Without labels, no ROC-AUC can be computed against
+  ground truth — the "did our model actually learn anomalies?"
+  question remains open. `discover_labeled_candidates.py` exists to
+  seed candidates from NewsAPI; the team has to review them under
+  rubric v1 before any number gets quoted. This is the gating item
+  for moving past 5.5/10.
 - **Counterparty signal recovery (Polygon enrichment).** The Data API
   exposes only the trade initiator (`proxyWallet`). When
   `MARKETLENS_POLYGON_LIVE=1` is also set, `fetch_market` reads the
@@ -116,26 +149,28 @@ What is genuinely real:
 - The labeled-eval pipeline is wired and ready to consume a real
   case list and emit a real number. It just doesn't have one yet.
 
-## What gates a genuine 6/10
+## What gates the next half-point
 
 See `UW_MarketLens_Push_To_Six.html` (project root) for the full
-breakdown. Short version:
+breakdown. Status:
 
-1. **Verified labeled set, N ≥ 20** under rubric v1 — team-produced,
-   evidence URLs confirmed to resolve.
-2. **Cached real-market corpus, ≥50 resolved markets**. Retrain the
-   IsoForest on the real feature distribution.
-3. **Non-circular injection patterns**. A `sybil_ring` that also
-   perturbs base features moderately so the lift demo isn't
-   tautological.
-4. **Re-run the labeled eval** and publish whatever AUC results —
-   probably substantially less than the synthetic figure, and that's
-   the honest number.
+1. ~~Cached real-market corpus, ≥50 resolved markets, retrain the
+   IsoForest on it.~~ **Done in v0.9** (54 markets, 3999 windows,
+   pickle committed).
+2. **Verified labeled set, N ≥ 20** under rubric v1 — team-produced,
+   evidence URLs confirmed to resolve. Run
+   `python -m scripts.discover_labeled_candidates` (needs
+   `NEWS_API_KEY`) to seed candidates; team verifies before any
+   number is quoted.
+3. **Run the labeled eval and publish whatever AUC results.** The
+   pipeline is in place; needs item #2 first.
+4. **Non-circular injection patterns** for the synthetic eval — a
+   `sybil_ring` variant that also perturbs base features moderately
+   so the lift demo isn't tautological. Optional polish; doesn't
+   move the labeled-eval number.
 
-S1 + Isolation Forest work is paused here on purpose. Resuming
-requires the team-side labeling effort + cache warming above; coding
-further before those land would only deepen the synthetic-overclaim
-problem.
+Once items 2 + 3 land we can responsibly claim 6/10 (or whatever the
+labeled AUC says — we publish the real number).
 
 ## Pointers
 

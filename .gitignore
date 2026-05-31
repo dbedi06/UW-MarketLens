@@ -18,6 +18,10 @@ backend/app/ingestion/cache/*.json
 # Polygon RPC cache (same pattern; on-chain enrichment artifacts)
 backend/app/anomaly/network/cache/*.json
 
+# Real-market training corpus — directory is gitkept; per-market
+# RawMarket JSON snapshots are not (rebuild via scripts/build_real_corpus.py).
+backend/app/anomaly/data/corpus/*.json
+
 # OS / editor
 .DS_Store
 Thumbs.db

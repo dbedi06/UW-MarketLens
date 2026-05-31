@@ -26,10 +26,16 @@ const METHOD: [string, string][] = [
 // numbers; if we haven't measured it, the cell says so plainly.
 const EVAL: [string, string, string, string][] = [
   [
-    "Anomaly detector (synthetic)",
+    "Anomaly detector (synthetic baseline)",
     "Sybil-ring AUC (network-aware vs base-only)",
     "lift on a pattern only network features should see",
-    "0.91 vs 0.47 (synthetic, circular by design)",
+    "0.91 vs 0.47 (circular synthetic test)",
+  ],
+  [
+    "Anomaly detector (real-trained, v0.9)",
+    "Training corpus + reference distribution",
+    "model fitted on real Polymarket feature distribution",
+    "54 markets / ~4000 windows — pickle at trained_model.pkl",
   ],
   [
     "Anomaly detector (real data)",
@@ -136,12 +142,17 @@ export default function AboutPage() {
           </tbody>
         </table>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Honest rating: ~4.5/10. The synthetic AUC is real arithmetic but
-          the test was designed to favor the features under measurement,
-          so it's a capability check, not a generalization claim. The
-          honest path to 6/10 is documented in
-          {" "}<code className="font-mono">UW_MarketLens_Push_To_Six.html</code>{" "}
-          and the current model state in
+          Honest rating: ~5.5/10. The detector now trains on real
+          Polymarket markets (54 in the corpus); the synthetic AUC is
+          real arithmetic but its test was designed to favor the
+          features under measurement, so it's a capability check, not a
+          generalization claim. The headline labeled-eval AUC remains
+          "pending" until the team curates ≥20 verified rows under
+          rubric v1 (see
+          {" "}<code className="font-mono">backend/app/anomaly/data/labeling_rubric.md</code>).
+          Full path to 6/10 in
+          {" "}<code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
+          current model state in
           {" "}<code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>.
         </p>
       </section>

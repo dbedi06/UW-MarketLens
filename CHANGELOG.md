@@ -4,6 +4,55 @@ Notable changes per tagged release. Newest first. Tags created
 retroactively from the commits where each section landed; the project
 shipped iteratively, not in a single big bang.
 
+## v0.9-real-trained — 2026-05-31
+
+The S3 anomaly detector no longer trains on synthetic-only data. A
+54-market real Polymarket corpus is fitted into a committed
+`trained_model.pkl` (~1.3 MB). The reference distribution used for
+percentile-converting raw scores now reflects real-market score
+ranges (-0.123 .. 0.262) instead of the synthetic -0.055 .. 0.066.
+Real markets now produce subscores that genuinely vary based on
+what the model thinks of them, not collapsed to ~50 by a
+mis-calibrated reference.
+
+- New `scripts/build_real_corpus.py` fetches top-N resolved Polymarket
+  events via Gamma + Data API + (optional) Polygon enrichment, saves
+  each as a JSON snapshot under `app/anomaly/data/corpus/`. Resumable
+  (skips condition_ids already on disk). Filters thin markets
+  (`--min-trades 50` by default).
+- New `app/anomaly/scoring.py:train_from_corpus()` loads every JSON
+  in the corpus, runs each through `from_trades_with_network`,
+  concatenates the per-market feature blocks, fits the IsoForest,
+  computes the per-market top-K reference distribution + per-column
+  network medians (used for NaN imputation at scoring time), and
+  pickles the result.
+- New `scripts/train_from_corpus.py` runs the above and saves to
+  `app/anomaly/data/trained_model.pkl`.
+- `get_detector()` now resolves: in-process cache → pickle on disk →
+  synthetic fallback. Attaches `_trained_on` so callers can disclose
+  whether a score came from the real or synthetic path.
+- New `scripts/discover_labeled_candidates.py` is ready for the team
+  to run once `NEWS_API_KEY` is available: queries NewsAPI for
+  manipulation/controversy reporting, extracts referenced Polymarket
+  URLs (with a fuzzy slug-fallback when no URL is in the article),
+  pairs with mundane corpus samples, and appends `LK-candidate-v2`
+  rows to `labeled_cases.yaml` for team verification under rubric v1.
+- 6 new tests in `test_corpus_training.py` (JSON round-trip, trainer
+  produces calibrated detector, pickle round-trip, get_detector
+  resolution order). 211 total passing.
+- MODEL_STATUS.md updated: rating moves from 4.5/10 → ~5.5/10. Full
+  6/10 still gated on the team-verified labeled set + the actual
+  ROC-AUC number that comes out of running eval_on_labeled against
+  it. Documented in Push_To_Six.html.
+- AboutPage evaluation table now lists the real-trained corpus row
+  honestly; labeled-eval AUC remains "pending" since labels still
+  need team curation.
+
+Honest note: the real-trained model gives scores that visibly differ
+from synthetic (delta ~0.05 on the fed-rates market in local
+smoke), but until labels exist we cannot say "this lift is in the
+right direction." That measurement is the next push.
+
 ## v0.8.1-llm-reliability — 2026-05-31
 
 Three additions on top of v0.8 to harden the OpenRouter integration

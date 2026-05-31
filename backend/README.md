@@ -100,6 +100,35 @@ fewer than 3 windows of trade history.
 
 Schemas in `app/schemas.py` are **placeholders** — finalized in S0.
 
+## Real-trained anomaly model (S3)
+
+The S3 IsoForest detector is fitted on a real Polymarket corpus
+(54 resolved markets, ~4000 windowed feature rows). The fitted
+model is committed at `app/anomaly/data/trained_model.pkl` and
+loaded by `get_detector()` on import — no per-process training cost.
+
+To rebuild the corpus + retrain (e.g., when the feature contract
+changes, or to refresh against current Polymarket data):
+
+```powershell
+$env:MARKETLENS_POLYMARKET_LIVE = "1"
+# Optional: also pull on-chain counterparty data
+$env:MARKETLENS_POLYGON_LIVE = "1"
+
+python -m scripts.build_real_corpus --n 60         # ~3-5 min
+python -m scripts.train_from_corpus                 # ~2 s
+```
+
+Outputs:
+- `app/anomaly/data/corpus/<condition_id>.json` — RawMarket
+  snapshots (gitignored)
+- `app/anomaly/data/trained_model.pkl` — fitted detector
+  (committed)
+
+If no pickle is present, `get_detector()` falls back to a fresh
+synthetic-stream fit (the pre-v0.9 default). This keeps CI workers
+and fresh contributors functional without forcing a corpus build.
+
 ## Labeled evaluation (S3 sanity check)
 
 The anomaly detector has a pre-registered labeled-cases set under
