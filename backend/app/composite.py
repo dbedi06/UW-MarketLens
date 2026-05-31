@@ -99,6 +99,47 @@ def _liquidity_score(volume: float, liquidity: float, traders: int) -> int:
     return max(0, min(100, round((vol_s + liq_s + trd_s) / 3)))
 
 
+def _mean_prices_per_window(
+    market, widx, window_minutes: int = 15,
+) -> list[float]:
+    """Per-window mean trade price aligned to the sparse `widx` array.
+
+    Ported from the pre-composite live route. Without this, the chart's
+    price-path renders as a flat horizontal line (every AnomalyPoint
+    gets `market.yes_price`, which is a single scalar from Gamma).
+    With this, the line traces the actual mid-price as it moved during
+    the windows that had trades.
+
+    Falls back to `market.yes_price` for any window the bucket index
+    doesn't cover (shouldn't happen if widx came from the same
+    `from_trades_with_network` call, but guards against drift).
+    """
+    from datetime import timedelta
+
+    yes_default = float(getattr(market, "yes_price", 0.5))
+    trades = sorted(
+        getattr(market, "trades", []), key=lambda t: t.timestamp,
+    )
+    if not trades:
+        return [yes_default] * len(widx)
+
+    t0 = trades[0].timestamp
+    width = timedelta(minutes=window_minutes)
+    by_idx: dict[int, list[float]] = {}
+    for t in trades:
+        idx = int((t.timestamp - t0) // width)
+        by_idx.setdefault(idx, []).append(float(t.price))
+
+    out: list[float] = []
+    for wi in (int(w) for w in widx):
+        prices = by_idx.get(wi)
+        if prices:
+            out.append(sum(prices) / len(prices))
+        else:
+            out.append(yes_default)
+    return out
+
+
 def _anomaly_subscore(anomaly_percentile: float) -> int:
     """
     Convert S3's anomaly percentile (0-1, higher = more anomalous)
@@ -268,15 +309,24 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
                     else float((stat - lo) / (hi - lo))
                 )
 
-            # Build AnomalyPoint series for the chart
+            # Build AnomalyPoint series for the chart. Per-window mean
+            # prices come from the actual trade tape — without this,
+            # every point gets `market.yes_price` and the chart shows
+            # a flat horizontal line.
+            per_window_prices = _mean_prices_per_window(market, widx)
             threshold = float(np.percentile(per_window, 85))
             for i, score_val in enumerate(per_window):
                 flagged = float(score_val) >= threshold
                 if flagged:
                     flagged_windows += 1
+                price_i = (
+                    per_window_prices[i]
+                    if i < len(per_window_prices)
+                    else float(market.yes_price)
+                )
                 anomaly_series.append(AnomalyPoint(
-                    window_index=i,
-                    price=float(market.yes_price),
+                    window_index=int(widx[i]) if i < len(widx) else i,
+                    price=price_i,
                     anomaly_value=round(float(score_val), 4),
                     flagged=flagged,
                 ))

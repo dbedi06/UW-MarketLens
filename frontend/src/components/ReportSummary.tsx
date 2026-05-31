@@ -59,7 +59,7 @@ export default function ReportSummary({ data }: { data: MarketScore }) {
             border-line px-2 py-0.5 font-mono text-[11px] font-medium
             uppercase tracking-wide text-ink/55 hover:text-ink"
         >
-          Placeholder model · how computed
+          Score methodology · how computed
         </a>
       </div>
     </motion.aside>

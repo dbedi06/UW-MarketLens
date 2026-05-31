@@ -79,3 +79,51 @@ def test_composite_weighting_math():
         + _W_RESOLUTION * 40
     )
     assert expected == 63
+
+
+def test_mean_prices_per_window_returns_varying_prices():
+    """Bug 1 regression: when trades span multiple 15-min windows with
+    different prices, the per-window mean must vary — not collapse to a
+    single yes_price scalar (which was making the chart flat)."""
+    from datetime import datetime, timedelta, timezone
+    from app.composite import _mean_prices_per_window
+    from app.ingestion.polymarket import RawMarket, RawTrade
+    import numpy as np
+
+    t0 = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    trades = [
+        # Window 0: prices around 0.50
+        RawTrade(trade_id="t1", token_id="y", price=0.50, size=10,
+                 side="BUY", timestamp=t0,
+                 maker_address="0xA", taker_address="0xB"),
+        RawTrade(trade_id="t2", token_id="y", price=0.52, size=10,
+                 side="BUY", timestamp=t0 + timedelta(minutes=5),
+                 maker_address="0xA", taker_address="0xB"),
+        # Window 1: prices around 0.65 (different window)
+        RawTrade(trade_id="t3", token_id="y", price=0.65, size=10,
+                 side="BUY", timestamp=t0 + timedelta(minutes=20),
+                 maker_address="0xA", taker_address="0xB"),
+        RawTrade(trade_id="t4", token_id="y", price=0.67, size=10,
+                 side="BUY", timestamp=t0 + timedelta(minutes=25),
+                 maker_address="0xA", taker_address="0xB"),
+        # Window 2: prices around 0.40
+        RawTrade(trade_id="t5", token_id="y", price=0.40, size=10,
+                 side="BUY", timestamp=t0 + timedelta(minutes=35),
+                 maker_address="0xA", taker_address="0xB"),
+    ]
+    market = RawMarket(
+        market_url="https://polymarket.com/event/x",
+        condition_id="0xc", question_id="q", question="?",
+        token_ids=["y"], volume_usd=0, liquidity_usd=0,
+        unique_traders=0, yes_price=0.5, spread=0,
+        end_date=None, resolved=False, resolution=None, trades=trades,
+    )
+
+    prices = _mean_prices_per_window(market, np.array([0, 1, 2]))
+    assert len(prices) == 3
+    # Bucket means: ~0.51, ~0.66, 0.40 — all distinct
+    assert prices[0] == 0.51
+    assert prices[1] == 0.66
+    assert prices[2] == 0.40
+    # Must not collapse to a single value
+    assert len(set(prices)) == 3

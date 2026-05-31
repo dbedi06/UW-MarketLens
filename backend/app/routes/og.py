@@ -7,11 +7,14 @@ three subscores as bars, the question and headline. Hand-built SVG, no image
 deps. Unknown ids fall back to a generic branded card (not 404).
 """
 
+import logging
 import math
 from fastapi import APIRouter, Response
-from .. import mock
+from .. import composite, mock
+from ..ingestion import IngestionUnavailable
 
 router = APIRouter(prefix="/api", tags=["og"])
+logger = logging.getLogger(__name__)
 
 _BAND = {"HIGH": "#3FBF7F", "MEDIUM": "#E0A23A", "LOW": "#E0584F"}
 _SUBS = [
@@ -185,16 +188,38 @@ def _card(question, headline, score, band, as_of, subs=None,
 
 @router.get("/og/{sid}")
 def og_card(sid: str) -> Response:
-    resolved = mock.resolve_snapshot(sid)
-    if resolved is None:
+    full = mock.resolve_snapshot_full(sid)
+    if full is None:
         svg = _card(
             "Is this prediction market citable?",
             "Open a market to generate its reliability snapshot.",
             "?", "", "live",
         )
     else:
-        url, as_of = resolved
-        m = mock.make_market_score(url, as_of)
+        url, as_of, source = full
+        if source == "live":
+            # Dispatch live-source snapshots through composite so the
+            # OG card matches the report instead of showing stale mock
+            # values. Any failure (cold cache, env flags unset,
+            # upstream API misbehaving) falls back to mock — the OG
+            # endpoint should never 5xx, an image is always better
+            # than no image when a link gets shared.
+            try:
+                m = composite.make_market_score(url, as_of)
+            except (IngestionUnavailable, ValueError) as exc:
+                logger.warning(
+                    "og: live render failed for %s (%s); falling back "
+                    "to mock card.", sid, exc,
+                )
+                m = mock.make_market_score(url, as_of)
+            except Exception as exc:  # noqa: BLE001
+                logger.exception(
+                    "og: unexpected live-render error for %s (%s); "
+                    "falling back to mock card.", sid, exc,
+                )
+                m = mock.make_market_score(url, as_of)
+        else:
+            m = mock.make_market_score(url, as_of)
         svg = _card(
             m.market_question, m.headline, m.reliability_score, m.band,
             m.as_of, m.subscores, m.anomaly_series,

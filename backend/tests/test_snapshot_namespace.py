@@ -87,6 +87,30 @@ def test_live_snapshot_returns_live_data_not_mock(tmp_path, monkeypatch):
         assert body2["subscores"]["anomaly"] == live_anomaly
 
 
+def test_og_card_dispatches_to_live_for_live_snapshots(tmp_path, monkeypatch):
+    """Bug 2: /api/og/{sid} was always rendering via mock, even when the
+    snapshot was registered as live. The OG card therefore showed a
+    different score than the report it pointed at. Fixed by dispatching
+    on source like /api/snapshot does."""
+    url = _seed_cache(tmp_path, monkeypatch)
+    from app.main import app
+    with TestClient(app) as client:
+        r = client.post("/api/live/score", json={"url": url})
+        assert r.status_code == 200, r.text
+        live_body = r.json()
+        sid = live_body["snapshot_id"]
+        live_score = live_body["reliability_score"]
+
+        og = client.get(f"/api/og/{sid}")
+    assert og.status_code == 200
+    # SVG embeds the score as text; mock would produce a deterministic-
+    # but-different number, so equality is the right discriminator.
+    assert str(live_score) in og.text, (
+        f"OG card body did not contain live score {live_score}; "
+        f"first 400 chars: {og.text[:400]}"
+    )
+
+
 def test_live_snapshot_cold_cache_returns_503_not_500(tmp_path, monkeypatch):
     """If the live snapshot's cache has been wiped (e.g., after a Render
     dyno wake), /api/snapshot should produce a friendly 503 — not crash."""
