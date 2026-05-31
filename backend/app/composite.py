@@ -226,6 +226,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     anomaly_percentile = 0.5   # neutral default
     anomaly_series: list[AnomalyPoint] = []
     top_features: list[str] = []
+    top_contributions: list[dict] = []
     flagged_windows = 0
 
     X_base, X_net, mid, widx = from_trades_with_network(market)
@@ -289,6 +290,21 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
                     FULL_FEATURE_NAMES_WITH_NETWORK[i % len(FULL_FEATURE_NAMES_WITH_NETWORK)]
                     for i in top_idx
                 ]
+
+            # SHAP per-window attributions for the most-anomalous window.
+            # PISAN flagged this: "Consider adding a SHAP explanation
+            # panel … per-window feature attributions would close the
+            # loop on the 'why, not the number' pillar." Wrapped in
+            # try/except so a SHAP failure can't break the live route.
+            try:
+                from .anomaly.explain import Explainer
+                most_idx = int(np.argmax(per_window))
+                expl = Explainer(det, list(FULL_FEATURE_NAMES_WITH_NETWORK))
+                attr = expl.explain(F[most_idx], top_k=5)
+                top_contributions = attr.get("contributions", [])
+            except Exception as exc:
+                logger.debug("SHAP attribution skipped: %s", exc)
+                top_contributions = []
     except Exception as exc:
         logger.warning("S3 anomaly detection failed, using neutral score: %s", exc)
 
@@ -345,6 +361,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
         apa=citation_out.apa,
         mla=citation_out.mla,
         bibtex=citation_out.bibtex,
+        ris=citation_out.ris,
         reliability_flag=citation_out.reliability_flag,
     )
 
@@ -369,6 +386,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             score=round(anomaly_percentile, 3),
             flagged_windows=flagged_windows,
             top_features=top_features,
+            top_contributions=top_contributions,
         ),
         resolution=ResolutionVerdict(
             verdict=resolution.verdict,

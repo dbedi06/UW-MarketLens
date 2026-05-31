@@ -10,6 +10,17 @@ export function ogImageUrl(id: string): string {
   return `${BASE}/api/og/${id}`;
 }
 
+// Absolute URL for the CSV export of the library. Used by a direct
+// <a download> link so the browser handles the file download.
+export function libraryCsvUrl(q?: string, dept?: string, course?: string): string {
+  const p = new URLSearchParams();
+  if (q) p.set("q", q);
+  if (dept) p.set("dept", dept);
+  if (course) p.set("course", course);
+  const qs = p.toString();
+  return `${BASE}/api/library.csv${qs ? `?${qs}` : ""}`;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -70,10 +81,12 @@ export function getSnapshot(id: string): Promise<MarketScore> {
 export function getLibrary(
   q?: string,
   dept?: string,
+  course?: string,
 ): Promise<LibraryEntry[]> {
   const p = new URLSearchParams();
   if (q) p.set("q", q);
   if (dept) p.set("dept", dept);
+  if (course) p.set("course", course);
   const qs = p.toString();
   return fetch(`${BASE}/api/library${qs ? `?${qs}` : ""}`).then((r) =>
     jsonOrThrow<LibraryEntry[]>(r),

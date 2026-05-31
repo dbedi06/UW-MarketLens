@@ -10,10 +10,17 @@ export interface Subscores {
   resolution_quality: number;
 }
 
+export interface FeatureContribution {
+  feature: string;
+  value: number;
+  shap: number;
+}
+
 export interface AnomalyResult {
   score: number;
   flagged_windows: number;
   top_features: string[];
+  top_contributions?: FeatureContribution[];
 }
 
 export interface ResolutionSnippet {
@@ -38,6 +45,7 @@ export interface Citation {
   apa: string;
   mla: string;
   bibtex: string;
+  ris?: string;
   reliability_flag: string;
 }
 

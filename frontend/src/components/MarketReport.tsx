@@ -13,6 +13,8 @@ import Skeleton from "../ui/Skeleton";
 import SectionHeading from "../ui/SectionHeading";
 import ReportSummary from "./ReportSummary";
 import WhyPanel from "./WhyPanel";
+import ResolutionEvidence from "./ResolutionEvidence";
+import FeatureContributions from "./FeatureContributions";
 import SubscoreBars from "./SubscoreBars";
 import ComputationNote from "./ComputationNote";
 import CitationBox from "./CitationBox";
@@ -95,9 +97,11 @@ export default function MarketReport({
           </div>
         )}
         <WhyPanel reasons={data.reasons} />
+        <ResolutionEvidence resolution={data.resolution} />
         <Suspense fallback={<Skeleton className="h-80" />}>
           <AnomalyChart series={data.anomaly_series} />
         </Suspense>
+        <FeatureContributions contributions={data.anomaly.top_contributions} />
         <SubscoreBars subscores={data.subscores} />
         <ComputationNote />
         <MarketFacts data={data} />

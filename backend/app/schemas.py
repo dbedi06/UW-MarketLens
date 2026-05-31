@@ -40,10 +40,14 @@ class Subscores(BaseModel):
 
 
 class AnomalyResult(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S3 Isolation Forest)
     score: float = Field(..., description="Aggregate anomaly score, higher = more anomalous")
     flagged_windows: int = Field(..., description="Count of suspicious time windows")
     top_features: List[str] = Field(default_factory=list)
+    # SHAP per-window attributions for the most-flagged window of this
+    # market. Each entry: {feature: str, value: float, shap: float} sorted
+    # by |shap| descending. Empty when SHAP is unavailable or when there
+    # are no scored windows.
+    top_contributions: List[dict] = Field(default_factory=list)
 
 
 class ResolutionVerdict(BaseModel):
@@ -63,10 +67,10 @@ class Tags(BaseModel):
 
 
 class Citation(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S6 citation generator)
     apa: str
     mla: str
     bibtex: str
+    ris: str = ""  # RIS format for Zotero / Mendeley / EndNote import
     reliability_flag: str
 
 

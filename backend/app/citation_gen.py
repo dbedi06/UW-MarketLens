@@ -34,6 +34,7 @@ class CitationOutput:
     apa:              str
     mla:              str
     bibtex:           str
+    ris:              str
     reliability_flag: str
 
 
@@ -95,6 +96,35 @@ def _mla(question: str, url: str, as_of: str, permalink: str, flag: str) -> str:
     )
 
 
+def _ris(
+    question: str,
+    url: str,
+    as_of: str,
+    permalink: str,
+    flag: str,
+) -> str:
+    """RIS-formatted citation for Zotero / Mendeley / EndNote import.
+
+    Uses TY=GEN (generic) because no RIS tag describes a prediction
+    market exactly. Reliability flag goes in N1 (notes) so importers
+    surface it on the record.
+    """
+    year = as_of[:4] if len(as_of) >= 4 else ""
+    return "\n".join([
+        "TY  - GEN",
+        f"T1  - {question}",
+        "AU  - Polymarket",
+        f"PY  - {year}",
+        f"DA  - {as_of}",
+        f"UR  - {url}",
+        f"L2  - {permalink}",
+        "M3  - Prediction market",
+        f"N1  - UW MarketLens reliability snapshot {as_of}. Reliability: {flag}",
+        "ER  - ",
+        "",
+    ])
+
+
 def _bibtex(
     question: str,
     url: str,
@@ -149,5 +179,6 @@ def make_citation(
         apa=_apa(q, url, as_of, permalink, flag),
         mla=_mla(q, url, as_of, permalink, flag),
         bibtex=_bibtex(q, url, as_of, permalink, flag, key),
+        ris=_ris(q, url, as_of, permalink, flag),
         reliability_flag=flag,
     )

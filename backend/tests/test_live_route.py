@@ -108,3 +108,15 @@ def test_live_score_uses_s4_s5_s6_s7_end_to_end(monkeypatch):
 
     # source field set to "live"
     assert body["source"] == "live"
+
+    # S6 RIS export now flows through citation
+    assert "TY  - " in body["citation"]["ris"]
+    assert "ER  - " in body["citation"]["ris"]
+
+    # Track 4: SHAP per-window attributions populated by composite
+    # (5 features per the top_k=5 cap; may be fewer if the model has
+    # fewer features, but should be a non-empty list here).
+    assert isinstance(body["anomaly"]["top_contributions"], list)
+    assert len(body["anomaly"]["top_contributions"]) > 0
+    sample = body["anomaly"]["top_contributions"][0]
+    assert {"feature", "value", "shap"}.issubset(sample.keys())

@@ -1,0 +1,19 @@
+{
+  "_comment": "UW course code → department-tag map. Illustrative, not exhaustive. Used by /api/library?course= and the frontend course-pack mode. Add rows as UW instructors request them.",
+
+  "POLS270": "POLS",
+  "POLS353": "POLS",
+  "POLS427": "POLS",
+
+  "ECON200": "ECON",
+  "ECON201": "ECON",
+  "ECON301": "ECON",
+  "ECON482": "ECON",
+
+  "INFO200": "INFO",
+  "INFO340": "INFO",
+  "INFO462": "INFO",
+
+  "EVANS547": "EVANS",
+  "EVANS582": "EVANS"
+}

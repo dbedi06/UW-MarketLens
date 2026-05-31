@@ -39,5 +39,6 @@ def citation(req: CitationRequest) -> Citation:
         apa=out.apa,
         mla=out.mla,
         bibtex=out.bibtex,
+        ris=out.ris,
         reliability_flag=out.reliability_flag,
     )
