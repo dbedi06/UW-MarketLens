@@ -52,7 +52,7 @@ services:
       # extra opt-in. If you've already opted in, `deepseek` works
       # too and is marginally cheaper.
       #
-      # OPENROUTER_FALLBACK_MODEL (default google/gemini-flash-1.5-8b)
+      # OPENROUTER_FALLBACK_MODEL (default google/gemini-2.0-flash-lite-001)
       # is what the client tries when the primary model exhausts its
       # retries. The fallback runs without the provider pin so it has
       # a clean path even if DeepSeek itself is down.

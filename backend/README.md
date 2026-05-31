@@ -43,17 +43,17 @@ $env:OPENROUTER_API_KEY = "<your-openrouter-key>"
 # Optional — override the model. Default is meta-llama/llama-3.3-70b-instruct:free.
 $env:OPENROUTER_MODEL = "deepseek/deepseek-v4-pro"   # ~$0.44/M in, $0.87/M out
 
-# When using a model where a specific provider is way cheaper than
-# OpenRouter's fallback providers (DeepSeek V4 Pro: $0.44/M via the
-# `deepseek` provider, ~5x via Fireworks), pin the provider so the
-# request never silently routes to the expensive one.
-$env:OPENROUTER_PROVIDER = "deepseek"
+# If you use a provider-specific model like deepseek/deepseek-v4-pro,
+# pin the provider to deepinfra unless you have opted into the DeepSeek
+# provider privacy policy at openrouter.ai/settings/privacy.
+$env:OPENROUTER_PROVIDER = "deepinfra"
 
 # Optional — when the primary model + retries all fail, the client
-# falls back to this. Default is google/gemini-flash-1.5-8b (cheap,
-# reliable, served by Google directly). Set to "" to disable fallback.
-$env:OPENROUTER_FALLBACK_MODEL = "google/gemini-flash-1.5-8b"
+# falls back to this. Default is google/gemini-2.0-flash-lite-001.
+$env:OPENROUTER_FALLBACK_MODEL = "google/gemini-2.0-flash-lite-001"
 ```
+
+The root `backend/.env` file is gitignored and local-only; do not commit it.
 
 **Reliability behavior:**
 
@@ -70,8 +70,8 @@ $env:OPENROUTER_FALLBACK_MODEL = "google/gemini-flash-1.5-8b"
 **Cost notes:**
 
 - `meta-llama/llama-3.3-70b-instruct:free` — $0, free tier (default)
-- `google/gemini-flash-1.5-8b` — ~$0.16 / 1000 requests
-- `deepseek/deepseek-v4-pro` (pin to `deepseek`) — ~$1.04 / 1000 requests
+- `google/gemini-2.0-flash-lite-001` — ~$0.16 / 1000 requests
+- `deepseek/deepseek-v4-pro` (pin to `deepinfra`) — ~$1.04 / 1000 requests
 - `openai/gpt-4o-mini` — ~$0.60 / 1000 requests
 - `anthropic/claude-3.5-sonnet` — ~$13 / 1000 requests (reference)
 
@@ -80,6 +80,10 @@ If `OPENROUTER_API_KEY` is missing, both S4 (resolution) and S5
 cleanly with `verdict=UNVERIFIABLE` and rule-based keyword tags
 instead of failing the request. If `NEWS_API_KEY` is missing, S4
 falls back regardless of the OpenRouter key (no evidence to weigh).
+
+For Render production, set `OPENROUTER_PROVIDER=deepinfra` when using
+`deepseek/deepseek-v4-pro` or any other provider-specific model that
+requires a cheaper routing path.
 
 Browse the catalog: <https://openrouter.ai/models>.
 
@@ -120,6 +124,7 @@ python -m scripts.train_from_corpus                 # ~2 s
 ```
 
 Outputs:
+
 - `app/anomaly/data/corpus/<condition_id>.json` — RawMarket
   snapshots (gitignored)
 - `app/anomaly/data/trained_model.pkl` — fitted detector

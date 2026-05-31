@@ -23,6 +23,7 @@ AI-Powered Prediction Market Reliability Platform — DYOP project.
 ## Run locally (two terminals)
 
 **Terminal 1 — backend (http://localhost:8000):**
+
 ```powershell
 cd backend
 python -m venv .venv
@@ -32,6 +33,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 **Terminal 2 — frontend (http://localhost:5173):**
+
 ```powershell
 cd frontend
 npm install
@@ -46,19 +48,30 @@ subscores, market facts, copy-able APA/MLA/BibTeX citation, and a dated
 tags) → **About** (architecture + methodology). Interactive API docs:
 http://localhost:8000/docs
 
+For live scoring, load `backend/.env` and set `MARKETLENS_POLYMARKET_LIVE=1`
+before starting the backend. See `backend/README.md` for full live env setup.
+
+You can also use the included `Makefile`:
+
+```bash
+make backend-dev
+make frontend-dev
+make test
+```
+
 ## Layout
 
-| Path | What |
-|------|------|
-| `backend/app/schemas.py` | Pydantic contract (S0) |
-| `backend/app/ingestion/` | S1 Polymarket adapter (Gamma + CLOB, on-disk cache) |
-| `backend/app/anomaly/` | S2 features + S3 Isolation Forest + labeled-eval |
-| `backend/app/resolution.py` | S4 LLM resolution checker (Claude + NewsAPI) |
-| `backend/app/tagger.py` | S5 course tagger (Claude few-shot + `data/tagging_rubric.md`) |
-| `backend/app/citation_gen.py` | S6 pure-function APA/MLA/BibTeX generator |
-| `backend/app/composite.py` | S7 weighted composite — the live `make_market_score` |
-| `backend/app/mock.py` | Deterministic mock — still backs `/api/score` and `/api/citation` |
-| `backend/app/routes/` | Thin handlers — `/api/score`, `/api/live/score`, `/api/library`, `/api/citation`, `/api/snapshot/{id}`, `/api/admin/*`, `/api/og/{id}` |
-| `frontend/src/types.ts` | TS mirror of the schema |
-| `frontend/src/api.ts` | Backend URL lives here only |
-| `frontend/src/components/` | MarketReport, AnomalyChart, SubscoreBars, CitationBox, etc. |
+| Path                          | What                                                                                                                                   |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/app/schemas.py`      | Pydantic contract (S0)                                                                                                                 |
+| `backend/app/ingestion/`      | S1 Polymarket adapter (Gamma + CLOB, on-disk cache)                                                                                    |
+| `backend/app/anomaly/`        | S2 features + S3 Isolation Forest + labeled-eval                                                                                       |
+| `backend/app/resolution.py`   | S4 LLM resolution checker (OpenRouter + NewsAPI)                                                                                       |
+| `backend/app/tagger.py`       | S5 course tagger (OpenRouter few-shot + `data/tagging_rubric.md`)                                                                      |
+| `backend/app/citation_gen.py` | S6 pure-function APA/MLA/BibTeX generator                                                                                              |
+| `backend/app/composite.py`    | S7 weighted composite — the live `make_market_score`                                                                                   |
+| `backend/app/mock.py`         | Deterministic mock — still backs `/api/score` and `/api/citation`                                                                      |
+| `backend/app/routes/`         | Thin handlers — `/api/score`, `/api/live/score`, `/api/library`, `/api/citation`, `/api/snapshot/{id}`, `/api/admin/*`, `/api/og/{id}` |
+| `frontend/src/types.ts`       | TS mirror of the schema                                                                                                                |
+| `frontend/src/api.ts`         | Backend URL lives here only                                                                                                            |
+| `frontend/src/components/`    | MarketReport, AnomalyChart, SubscoreBars, CitationBox, etc.                                                                            |
