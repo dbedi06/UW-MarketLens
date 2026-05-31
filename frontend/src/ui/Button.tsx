@@ -16,7 +16,7 @@ export default function Button({
     <motion.button
       whileTap={{ scale: 0.97 }}
       className={`${variant === "primary" ? "btn-primary" : "btn-ghost"} ${className}`}
-      {...(rest as React.ComponentProps<typeof motion.button>)}
+      {...(rest as unknown as React.ComponentProps<typeof motion.button>)}
     >
       {children}
     </motion.button>
