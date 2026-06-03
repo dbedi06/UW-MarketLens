@@ -28,7 +28,10 @@ function flaggedSpans(series: AnomalyPoint[]): FlaggedSpan[] {
       end = series[i].window_index;
       i += 1;
     }
-    out.push({ x1: start, x2: end });
+    // Pad each span ±0.5 windows so single-window flags (x1===x2)
+    // still render as a visible band — recharts ReferenceArea with
+    // zero domain width draws nothing.
+    out.push({ x1: start - 0.5, x2: end + 0.5 });
   }
   return out;
 }

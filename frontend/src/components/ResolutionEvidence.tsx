@@ -36,7 +36,7 @@ export default function ResolutionEvidence({
       <SectionHeading
         eyebrow="Resolution evidence"
         title="What the LLM-as-judge actually saw"
-        sub="The S4 resolution checker gave Claude the snippets below — title plus description from NewsAPI — and asked for a verdict. Read them yourself to audit the call."
+        sub="The S4 resolution checker gave the LLM the snippets below — title plus description from NewsAPI — and asked for a verdict. Read them yourself to audit the call."
       />
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1
