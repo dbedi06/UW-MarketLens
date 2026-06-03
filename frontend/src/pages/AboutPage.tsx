@@ -41,7 +41,7 @@ const EVAL: [string, string, string, string][] = [
     "Anomaly detector (real data)",
     "ROC-AUC against verified labeled markets",
     "≥ 0.65 with bootstrap CI",
-    "pending team-curated labeled set (≥ 20 cases)",
+    "10 labeled cases (5 controversial, 5 mundane) — in eval pipeline",
   ],
   [
     "LLM-as-judge (S4)",
@@ -146,10 +146,8 @@ export default function AboutPage() {
           Polymarket markets (54 in the corpus); the synthetic AUC is
           real arithmetic but its test was designed to favor the
           features under measurement, so it's a capability check, not a
-          generalization claim. The headline labeled-eval AUC remains
-          "pending" until the team curates ≥20 verified rows under
-          rubric v1 (see
-          {" "}<code className="font-mono">backend/app/anomaly/data/labeling_rubric.md</code>).
+          generalization claim. The labeled-eval set is seeded with 10
+          verified cases (5 controversial + 5 mundane, equal class balance).
           Full path to 6/10 in
           {" "}<code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
           current model state in
