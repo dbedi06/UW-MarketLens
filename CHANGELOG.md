@@ -119,6 +119,22 @@ mis-calibrated reference.
   honestly; labeled-eval AUC remains "pending" since labels still
   need team curation.
 
+## v0.9.2-labeled-eval — 2026-06-03
+
+The labeled-eval pipeline moved from blocked to executed. The current
+release includes 12 verified rubric-v1 cases, a real ROC-AUC of 0.672,
+bootstrap CI [0.314, 0.964], and an explicit `low_n_warning: true`
+indicator in `backend/app/anomaly/last_labeled_eval.json`.
+
+- `backend/app/anomaly/data/labeled_cases.yaml` now contains 12 verified
+  cases under rubric v1 (4 controversial / 8 mundane).
+- `scripts/eval_on_labeled.py` has been run and the result is committed
+  to `backend/app/anomaly/last_labeled_eval.json`.
+- Documentation was refreshed to reflect the new status in
+  `backend/app/anomaly/MODEL_STATUS.md`, `UW_MarketLens_Push_To_Six.html`,
+  `UW_MarketLens_Implementation_Plan.html`, `frontend/src/pages/AboutPage.tsx`,
+  and `README.md`.
+
 Honest note: the real-trained model gives scores that visibly differ
 from synthetic (delta ~0.05 on the fed-rates market in local
 smoke), but until labels exist we cannot say "this lift is in the

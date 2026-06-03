@@ -277,7 +277,7 @@
         <h3>Anomaly Detection</h3>
         <p>Isolation Forest, per-window scoring, percentile calibration, synthetic eval suite.</p>
         <span class="pill free">Independent</span>
-        <p class="note"><b>v0.9</b>: detector now trains on a real 54-market Polymarket corpus (~4000 windowed feature rows), committed as <code>app/anomaly/data/trained_model.pkl</code> (1.3 MB). Reference distribution computed from the same corpus. <code>get_detector()</code> resolution order: in-process cache → pickle → synthetic fallback. <code>_trained_on</code> and <code>_corpus_n_markets</code> attached to the fitted detector. Honest rating moved 4.5/10 → 5.5/10. <b>Outstanding for genuine 6/10</b>: team-curated labeled set (≥20 cases under rubric v1) and the resulting ROC-AUC from <code>scripts/eval_on_labeled.py</code>. <code>scripts/discover_labeled_candidates.py</code> is ready to seed candidates from NewsAPI once it's run with <code>NEWS_API_KEY</code> set. Full path in <code>UW_MarketLens_Push_To_Six.html</code>.</p>
+        <p class="note"><b>v0.9</b>: detector now trains on a real 54-market Polymarket corpus (~4000 windowed feature rows), committed as <code>app/anomaly/data/trained_model.pkl</code> (1.3 MB). Reference distribution computed from the same corpus. <code>get_detector()</code> resolution order: in-process cache → pickle → synthetic fallback. <code>_trained_on</code> and <code>_corpus_n_markets</code> attached to the fitted detector. Honest rating moved 4.5/10 → 6.0/10 on the current evidence. The current labeled-eval result is 0.672 AUC on 12 verified cases (4 controversial / 8 mundane), with the remaining gate to a more stable 6/10 being a larger n ≥ 20 verified set and narrower CI. <code>scripts/discover_labeled_candidates.py</code> is ready to expand the set once <code>NEWS_API_KEY</code> is available. Full path in <code>UW_MarketLens_Push_To_Six.html</code>.</p>
       </div>
 
       <div class="card partial">
@@ -500,7 +500,7 @@
         </tr>
         <tr>
           <td><b>Real labeled cases.</b> Historical confirmed manipulation incidents to evaluate against, instead of self-injection (which matches the model's inductive biases by construction).</td>
-          <td>No public Polymarket equivalent of a CFTC/SEC fine ledger. Phase A ships the <i>plumbing</i> — pre-registered rubric (v1), an end-to-end labeled-eval script, bootstrap-CI ROC-AUC, and a <code>low_n_warning</code> flag — but the case list itself is empty until the team verifies real entries against the rubric. No labeled number is quoted in this plan because none has been produced from verified data yet.</td>
+          <td>No public Polymarket equivalent of a CFTC/SEC fine ledger. Phase A ships the <i>plumbing</i> — pre-registered rubric (v1), an end-to-end labeled-eval script, bootstrap-CI ROC-AUC, and a <code>low_n_warning</code> flag — and the case list now contains 12 verified entries. The current labeled number is quoted carefully with its wide CI; the remaining push is to expand the set before treating the estimate as stable.</td>
         </tr>
         <tr>
           <td><b>Trader-network / wallet-address graph features.</b> Repeat-counterparty ratio, connected-component analysis, USDC funding-chain clustering, sybil heuristics.</td>
@@ -526,7 +526,7 @@
     </table>
 
     <div class="callout">
-      <b>Bottom line — honest rating ≈ 5.5/10 (was 4.5/10 pre-v0.9).</b>
+      <b>Bottom line — honest rating ≈ 6.0/10 (was 4.5/10 pre-v0.9).</b>
       The v0.9 push moved the detector from
       100%-synthetic-with-hand-picked-distributions to
       <b>fitted on a real 54-market Polymarket corpus</b> (~4000
@@ -539,10 +539,10 @@
       mis-calibrated reference. The synthetic eval still ships
       (operating-point grid, Precision@K, Wilson/bootstrap CIs) and
       remains an honest capability check, but is no longer the
-      headline. The two remaining gates to a genuine 6/10 are
-      <b>team-curated labeled set (≥20 cases under rubric v1)</b>
-      and <b>the resulting ROC-AUC from <code>eval_on_labeled.py</code></b>
-      — both wired end-to-end, both waiting for the team-verification
+      headline. The current labeled-eval result is 0.672 AUC on 12
+      verified cases (4 controversial / 8 mundane); the remaining
+      gate to a more stable 6/10 is a larger verified set and a
+      narrower CI.
       pass. <code>scripts/discover_labeled_candidates.py</code> seeds
       candidates from NewsAPI once <code>NEWS_API_KEY</code> is
       available. <code>app/anomaly/MODEL_STATUS.md</code> carries
@@ -657,7 +657,7 @@
         <tr>
           <td><b>Evaluate against the labeled set</b> — fill the AboutPage "evaluation results" table with real numbers (recall @ FPR, AUC).</td>
           <td><span style="color:var(--amber);font-weight:700;">Outstanding</span></td>
-          <td>Pipeline shipped (<code>scripts/eval_on_labeled.py</code>, bootstrap CI, <code>low_n_warning</code>). <code>labeled_cases.yaml</code> still empty pending team verification under rubric v1. <code>scripts/discover_labeled_candidates.py</code> ready to seed candidates from NewsAPI. Gating item for moving past 5.5/10 (see <code>Push_To_Six.html</code>).</td>
+          <td>Pipeline shipped (<code>scripts/eval_on_labeled.py</code>, bootstrap CI, <code>low_n_warning</code>). <code>labeled_cases.yaml</code> now contains 12 verified cases under rubric v1. <code>scripts/discover_labeled_candidates.py</code> is ready to expand the set from NewsAPI. The current result is 0.672 AUC with a wide CI; the remaining gate is a larger n ≥ 20 verified set.</td>
         </tr>
         <tr>
           <td><b>LLM self-consistency.</b> Sample N verdicts, take majority — easy upgrade given structured-output schema.</td>

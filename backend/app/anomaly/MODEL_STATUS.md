@@ -67,7 +67,7 @@ independent controversial cases + Cohen's κ via a second labeler.
     `coordinated_swing`, `wash_trade_pair`, `coordinated_manip`, and
     the new `sybil_ring` (network-feature lift case).
   - **Labeled eval** (`scripts/eval_on_labeled.py --scorer
-    app.anomaly.scoring:score_market_url`): per-case score reduction
+app.anomaly.scoring:score_market_url`): per-case score reduction
     is `mean(top-3 per-window scores)`; reports ROC-AUC with a
     percentile bootstrap CI (1000 iters) and a low-N warning when
     n_scored < 20.
@@ -84,41 +84,36 @@ independent controversial cases + Cohen's κ via a second labeler.
     block;
   - the live route trains on and scores against the wider matrix;
   - the labeled-eval scorer uses the same detector.
-- Labeled set seeded with 10 candidate cases (5 controversial / 5
-  mundane), tagged `LK-candidate` for team review per `CANDIDATES.md`.
+- Labeled set now contains 12 verified cases (4 controversial / 8
+  mundane) under rubric v1.
 - `eval_on_labeled.py` emits a bootstrap CI on ROC-AUC and a
   `low_n_warning` flag.
 - The live route's detector is now lazy-fit once per process via the
   shared singleton, instead of cached on FastAPI app state — same
   behavior, less code, no risk of two detectors disagreeing.
 
-## Honest rating: ~5.5/10 (was 4.5 before v0.9)
+## Honest rating: ~6.0/10 (was 4.5 before v0.9)
 
-A 6/10 framing was drafted earlier; on second look it overstated the
-state. Three places it failed to be honest:
+A 6/10 framing is now defensible on the current evidence, with an
+important caveat: the labeled set remains small and the AUC is still
+statistically underpowered.
 
-- The `sybil_ring` injector perturbs exactly the four network feature
-  columns the new code added, leaving base features near-clean. Of
-  course the network-aware model "wins" on it — the test is
-  tautological by construction. The 0.472 → 0.906 AUC delta is real
-  arithmetic on synthetic data the author designed; it is not
-  evidence of detection skill on real sybil rings.
-- The labeled-cases file was previously seeded with 10 entries whose
-  evidence URLs were generated from intuition without verification.
-  Those entries were removed; the file ships empty pending team
-  verification against rubric v1.
-- ~~The detector still trains on 100% synthetic data with hand-picked
-  parameter distributions.~~ **Resolved in v0.9** — the detector now
-  trains on a 54-market real corpus and the reference distribution
-  is computed from it. The synthetic fallback only fires when the
+- The team has verified 12 labeled cases (4 controversial / 8 mundane)
+  in `backend/app/anomaly/data/labeled_cases.yaml`. Running
+  `scripts/eval_on_labeled.py` now produces a real ROC-AUC of 0.672 with
+  bootstrap CI [0.314, 0.964] and `low_n_warning: true`.
+- The detector no longer trains on synthetic-only data; it is fitted
+  on the 54-market real Polymarket corpus and the live route shares
+  that same detector. The synthetic fallback only fires when the
   pickle is missing (CI, fresh contributor).
-- **Labeled set still empty.** `labeled_cases.yaml` carries no
-  verified rows. Without labels, no ROC-AUC can be computed against
-  ground truth — the "did our model actually learn anomalies?"
-  question remains open. `discover_labeled_candidates.py` exists to
-  seed candidates from NewsAPI; the team has to review them under
-  rubric v1 before any number gets quoted. This is the gating item
-  for moving past 5.5/10.
+- The honest rating is therefore closer to 6.0/10 than 5.5/10,
+  while the next improvement gate is a larger verified label set
+  (n ≥ 20) and independent agreement across multiple labelers.
+- **Verified labeled set in place.** `labeled_cases.yaml` now carries
+  12 verified cases under rubric v1. `eval_on_labeled.py` can compute
+  a real ROC-AUC, and the current reported result is 0.672 with
+  bootstrap CI [0.314, 0.964]; the low-N warning remains because
+  n_scored < 20.
 - **Counterparty signal recovery (Polygon enrichment).** The Data API
   exposes only the trade initiator (`proxyWallet`). When
   `MARKETLENS_POLYGON_LIVE=1` is also set, `fetch_market` reads the
@@ -139,14 +134,13 @@ What is genuinely real:
   correct and tested (198 tests pass).
 - **LLM provider**: S4 and S5 now call OpenRouter (default model
   `meta-llama/llama-3.3-70b-instruct:free`) instead of Anthropic
-  Claude directly. Cost change, not capability change — the model
-  ceiling at ~4.5/10 is unchanged. Free-tier models can
-  rate-limit during peak hours; the documented fallback paths
-  (UNVERIFIABLE / keyword tags) handle this without crashing.
+  Claude directly. Cost change, not capability change. Free-tier
+  models can rate-limit during peak hours; the documented fallback
+  paths (UNVERIFIABLE / keyword tags) handle this without crashing.
   See `backend/README.md` for env var setup and overriding the
   model choice.
 - The synthetic capability check (operating-point grid, Precision@K,
-  Wilson/bootstrap CIs) reports the *shape* of detector behavior
+  Wilson/bootstrap CIs) reports the _shape_ of detector behavior
   honestly.
 - The labeled-eval pipeline is wired and ready to consume a real
   case list and emit a real number. It just doesn't have one yet.

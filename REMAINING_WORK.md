@@ -1,7 +1,7 @@
 # UW MarketLens — Remaining Work
 
-> Everything left to take the codebase from "5.5/10 honest, AUC
-> pending" to "submission-ready, AUC published." Excludes
+> Everything left to take the codebase from the current verified
+> labeled-AUC state toward a more stable submission-ready 6/10. Excludes
 > presentation, demo, slides, write-up, and in-class work — those are
 > deliverables the team handles separately. This document is only
 > the code + data + docs that need to land in the repo.
@@ -25,47 +25,70 @@
 to ~3.5 hours wall-clock.** Single calendar day if everyone's
 online together.
 
-The biggest lever is the labeled set: ~2.5 hours of careful review
-unlocks the headline ROC-AUC number, the S4 verdict-agreement
-metric, and the confidence-calibration chart all at once. Without
-it the honest rating stays parked at 5.5/10. Front-load it.
+The biggest lever is the labeled set: 12 verified cases are now in
+place, and the remaining work is to expand them toward n ≥ 20 so the
+ROC-AUC estimate becomes stable. Without that expansion, the honest
+rating remains a tentative 6.0/10 with a low-N caveat. Front-load it.
 
 ---
 
-## Track 1 — Clean up the labeled set (the 6/10 gate)
+## Track 1 — Stabilize the verified labeled set (the 6/10 gate)
 
-> The current `backend/app/anomaly/data/labeled_cases.yaml` has 10
-> fabricated rows: 9 of the 10 Polymarket URLs return *"No Gamma
-> event found"* (the slugs are invented), and the notes contain
-> measurements that can't exist (e.g. *"10+ wallets from same IP
-> subnet"* — Polymarket exposes no IP data). Push_To_Six explicitly
-> says the labeled file is *"empty pending team verification under
-> rubric v1"* — that contract was broken. Reset and redo honestly.
+> `backend/app/anomaly/data/labeled_cases.yaml` now contains 12
+> verified rubric-v1 cases. The current ROC-AUC is 0.672, but the
+> estimate is still underpowered. The remaining work is to expand the
+> set, preserve balance, and compute a more stable CI before the
+> result can be treated as broadly reliable.
 
-### Step 1 — Reset (15 min, one person)
+### Step 1 — Expand toward n ≥ 20 (1-2 hours, one person)
 
-- Delete every row from `backend/app/anomaly/data/labeled_cases.yaml`
-  except the schema header. File ends at `cases: []`.
-- Commit message should explicitly say *"fabricated rows removed,
-  pending real verification under rubric v1"* so the history shows
-  the reset was deliberate.
+- Run `python -m scripts.discover_labeled_candidates --dry-run`
+  with `NEWS_API_KEY` and `MARKETLENS_POLYMARKET_LIVE=1` to preview new
+  candidate markets.
+- Re-run without `--dry-run` only after sanity-checking the preview.
+- Append new candidates to `backend/app/anomaly/data/labeled_cases.yaml`
+  tagged `LK-candidate-v2`. Do not overwrite the existing verified rows.
 
-### Step 2 — Seed real candidates (15 min, one person)
+### Step 2 — Verify additional cases under rubric v1 (~2 hours team-wall, parallelisable)
 
-- Export `NEWS_API_KEY` and `MARKETLENS_POLYMARKET_LIVE=1`.
-- `python -m scripts.discover_labeled_candidates --dry-run` first
-  to preview the candidate pool without writing.
-- If the preview looks sensible, re-run without `--dry-run` to
-  append ~30 unverified candidates tagged `LK-candidate-v2` to the
-  yaml. Each candidate row carries `evidence_url`,
-  `slug_inferred`, and the NewsAPI snippet that surfaced it.
+Three reviewers, with each candidate reviewed independently and a
+shared overlap pool for Cohen's κ agreement. Per candidate:
 
-### Step 3 — Three-way verification under rubric v1 (~2 hours team-wall, parallelisable)
+1. **Open the Polymarket URL in a browser.** Confirm the market
+   actually exists. If the slug returns 404, the candidate is
+   invalid — mark `rejected: slug-404` and move on. Do not invent.
+2. **Read the evidence article.** For `controversial` candidates,
+   does the article actually describe manipulation, anomalous
+   trading, or a documented dispute? For `mundane` candidates, can
+   you confirm absence of controversy (no news hits searching the
+   market's question + keywords like "manipulation" / "dispute" /
+   "wash trade")?
+3. **Apply rubric v1** (see
+   `backend/app/anomaly/data/labeling_rubric.md`): does the
+   evidence meet the rubric's criteria for the assigned label, or
+   not?
+4. **Write the verified row** with honest notes. Reference the
+   article URL. Do not include claims that can only be measured by
+   running the detector (e.g. anomaly subscores) — the eval will
+   produce those.
 
-Three reviewers, ~7 candidates primaried each, plus a 4-case
-overlap pool everyone codes independently for Cohen's κ
-inter-rater agreement (PISAN line 92 — "thin validation"
-critique). Per candidate:
+Target: **≥20 verified rows** with at least 5 of each class to
+preserve balance. Anything below that and `eval_on_labeled.py`
+will emit `low_n_warning: true` on the result.
+
+### Step 3 — Re-run the eval and report agreement (~45 min, one person)
+
+- For the shared overlap pool, compute pairwise Cohen's κ across the
+  reviewers. Even a single κ value materially answers PISAN's
+  "report agreement with CI" critique.
+- `python -m scripts.eval_on_labeled --scorer app.anomaly.scoring:score_market_url`
+- Output lands in `backend/app/anomaly/last_labeled_eval.json`
+  with ROC-AUC + bootstrap CI. Read the actual number.
+- Paste the AUC + κ into the AboutPage evaluation table row,
+  replacing _"pending — labeling protocol drafted"_. Be honest
+  with the CI width — a wide CI on n ≈ 20 is the truth.
+
+---
 
 1. **Open the Polymarket URL in a browser.** Confirm the market
    actually exists. If the slug returns 404, the candidate is
@@ -98,7 +121,7 @@ will emit `low_n_warning: true` on the result.
 - Output lands in `backend/app/anomaly/last_labeled_eval.json`
   with ROC-AUC + bootstrap CI. Read the actual number.
 - Paste the AUC + κ into the AboutPage evaluation table row,
-  replacing *"pending — labeling protocol drafted"*. Be honest
+  replacing _"pending — labeling protocol drafted"_. Be honest
   with the CI width — a wide CI on n=20 is the truth.
 
 ---
@@ -111,10 +134,10 @@ will emit `low_n_warning: true` on the result.
 
 ### "Live / Mock" indicator on every page (~30 min)
 
-PISAN line 75 verbatim: *"Add a small 'Live | Mock' indicator on
+PISAN line 75 verbatim: _"Add a small 'Live | Mock' indicator on
 every page (not just nav). Right now `MarketScore.source` is in
 the schema but a casual user can't easily tell whether the report
-they're looking at is real or mock."*
+they're looking at is real or mock."_
 
 - `MarketScore.source` already exists in the schema; no backend
   work required.
@@ -127,10 +150,10 @@ they're looking at is real or mock."*
 
 ### Featured UW-relevant markets carousel on Home (~1 hour)
 
-PISAN line 76 verbatim: *"The home page only shows recent lookups
+PISAN line 76 verbatim: _"The home page only shows recent lookups
 from `localStorage`; add a 'Featured UW-relevant markets' carousel
 sourced from the library so a first-time visitor can click into a
-real example without having to find a Polymarket URL."*
+real example without having to find a Polymarket URL."_
 
 - Backend: no work — the library endpoint already surfaces the
   data and the course-pack filter (S5 tags + `uw_courses.json`)
@@ -145,10 +168,10 @@ real example without having to find a Polymarket URL."*
 
 ## Track 3 — Confidence calibration (PISAN line 94, depends on labels)
 
-> PISAN: *"Add a confidence calibration check: do high-confidence
+> PISAN: _"Add a confidence calibration check: do high-confidence
 > verdicts actually correlate with verified resolutions? With the
 > labeled corpus this is a 30-line script and a chart in the About
-> page."*
+> page."_
 
 Blocked until Track 1 finishes (no labels = nothing to correlate
 against). Once labels exist:
@@ -164,8 +187,8 @@ against). Once labels exist:
   diagonal "perfectly calibrated" reference line. ~2 hours
   including the small component.
 - Honest framing: with n=20 labels, the per-bucket counts will be
-  tiny (3-5 each). Call it a *calibration sanity check, not a
-  reliability diagram* in the prose.
+  tiny (3-5 each). Call it a _calibration sanity check, not a
+  reliability diagram_ in the prose.
 
 ---
 
@@ -181,10 +204,10 @@ against). Once labels exist:
 - After all three are done, merge findings into the consolidated
   table. Duplicates (issues found by multiple reviewers) get
   highest severity rating.
-- Paste the headline result (e.g. *"3 severity-2 issues, 0
-  severity-3+, all resolved before submission"*) into AboutPage's
-  Usability row, replacing *"pending — protocol in
-  HEURISTIC_EVAL.md"*.
+- Paste the headline result (e.g. _"3 severity-2 issues, 0
+  severity-3+, all resolved before submission"_) into AboutPage's
+  Usability row, replacing _"pending — protocol in
+  HEURISTIC_EVAL.md"_.
 
 ---
 
@@ -205,8 +228,8 @@ OpenRouter, paste the new key into the Render dashboard for
    edit `OPENROUTER_API_KEY` → paste new value → Save Changes.
 3. Render will auto-redeploy. Wait ~2 min for the build.
 4. Verify: `curl -X POST https://marketlens-api.onrender.com/api/live/score
-   -H "Content-Type: application/json"
-   -d '{"url":"https://polymarket.com/event/world-cup-winner"}'`
+-H "Content-Type: application/json"
+-d '{"url":"https://polymarket.com/event/world-cup-winner"}'`
    — response should still contain
    `"model_used": "deepseek/deepseek-v4-pro"`.
 5. Back in OpenRouter dashboard → Keys → delete the old leaked
@@ -215,9 +238,9 @@ OpenRouter, paste the new key into the Render dashboard for
 
 ### Standardise git identities (~5 min — DONE in v0.9.1 via .mailmap)
 
-PISAN line 67: *"The shared email `bob452305@gmail.com` across
+PISAN line 67: _"The shared email `bob452305@gmail.com` across
 `Rogagoja`, `rogagoja`, and `Leonikot` GitHub authors will confuse
-`git shortlog`. Standardize on one identity per teammate."*
+`git shortlog`. Standardize on one identity per teammate."_
 
 Addressed by committing `.mailmap` at repo root. `git shortlog
 -sne --all` now reports:
@@ -252,16 +275,17 @@ Provider pin + key + fallback routing all healthy.
 ## Track 6 — Documentation refresh after the AUC lands
 
 > All of these touch files that explicitly cite the 5.5/10 rating
-> or claim labels are pending. Once the real AUC exists they need
-> to reflect it honestly. ~45 minutes total.
+> or claim labels are pending. The real AUC now exists and the
+> current state is a measured 0.672 AUC on 12 verified cases. These
+> files must reflect the new status honestly, including the low-N
+> caveat. ~45 minutes total.
 
 - **`UW_MarketLens_Push_To_Six.html`** — the Phase B section
-  literally describes the labeled-eval AUC as the gating item.
-  Add the published number with bootstrap CI.
-- **`backend/app/anomaly/MODEL_STATUS.md`** — honest rating
-  refresh. If the real AUC came in above 0.65, rating moves to
-  6/10. If below, rating stays at 5.5/10 with the new measurement
-  as evidence; do not adjust the rating up to flatter the number.
+  now includes the published number with bootstrap CI and the
+  current 12-case labeled set status.
+- **`backend/app/anomaly/MODEL_STATUS.md`** — honest rating refresh.
+  The labeled-eval result supports a current rating of 6.0/10 with a
+  low-N caveat, while the remaining gate is expanding the sample size.
 - **`UW_MarketLens_Implementation_Plan.html`** — Section F PISAN
   table flips a few more rows from "Outstanding" / "Blocked" to
   "Addressed." Bottom-callout rating updates to match

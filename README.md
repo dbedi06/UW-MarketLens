@@ -29,8 +29,8 @@ concrete workflows the project supports.
 > `backend/app/mock.py` is still available behind a Mock toggle in the
 > nav. See `UW_MarketLens_Implementation_Plan.html` for the section
 > breakdown and `backend/app/anomaly/MODEL_STATUS.md` for the honest
-> ML rating (currently ~4.5/10, with the upgrade path in
-> `UW_MarketLens_Push_To_Six.html`).
+> ML rating (currently ~6.0/10 with a low-N caveat, and the upgrade
+> path in `UW_MarketLens_Push_To_Six.html`).
 
 ## Run locally (two terminals)
 

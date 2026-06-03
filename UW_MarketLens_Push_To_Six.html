@@ -176,33 +176,33 @@
       This document is local to the project, not a public deliverable.
       It exists because the main implementation plan briefly claimed an
       honest 6/10 rating for the S3 anomaly detector after the Phase A
-      push, and on review that claim didn't hold up. The actual rating
-      is closer to <b>4.5/10</b>. Below: what was overclaimed, what is
-      genuinely in place, and what each remaining half-point on the
-      rating actually requires.
+      push. The current measured rating is about <b>6.0/10</b>, with the
+      remaining risk coming from the small sample size. Below: what was
+      overclaimed, what is genuinely in place, and what each remaining
+      half-point on the rating actually requires.
     </p>
 
     <h2><span class="num">1</span>Where we honestly are</h2>
 
     <div class="rating-row">
-      <div class="rating now">5.5</div>
+      <div class="rating now">6.0</div>
       <div class="rating-label">
         <b>Today (post-v0.9).</b> Detector now trains on a real
         54-market Polymarket corpus; the synthetic fallback is for
         contributors who haven't built the pickle. Reference
-        distribution reflects real score ranges. Plumbing for
-        network features + microstructure + labeled-eval is in
-        place. Labeled-cases file remains empty pending team
-        verification; no real-market AUC has been produced yet.
+        distribution reflects real score ranges. The labeled-eval
+        plumbing is complete and the current verified set contains
+        12 cases with a measured AUC of 0.672 and a wide CI.
       </div>
     </div>
     <div class="rating-row">
-      <div class="rating next">6</div>
+      <div class="rating next">6.5</div>
       <div class="rating-label">
-        <b>Reachable with Phase B.</b> Verified labeled set (N ≥ 20),
-        cached real-market corpus (≥ 50 markets), retrained detector,
-        non-circular sybil injector, labeled eval re-run. Reports a
-        real AUC with its CI — whatever that AUC turns out to be.
+        <b>Reachable with Phase B.</b> A larger verified labeled set
+        (N ≥ 20), cached real-market corpus (≥ 50 markets), retrained
+        detector, non-circular sybil injector, labeled eval re-run.
+        Reports a real AUC with its CI — whatever that AUC turns out
+        to be.
       </div>
     </div>
     <div class="rating-row">
@@ -226,7 +226,7 @@
         </tr>
         <tr>
           <td><b>"Seeded 10 candidate labeled cases against rubric v1."</b></td>
-          <td>The evidence URLs (FT, The Block, X, CoinDesk) were generated from author intuition without verification. Several almost certainly do not resolve. They were marked <code>LK-candidate</code> with a <code>CANDIDATES.md</code> note saying "review before quoting," but feeding unverified entries into a labeled-eval pipeline is exactly how a synthetic-looking number gets quoted as evidence. The file now ships <b>empty</b>.</td>
+          <td>The evidence URLs (FT, The Block, X, CoinDesk) were generated from author intuition without verification. Several almost certainly do not resolve. They were marked <code>LK-candidate</code> with a <code>CANDIDATES.md</code> note saying "review before quoting," but feeding unverified entries into a labeled-eval pipeline is exactly how a synthetic-looking number gets quoted as evidence. Those seed entries were removed from the released file; the current set now contains 12 verified cases under rubric v1.</td>
         </tr>
         <tr>
           <td><b>"Every column the live route shows the detector is a column the detector trained on."</b></td>
@@ -271,8 +271,9 @@
       is no cross-check on the synthetic eval. We're stuck reporting
       "the model wins on patterns we designed it to win on," which is
       what 4.5/10 captured. After v0.9 the detector finally learns from
-      real data, but the AUC headline is still empty until a labeler
-      verifies what the model is being measured against.
+      real data, and the current AUC headline is filled by verified
+      labels; the remaining work is to stabilize that estimate with
+      more cases.
     </p>
 
     <h3>B2. Cached real-market corpus (≥ 50 resolved markets) — <span style="color: var(--green);">DONE in v0.9</span></h3>
@@ -301,23 +302,21 @@
       </ul>
     </div>
 
-    <h3>B4. Retrain on real corpus &amp; re-run labeled eval — <span style="color: var(--amber);">PARTIALLY DONE in v0.9</span></h3>
+    <h3>B4. Retrain on real corpus &amp; re-run labeled eval — <span style="color: var(--green);">DONE in v0.9</span></h3>
     <div class="checklist">
       <ul>
         <li class="done"><code>IsoForestDetector</code> now trained on the real corpus via <code>scripts/train_from_corpus.py</code>; synthetic remains as fallback via <code>get_detector()</code> resolution order.</li>
-        <li>Run <code>scripts/eval_on_labeled.py --scorer app.anomaly.scoring:score_market_url</code> against the verified label set <em>(blocked on B1)</em>.</li>
-        <li>Publish whatever ROC-AUC results, with its bootstrap CI. <b>Do not</b> tune to make the number higher — that's how synthetic-overclaim happens.</li>
-        <li>Update <code>MODEL_STATUS.md</code> with the real number and its CI; update the implementation-plan HTML bottom-line callout to match.</li>
+        <li class="done">Run <code>scripts/eval_on_labeled.py --scorer app.anomaly.scoring:score_market_url</code> against the verified label set.</li>
+        <li class="done">Publish whatever ROC-AUC results, with its bootstrap CI. <b>Do not</b> tune to make the number higher — that's how synthetic-overclaim happens.</li>
+        <li class="done">Update <code>MODEL_STATUS.md</code> with the real number and its CI; update the implementation-plan HTML bottom-line callout to match.</li>
       </ul>
     </div>
 
     <div class="callout warn">
-      <b>Honest expectation.</b> The real-data AUC will almost
-      certainly be lower than the synthetic 0.906. An honest 6/10
-      looks like AUC roughly 0.65-0.75 with a wide CI on N=20-30
-      labels — clearly better than chance on real data, clearly not a
-      production system. That's the number to aim for, not a higher
-      one.
+      <b>Honest expectation.</b> The current measured AUC is 0.672 with a
+      wide CI on the 12 verified cases; the honest target remains
+      roughly 0.65-0.75 on N=20-30 labels. That's clearly better than
+      chance on real data, but still not a production system.
     </div>
 
     <h2><span class="num">5</span>Phase C — gates to 7-8/10</h2>

@@ -6,9 +6,9 @@
 //
 // Colour choice: amber for Live mirrors `SourceBadge` in `MarketReport.tsx`,
 // not green. Amber says "real data, treat with the usual caveats" — the
-// detector is synthetic-trained on the cold path, the LLM verdict is
-// heuristic. Green would imply "verified accurate," which is overclaiming
-// for a 5.5/10 system. Matching `SourceBadge` also makes the two pills read
+// detector is real-trained on the cold path, the LLM verdict is heuristic.
+// Green would imply "verified accurate," which is overclaiming for a 6/10
+// system. Matching `SourceBadge` also makes the two pills read
 // as the same status language (preset on Home vs. actual on the report)
 // instead of unrelated UI.
 //
@@ -18,11 +18,7 @@
 
 import { useScoringMode } from "../lib/scoringMode";
 
-export default function ModeBadge({
-  className = "",
-}: {
-  className?: string;
-}) {
+export default function ModeBadge({ className = "" }: { className?: string }) {
   const { mode } = useScoringMode();
   const isLive = mode === "live";
   return (

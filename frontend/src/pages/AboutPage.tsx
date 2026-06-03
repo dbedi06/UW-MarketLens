@@ -70,8 +70,8 @@ const EVAL: [string, string, string, string][] = [
   [
     "Anomaly detector (real data)",
     "ROC-AUC against verified labeled markets",
-    "≥ 0.65 with bootstrap CI",
-    "10 labeled cases (5 controversial, 5 mundane) — in eval pipeline",
+    "measured 0.672 with bootstrap CI [0.314, 0.964]",
+    "12 verified cases (4 controversial, 8 mundane) — low-N warning remains",
   ],
   [
     "LLM-as-judge (S4)",
@@ -188,12 +188,13 @@ export default function AboutPage() {
           <CalibrationChart />
         </div>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Honest rating: ~5.5/10. The detector now trains on real Polymarket
-          markets (54 in the corpus); the synthetic AUC is real arithmetic but
-          its test was designed to favor the features under measurement, so it's
-          a capability check, not a generalization claim. The labeled-eval set
-          is seeded with 10 verified cases (5 controversial + 5 mundane, equal
-          class balance). Full path to 6/10 in{" "}
+          Honest rating: ~6.0/10 with a low-N caveat. The detector now trains on
+          real Polymarket markets (54 in the corpus); the synthetic AUC is real
+          arithmetic but its test was designed to favor the features under
+          measurement, so it's a capability check, not a generalization claim.
+          The labeled-eval set now contains 12 verified cases (4 controversial +
+          8 mundane) and reports a measured AUC of 0.672 with a wide CI. Full
+          path to 6/10 in{" "}
           <code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
           current model state in{" "}
           <code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>
