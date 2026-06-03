@@ -223,10 +223,11 @@
       user testing (SUS survey + recruiting); team-curated labeled
       set for the S3 ROC-AUC measurement that gates a genuine 6/10
       on the anomaly rating (see <code>UW_MarketLens_Push_To_Six.html</code>);
-      and three already-planned code polish items: LLM
-      self-consistency for S4, a "trained on real corpus" badge in
-      the UI, and a <code>--dry-run</code> mode on the
-      <code>discover_labeled_candidates.py</code> script.
+      and the three code polish items that PISAN named — LLM
+      self-consistency for S4, the "trained on real corpus" badge in
+      the UI, and a <code>--dry-run</code> mode on
+      <code>discover_labeled_candidates.py</code> — all three landed
+      in commit <code>e98432c</code> on 2026-05-31.
     </div>
 
     <h2><span class="num">A</span>Section Breakdown</h2>
@@ -283,9 +284,9 @@
         <span class="status partial">Partial</span>
         <span class="tag">S4</span>
         <h3>LLM Resolution Checker</h3>
-        <p>NewsAPI fetch + LLM JSON-schema call + UNVERIFIABLE-aware composite.</p>
+        <p>NewsAPI fetch + LLM JSON-schema call + self-consistency + UNVERIFIABLE-aware composite.</p>
         <span class="pill free">Independent</span>
-        <p class="note">Inference path in <code>app/resolution.py</code>; LLM calls routed through OpenRouter (cost fix vs Anthropic direct). Default model <code>meta-llama/llama-3.3-70b-instruct:free</code>; recommended paid setup is <code>deepseek/deepseek-v4-pro</code> pinned to provider <code>deepinfra</code> (DeepSeek-direct requires an account-level data-policy opt-in; DeepInfra serves the same model under a standard privacy posture). v0.8.1 reliability: provider pinning via <code>provider.only</code>, 3 retries on transient errors, automatic fallback to <code>google/gemini-2.0-flash-lite-001</code>, <code>model_used</code> + <code>model_was_fallback</code> surfaced in UI badges. Per-outcome question (e.g. "Will France win the 2026 FIFA World Cup?") sent to NewsAPI, not the event title. Composite drops the resolution leg + reweights 35/40 → 47/53 when the market is unresolved AND the verdict is UNVERIFIABLE (event hasn't happened yet, so no news can corroborate — penalty would be unfair). Graceful UNVERIFIABLE fallback when keys missing. <b>Outstanding (PISAN-flagged)</b>: LLM self-consistency (sample N=3, majority vote); verdict-agreement metric vs human labels (depends on the same labeled set as S3).</p>
+        <p class="note">Inference path in <code>app/resolution.py</code>; LLM calls routed through OpenRouter (cost fix vs Anthropic direct). Default model <code>meta-llama/llama-3.3-70b-instruct:free</code>; recommended paid setup is <code>deepseek/deepseek-v4-pro</code> pinned to provider <code>deepinfra</code> (DeepSeek-direct requires an account-level data-policy opt-in; DeepInfra serves the same model under a standard privacy posture). v0.8.1 reliability: provider pinning via <code>provider.only</code>, 3 retries on transient errors, automatic fallback to <code>google/gemini-2.0-flash-lite-001</code>, <code>model_used</code> + <code>model_was_fallback</code> surfaced in UI badges. Per-outcome question (e.g. "Will France win the 2026 FIFA World Cup?") sent to NewsAPI, not the event title. <b>Self-consistency</b>: <code>_consensus_payload</code> takes the majority verdict across N samples; ties broken by highest confidence; logs the verdict distribution when samples disagree. Composite drops the resolution leg + reweights 35/40 → 47/53 when the market is unresolved AND the verdict is UNVERIFIABLE. Graceful UNVERIFIABLE fallback when keys missing. <b>Outstanding</b>: verdict-agreement metric vs human labels (depends on the same labeled set as S3).</p>
       </div>
 
       <div class="card done">
@@ -649,9 +650,19 @@
           <td>Pipeline shipped (<code>scripts/eval_on_labeled.py</code>, bootstrap CI, <code>low_n_warning</code>). <code>labeled_cases.yaml</code> still empty pending team verification under rubric v1. <code>scripts/discover_labeled_candidates.py</code> ready to seed candidates from NewsAPI. Gating item for moving past 5.5/10 (see <code>Push_To_Six.html</code>).</td>
         </tr>
         <tr>
-          <td><b>LLM self-consistency.</b> Sample 3 verdicts, take majority — easy upgrade given structured-output schema.</td>
-          <td><span style="color:var(--amber);font-weight:700;">Planned, not shipped</span></td>
-          <td>Designed in the existing plan file. ~30 LoC: <code>call_chat(..., temperature=0.3)</code> in a loop, majority vote with UNVERIFIABLE&gt;LOW&gt;MEDIUM&gt;HIGH tie-break, median confidence. Triples per-request LLM cost; gated behind <code>RESOLUTION_SELF_CONSISTENCY_N</code> env var (default 1 = disabled).</td>
+          <td><b>LLM self-consistency.</b> Sample N verdicts, take majority — easy upgrade given structured-output schema.</td>
+          <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
+          <td>Shipped in <code>e98432c</code>: <code>_consensus_payload</code> in <code>resolution.py</code> takes the majority verdict across N samples; ties broken by highest confidence. Logs the verdict-count distribution when consensus disagrees so production reasoning is auditable.</td>
+        </tr>
+        <tr>
+          <td><b>"Trained on real corpus" UI badge.</b> Surface whether the score came from the real-trained pickle or the synthetic fallback (PISAN: detector-provenance honesty).</td>
+          <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
+          <td>Shipped in <code>e98432c</code>: <code>AnomalyResult.trained_on</code> field plumbed from <code>get_detector()._trained_on</code> through composite into the response; rendered as a badge in <code>MarketReport.tsx</code>. Users can now see "real-corpus" vs "synthetic" at a glance.</td>
+        </tr>
+        <tr>
+          <td><b><code>--dry-run</code> mode on <code>discover_labeled_candidates.py</code></b> — preview candidates without writing to <code>labeled_cases.yaml</code>.</td>
+          <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
+          <td>Shipped in <code>e98432c</code>: flag added; previews the candidates that would be appended without touching the YAML, so the team can sanity-check seed quality before committing to a write.</td>
         </tr>
         <tr>
           <td><b>Confidence calibration check.</b> Do high-confidence verdicts actually correlate with verified resolutions?</td>
@@ -679,15 +690,18 @@
     <div class="callout">
       <b>Net of PISAN-flagged items.</b> The implementation-plan
       / web-presence / technical-execution gaps PISAN named are
-      <b>addressed</b>; the AI-rubric gaps reduce to a single
+      <b>addressed</b>. The AI-rubric items PISAN flagged
+      explicitly — self-consistency, SHAP explainer, evidence
+      panel, detector-provenance honesty, real-corpus training —
+      are all <b>shipped</b>. What remains reduces to a single
       gating item — <b>the team-verified labeled set</b>, which
-      unlocks both the S3 ROC-AUC and the S4 confidence-calibration
-      chart. Self-consistency for S4 is small and pre-planned. The
-      only fully-pending milestone is user testing (S11), which is
-      calendar-bound rather than code-bound. Estimated rubric
-      movement from PISAN's 62/85 snapshot to current state:
-      <b>+11 to +13 points</b> depending on how the labeled-eval
-      AUC lands. Real number won't be quoted until labels exist.
+      unlocks both the S3 ROC-AUC headline number and the S4
+      confidence-calibration chart. The only fully-pending
+      milestone is user testing (S11), which is calendar-bound
+      rather than code-bound. Estimated rubric movement from
+      PISAN's 62/85 snapshot to current state: <b>+13 to +16
+      points</b> depending on how the labeled-eval AUC lands. Real
+      number won't be quoted until labels exist.
     </div>
 
     <footer>
