@@ -2,7 +2,19 @@
 
 AI-Powered Prediction Market Reliability Platform — DYOP project.
 
-**Live demo:** https://marketlens-web.onrender.com  
+A free, open-access tool **for UW non-finance researchers** —
+Political Science, Economics, Information School, and Evans School of
+Public Policy users who want to cite Polymarket markets defensibly in
+academic work. The pipeline scores reliability across liquidity,
+trading-pattern integrity, and resolution corroboration; the output is
+a stable, dated snapshot permalink with an APA / MLA / BibTeX / RIS
+citation embedded with the reliability flag. Course-pack mode filters
+the library by UW course code (POLS 270, ECON 200, INFO 200, EVANS 547,
+etc.) so an instructor can build a syllabus reading list in one click.
+
+**Live demo:** https://marketlens-web.onrender.com — start at
+[For UW](https://marketlens-web.onrender.com/uw) for the three
+concrete workflows the project supports.  
 **API:** https://marketlens-api.onrender.com — see `/docs` for the interactive schema, `/health` for liveness.
 
 > **Free-tier note.** Both services sleep after 15 minutes of inactivity;
@@ -44,9 +56,11 @@ Open http://localhost:5173. Multi-page app: **Home** (lookup) → **Market
 detail** (plain-language "why", anomaly chart with the flagged window shaded,
 subscores, market facts, copy-able APA/MLA/BibTeX citation, and a dated
 **snapshot permalink** that always re-renders the identical report) →
-**Library** (search + department filters) → **Admin** (approve/override LLM
-tags) → **About** (architecture + methodology). Interactive API docs:
-http://localhost:8000/docs
+**Library** (search + department filters, course-pack mode for UW course
+codes, CSV download) → **Compare** (side-by-side reliability of two
+markets) → **For UW** (concrete instructor / PhD / research-methods
+workflows) → **Admin** (approve/override LLM tags) → **About**
+(architecture + methodology). Interactive API docs: http://localhost:8000/docs
 
 For live scoring, load `backend/.env` and set `MARKETLENS_POLYMARKET_LIVE=1`
 before starting the backend. See `backend/README.md` for full live env setup.

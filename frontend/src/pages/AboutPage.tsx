@@ -1,6 +1,7 @@
 // Project web presence (rubric: 15 pts). Architecture, methodology, and an
 // honest evaluation-results placeholder clearly labeled as not-yet-measured.
 
+import { Link } from "react-router-dom";
 import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 
@@ -93,6 +94,18 @@ export default function AboutPage() {
         title="UW MarketLens"
         sub="A free, open-access tool for the UW community that scores the reliability of Polymarket markets so they can be cited responsibly."
       />
+      <p className="mt-3 max-w-prose text-sm text-ink/55">
+        For the concrete instructor, PhD-student, and research-methods-
+        class workflows MarketLens supports, see{" "}
+        <Link
+          to="/uw"
+          className="text-brand-600 hover:text-brand-700 hover:underline
+            underline-offset-4"
+        >
+          For UW
+        </Link>
+        .
+      </p>
 
       <section className="mt-10 border-t border-line pt-8">
         <h2 className="section-title">How a score is built</h2>

@@ -2,18 +2,66 @@
   "schema_version": 1,
   "scorer": "app.anomaly.scoring:score_market_url",
   "n_cases": 10,
-  "n_scored": 1,
+  "n_scored": 10,
   "low_n_warning": true,
   "class_balance": {
     "controversial": 5,
     "mundane": 5
   },
   "pairwise_kappa": [],
+  "auc": 0.74,
+  "auc_ci_low": 0.35,
+  "auc_ci_high": 1.0,
   "rows": [
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-winner-2024",
+      "label": "controversial",
+      "score": 0.1816786259185409
+    },
+    {
+      "market_url": "https://polymarket.com/event/when-will-gpt-5-be-released",
+      "label": "controversial",
+      "score": 0.08026151565554958
+    },
     {
       "market_url": "https://polymarket.com/event/los-angeles-mayoral-election-117",
       "label": "controversial",
-      "score": 0.15519988299228762
+      "score": 0.1987438444042469
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-decision-in-december",
+      "label": "controversial",
+      "score": 0.11048811031832724
+    },
+    {
+      "market_url": "https://polymarket.com/event/btc-above-100k-till-2025-end",
+      "label": "controversial",
+      "score": 0.22191087723352868
+    },
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-winner-2024/will-donald-trump-win-the-2024-us-presidential-election",
+      "label": "mundane",
+      "score": 0.1816786259185409
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-rate-cut-in-2025",
+      "label": "mundane",
+      "score": 0.13463444327051746
+    },
+    {
+      "market_url": "https://polymarket.com/event/how-many-fed-rate-cuts-in-2025",
+      "label": "mundane",
+      "score": 0.16448545675735102
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-emergency-rate-cut-in-2025",
+      "label": "mundane",
+      "score": 0.015575577501085883
+    },
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-popular-vote-winner-2024",
+      "label": "mundane",
+      "score": 0.06304433915771519
     }
   ]
 }

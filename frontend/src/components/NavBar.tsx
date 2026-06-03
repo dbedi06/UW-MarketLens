@@ -7,6 +7,10 @@ import { useScoringMode } from "../lib/scoringMode";
 
 const links = [
   { to: "/", label: "Home", end: true },
+  // PISAN line 14 critique: "UW connection is thin in practice."
+  // Surfacing the For UW page right after Home means the framing
+  // appears on every page load, not buried behind functional pages.
+  { to: "/uw", label: "For UW" },
   { to: "/library", label: "Library" },
   { to: "/compare", label: "Compare" },
   { to: "/admin", label: "Admin" },

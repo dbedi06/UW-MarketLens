@@ -17,6 +17,7 @@ const LibraryPage = lazy(() => import("./pages/LibraryPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const UwPage = lazy(() => import("./pages/UwPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 type Theme = "light" | "dark";
@@ -103,6 +104,7 @@ export default function App() {
               <Route path="/compare" element={<ComparePage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/uw" element={<UwPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
