@@ -132,11 +132,24 @@ def _fallback(question: str) -> TagResult:
     """
     Rule-based fallback when the API key is absent or the call fails.
     Covers the most common cases so the app still works without keys.
+
+    Also imported by `mock.py:make_market_score` as the dept-assignment
+    path for mock-mode library entries (PISAN line 14 cited the prior
+    random-hash assignment as a UW Community Impact gap). Single source
+    of truth — keyword extensions here improve mock library tagging
+    AND the live route's no-key degradation in the same edit.
     """
     q = question.lower()
     depts: list[str] = []
-    if any(w in q for w in ["election", "president", "congress", "senate", "vote",
-                              "legislat", "geopolit", "war", "treaty", "nato"]):
+    if any(w in q for w in [
+        "election", "president", "congress", "senate", "vote",
+        "legislat", "geopolit", "war", "treaty", "nato",
+        # Common current-events POLS keywords. Names are noisy but
+        # the LLM handles nuance when the OpenRouter key is set;
+        # this list only fires on the fallback path.
+        "iran", "israel", "russia", "ukraine", "china",
+        "trump", "putin", "mayor", "governor", "prime minister",
+    ]):
         depts.append("POLS")
     if any(w in q for w in ["rate", "gdp", "inflation", "trade", "tariff",
                               "market", "stock", "fed", "recession", "employ"]):
@@ -144,8 +157,13 @@ def _fallback(question: str) -> TagResult:
     if any(w in q for w in ["ai", "gpt", "openai", "tech", "google", "apple",
                               "microsoft", "meta", "social media", "data"]):
         depts.append("INFO")
-    if any(w in q for w in ["policy", "regulation", "spending", "budget",
-                              "government", "agency", "public"]):
+    if any(w in q for w in [
+        "policy", "regulation", "spending", "budget",
+        "government", "agency", "public",
+        # Legislative + judicial action keywords that surface
+        # public-policy markets the prior list missed.
+        "bill", "enacts", "law", "ban", "court", "ruling",
+    ]):
         depts.append("EVANS")
     score = 70 if depts else 20
     return TagResult(departments=depts, course_applicability=score, used_fallback=True)

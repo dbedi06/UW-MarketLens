@@ -5,7 +5,11 @@ import { fadeUp, stagger } from "../lib/motion";
 import ModeBadge from "../components/ModeBadge";
 import FeaturedMarkets from "../components/FeaturedMarkets";
 
-const SAMPLE = "https://polymarket.com/event/will-the-fed-cut-rates-in-2025";
+// Default URL the home-page input prefills. Must be a verified-real
+// Polymarket event so "Open sample report" doesn't 404 in Live mode.
+// Refresh in lockstep with `backend/app/mock.py:_SAMPLE_URLS` when
+// markets resolve out of the demo window.
+const SAMPLE = "https://polymarket.com/event/world-cup-winner";
 const LS_KEY = "ml_recent_lookups";
 
 function loadRecent(): string[] {

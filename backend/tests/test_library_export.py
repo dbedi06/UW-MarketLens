@@ -69,3 +69,51 @@ def test_library_csv_with_course_filter():
     rows = r.text.splitlines()[1:]
     for row in rows:
         assert "INFO" in row.split(",")[4]
+
+
+def test_mock_library_dept_tagging_is_content_based():
+    """Lock PISAN line 14's fix against regression.
+
+    Before v0.9.1 the mock library assigned departments by hashing
+    `(url, as_of)` modulo 4 — random tagging. The fix routes through
+    `tagger._fallback(question)` so depts derive from the slugified
+    question text. This test asserts the four content→dept matches
+    that should hold for the committed `_SAMPLE_URLS`. If anyone
+    reverts the mock-tagger wiring or removes a keyword the URLs
+    depend on, this fails loudly.
+
+    The World Cup row intentionally has no UW-dept-mapping keyword
+    and tags as `[]` ("Untagged" in the frontend) — that's the
+    honest outcome, not a bug.
+    """
+    from app.mock import make_library
+
+    by_question = {entry.market_question: entry for entry in make_library()}
+    expectations = {
+        "Fed decision in june 825?": "ECON",
+        "Us x iran permanent peace deal by?": "POLS",
+        "Us enacts ai safety bill before 2027?": "INFO",
+        "Which company has best ai model end of june?": "INFO",
+    }
+    for question, dept in expectations.items():
+        assert question in by_question, (
+            f"Mock library missing expected seeded question {question!r} — "
+            f"the _SAMPLE_URLS slug list may have drifted from this test."
+        )
+        assert dept in by_question[question].departments, (
+            f"Mock library entry for {question!r} expected to include "
+            f"{dept!r} in departments, got {by_question[question].departments}. "
+            f"PISAN line 14 regression: content-based dept tagging broke."
+        )
+
+    # AI safety bill is the canonical double-tag (INFO + EVANS).
+    ai_bill_entry = by_question["Us enacts ai safety bill before 2027?"]
+    assert "EVANS" in ai_bill_entry.departments
+
+    # World Cup is honestly untagged — no UW dept fits a sports event.
+    world_cup_entry = by_question["World cup winner?"]
+    assert world_cup_entry.departments == [], (
+        f"World Cup row expected empty departments (no UW dept fits), "
+        f"got {world_cup_entry.departments}. If the keyword list now "
+        f"matches 'world cup' to some dept, update this assertion."
+    )

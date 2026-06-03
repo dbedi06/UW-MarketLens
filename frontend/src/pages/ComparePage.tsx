@@ -9,8 +9,11 @@ import SectionHeading from "../ui/SectionHeading";
 import Skeleton from "../ui/Skeleton";
 import CompareColumn from "../components/CompareColumn";
 
-const SAMPLE_A = "https://polymarket.com/event/will-the-fed-cut-rates-in-2025";
-const SAMPLE_B = "https://polymarket.com/event/will-gpt-5-release-this-year";
+// Default URLs the compare page prefills. Both must be verified-real
+// Polymarket event slugs so reviewers see a real comparison instead
+// of two 404s. Refresh in lockstep with `backend/app/mock.py:_SAMPLE_URLS`.
+const SAMPLE_A = "https://polymarket.com/event/fed-decision-in-june-825";
+const SAMPLE_B = "https://polymarket.com/event/world-cup-winner";
 
 export default function ComparePage() {
   const [params, setParams] = useSearchParams();

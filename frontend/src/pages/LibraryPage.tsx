@@ -203,7 +203,9 @@ export default function LibraryPage() {
                   {r.market_question}
                 </span>
                 <span className="caption mt-1.5 block">
-                  {r.departments.join(" · ")}
+                  {r.departments.length > 0
+                    ? r.departments.join(" · ")
+                    : "Untagged"}
                   {r.verified && " · verified"}
                 </span>
               </span>

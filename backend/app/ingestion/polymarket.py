@@ -189,14 +189,14 @@ def _slug_from_url(url: str) -> str:
     Extract the event slug from a polymarket.com URL.
 
     Polymarket URLs look like:
-      https://polymarket.com/event/will-the-fed-cut-rates-in-2025
-      https://polymarket.com/event/will-the-fed-cut-rates-in-2025?tid=...
+      https://polymarket.com/event/world-cup-winner
+      https://polymarket.com/event/world-cup-winner?tid=...
 
     The slug is the last path segment (everything after /event/).
     """
     parsed = urlparse(url)
     path = parsed.path.rstrip("/")
-    # Path is e.g. /event/will-the-fed-cut-rates-in-2025
+    # Path is e.g. /event/world-cup-winner
     parts = [p for p in path.split("/") if p]
     if len(parts) < 2 or parts[0] != "event":
         raise ValueError(

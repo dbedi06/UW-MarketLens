@@ -46,8 +46,13 @@ from .schemas import (
     MarketScore, Subscores, AnomalyResult, ResolutionVerdict, Tags, Citation,
     LibraryEntry, ReasonItem, MarketMeta, AnomalyPoint, PendingTag,
 )
+# Mock library reuses the live tagger's keyword fallback to derive
+# departments from question content rather than from the URL hash —
+# PISAN line 14's hash-tagging critique. Importing the private
+# `_fallback` is deliberate cross-module code reuse; the alternative
+# (duplicating the keyword list here) would drift over time.
+from .tagger import _fallback as _tagger_keyword_fallback
 
-_DEPARTMENTS = ["POLS", "ECON", "INFO", "EVANS"]
 _DEPT_LABEL = {
     "POLS": "Political Science",
     "ECON": "Economics",
@@ -264,9 +269,12 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
     register_snapshot(sid, url, as_of, "mock")
 
     verdict_pool = ["HIGH", "MEDIUM", "LOW", "UNVERIFIABLE"]
-    depts = [_DEPARTMENTS[seed % 4]]
-    if seed % 3 == 0:
-        depts.append(_DEPARTMENTS[(seed + 1) % 4])
+    # Derive departments from the slugified question via the live
+    # tagger's keyword fallback. Same (url, as_of) → same question
+    # text → same depts, so the determinism contract is preserved.
+    # Empty list when the question hits no UW keyword (honest
+    # "untagged" — e.g. a generic sports event).
+    depts = _tagger_keyword_fallback(_question_from_url(url)).departments
 
     return MarketScore(
         market_url=url,
@@ -331,12 +339,36 @@ def make_pending_tags() -> list[PendingTag]:
     return out
 
 
+# Verified-real Polymarket event slugs (probed via Gamma + tested
+# against /api/live/score on 2026-06-02). Refresh via
+# `backend/scripts/refresh_library_seed.py` when these markets resolve
+# out of the demo window.
+#
+# Per-line dept annotations describe what `tagger._fallback`
+# (mock-mode path) and the S5 LLM (live-mode path) should both pick
+# up from each market's slugified question text. Library tagging is
+# now content-based, not hash-based — see `make_market_score()` above
+# for the wire-up.
+#
+# Earlier seed lists carried illustrative placeholders from when this
+# module was the only data path on the site (pre-Live-mode). The slugs
+# were fine for deterministic-mock-data purposes — that's the whole
+# point of `mock.py` — but they leaked into the Featured carousel,
+# course-pack workflow, and "Open sample report" button after Live
+# mode shipped, all of which assume real Polymarket events. This list
+# is the honest replacement now that both modes share the seed.
 _SAMPLE_URLS = [
-    "https://polymarket.com/event/will-the-fed-cut-rates-in-2025",
-    "https://polymarket.com/event/us-presidential-election-popular-vote",
-    "https://polymarket.com/event/will-gpt-5-release-this-year",
-    "https://polymarket.com/event/wa-state-ballot-measure-passes",
-    "https://polymarket.com/event/global-temperature-record-2025",
+    # ECON — Fed rate decisions, the canonical UW econ teaching market.
+    "https://polymarket.com/event/fed-decision-in-june-825",
+    # POLS — geopolitics, Iran peace agreement.
+    "https://polymarket.com/event/us-x-iran-permanent-peace-deal-by",
+    # INFO + EVANS — AI regulation crossover (LLM tagger lands either way).
+    "https://polymarket.com/event/us-enacts-ai-safety-bill-before-2027",
+    # POLS + ECON — multi-outcome event; favourite-pick logic surfaces
+    # the highest-traded outcome (currently "Will France win?" at ~17%).
+    "https://polymarket.com/event/world-cup-winner",
+    # INFO — frontier AI benchmarks, tech-industry-relevant.
+    "https://polymarket.com/event/which-company-has-best-ai-model-end-of-june",
 ]
 
 DEPT_LABEL = _DEPT_LABEL

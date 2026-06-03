@@ -40,7 +40,10 @@ export default function CompareColumn({ data }: { data: MarketScore }) {
       </p>
 
       <div className="mt-4 caption">
-        {data.tags.departments.join(" · ")} · resolution {data.resolution.verdict}
+        {data.tags.departments.length > 0 && (
+          <>{data.tags.departments.join(" · ")} · </>
+        )}
+        resolution {data.resolution.verdict}
       </div>
 
       <button

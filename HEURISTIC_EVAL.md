@@ -38,7 +38,7 @@ For each task, log:
 
 > "You're a UW PhD student writing a paper about prediction markets.
 > A colleague sent you this Polymarket URL:
-> <https://polymarket.com/event/will-the-fed-cut-rates-in-2025>.
+> <https://polymarket.com/event/world-cup-winner>.
 > Score it and tell me the band (HIGH / MEDIUM / LOW)."
 
 **Success criterion:** reviewer reads aloud the band and the

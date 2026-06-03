@@ -630,6 +630,16 @@
           <td>v0.7: <code>/library?course=POLS270</code>; ~12 UW course codes in <code>app/data/uw_courses.json</code>.</td>
         </tr>
         <tr>
+          <td><b>"Department tags are randomly assigned from a hash"</b> (PISAN line 14 — UW Community Impact, the most concrete code-level critique under that rubric).</td>
+          <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
+          <td>v0.9.1: <code>mock.py:make_market_score</code> now derives depts via <code>tagger._fallback(question)</code> — the same keyword path the live tagger falls back to when the OpenRouter key is unavailable. Random-hash assignment removed. Keyword lists also extended (POLS: iran/israel/russia/ukraine/china/trump/putin/mayor/governor/prime minister; EVANS: bill/enacts/law/ban/court/ruling) so current-events markets land on the right department in both mock and live no-key paths. Determinism contract preserved.</td>
+        </tr>
+        <tr>
+          <td><b>Mock library seed unrelated to real markets</b> (PISAN line 14 — "library page seeds itself from a hardcoded sample URL list").</td>
+          <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
+          <td>v0.9.1: <code>_SAMPLE_URLS</code> swapped from five pre-Live-mode illustrative placeholders to five verified-real Polymarket events probed end-to-end against <code>/api/live/score</code>. New <code>backend/scripts/refresh_library_seed.py</code> queries Gamma for current top-volume active events + classifies by UW dept so the seed is re-curatable in ~5 min when markets resolve out.</td>
+        </tr>
+        <tr>
           <td><b>CSV download of the library.</b></td>
           <td><span style="color:var(--green);font-weight:700;">Addressed</span></td>
           <td>v0.7: <code>GET /api/library.csv</code>.</td>

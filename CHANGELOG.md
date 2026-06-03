@@ -4,6 +4,65 @@ Notable changes per tagged release. Newest first. Tags created
 retroactively from the commits where each section landed; the project
 shipped iteratively, not in a single big bang.
 
+## v0.9.1-mock-library-real — 2026-06-02
+
+Cleanup of a timing artifact from the project's mock-only origin.
+`backend/app/mock.py:_SAMPLE_URLS` was authored before Live mode
+existed, when every code path on the site produced deterministic
+mock data and the URLs were illustrative placeholders. When Live
+mode shipped (`/api/live/score`) and later affordances were added
+(`FeaturedMarkets` carousel, course-pack workflow, CSV export,
+HomePage "Open sample report" button, ComparePage defaults,
+HEURISTIC_EVAL Task 1), they all assumed real Polymarket events
+under the hood. The seed never got swapped over, so each of those
+affordances 404'd in Live mode against the legacy placeholders.
+Caught during the Track 4 heuristic-eval dry-run.
+
+Two paths to fix: (a) replace the placeholders with verified-real
+Polymarket events so both modes work, or (b) hide the Live-mode
+affordances when the underlying URLs aren't real. Picked (a) —
+the Featured carousel + course-pack workflow are the UW Community
+Impact narrative; they should demonstrate real markets, not the
+mock testbed.
+
+- Replaced `_SAMPLE_URLS` with five verified-real events probed
+  end-to-end against `/api/live/score` on 2026-06-02:
+  `fed-decision-in-june-825` (ECON, 70 HIGH),
+  `us-x-iran-permanent-peace-deal-by` (POLS, 50 MEDIUM),
+  `us-enacts-ai-safety-bill-before-2027` (INFO+EVANS, 42 MEDIUM),
+  `world-cup-winner` (multi-outcome, picks France favourite at ~17%,
+  81 HIGH), and
+  `which-company-has-best-ai-model-end-of-june` (INFO, 61 MEDIUM).
+- **PISAN line 14 fix.** Mock-mode library tagging switched from
+  random-hash (`depts = [_DEPARTMENTS[seed % 4]]`) to keyword-based
+  via `tagger._fallback(question)` — the same code path the live
+  tagger falls back to when the OpenRouter key is unavailable.
+  Side benefit: keyword lists extended with current-events
+  coverage (POLS: iran/israel/russia/ukraine/china/trump/putin/
+  mayor/governor/prime minister; EVANS: bill/enacts/law/ban/court/
+  ruling), which also improves Live-mode no-key degradation for
+  arbitrary URLs. Determinism contract preserved: same (url,
+  as_of) → same question text → same depts.
+- New `backend/scripts/refresh_library_seed.py` queries Gamma for
+  the current top-volume active events, classifies each title via
+  keyword fallback (mirrors `tagger.py:_fallback`), and emits a
+  paste-ready `_SAMPLE_URLS` block. Maintenance tool so the seed
+  doesn't go stale silently — next person re-runs the script when
+  markets resolve out.
+- Frontend `SAMPLE` constants updated in lockstep:
+  `HomePage.tsx` → World Cup;
+  `ComparePage.tsx` → Fed Decision vs World Cup.
+- `HEURISTIC_EVAL.md` Task 1 sample URL updated.
+- Test fixtures (`tests/fixtures/polymarket/gamma_event_fed_rates.json`,
+  `tests/test_ingestion.py`) intentionally still reference the old
+  fabricated slug — those are pure URL-parsing assertions against a
+  mocked Gamma response and never hit real Polymarket. The slug name
+  is a fixture identifier; the test contract is "given this URL
+  shape, parse it correctly," not "this URL exists."
+
+211 tests still passing. No semver bump because the public API
+didn't change; this is a data-quality fix.
+
 ## v0.9-real-trained — 2026-05-31
 
 The S3 anomaly detector no longer trains on synthetic-only data. A

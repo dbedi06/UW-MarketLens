@@ -6,6 +6,19 @@
 > deliverables the team handles separately. This document is only
 > the code + data + docs that need to land in the repo.
 
+> **2026-06-02 note:** A separate audit during the Track 4 dry-run
+> caught that `backend/app/mock.py:_SAMPLE_URLS` (the mock library
+> seed) held illustrative placeholder slugs from the project's
+> mock-only era. The Featured carousel, course-pack workflow, CSV
+> export, "Open sample report" button, ComparePage defaults, and
+> HEURISTIC_EVAL Task 1 — all of which landed after Live mode and
+> assume real Polymarket events — were 404'ing in Live mode as a
+> result. Reseeded with five verified-real events across UW
+> departments + added `backend/scripts/refresh_library_seed.py` so
+> the seed can be re-curated cleanly when markets resolve out.
+> Distinct from Track 1's labeled-cases problem (that one was
+> real fabrication of verification data).
+
 ## Estimated total
 
 **~8 hours of focused work, parallelisable across three teammates
