@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { fadeUp, stagger } from "../lib/motion";
+import ModeBadge from "../components/ModeBadge";
+import FeaturedMarkets from "../components/FeaturedMarkets";
 
 const SAMPLE = "https://polymarket.com/event/will-the-fed-cut-rates-in-2025";
 const LS_KEY = "ml_recent_lookups";
@@ -81,7 +83,10 @@ export default function HomePage() {
 
           {/* Search on a soft floating card (light, usable) */}
           <motion.div variants={fadeUp} className="card mt-10 max-w-2xl p-5">
-            <label className="caption">Market URL</label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="caption">Market URL</label>
+              <ModeBadge />
+            </div>
             <div className="mt-2.5 flex flex-col gap-3 sm:flex-row">
               <input
                 value={url}
@@ -147,6 +152,9 @@ export default function HomePage() {
           </div>
         ))}
       </section>
+
+      {/* ---- Featured UW markets ---- */}
+      <FeaturedMarkets />
 
       {/* ---- Recent ---- */}
       {recent.length > 0 && (
