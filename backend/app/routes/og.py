@@ -75,10 +75,20 @@ def _sparkline(series) -> str:
         return ""
     x0, x1, ytop, ybot = 470, 1130, 470, 560
     n = len(series)
+    
+    # Normalize prices to 0-1 range based on min/max in series for better visualization
+    prices = [float(p.price) for p in series]
+    min_price = min(prices) if prices else 0
+    max_price = max(prices) if prices else 1
+    price_range = max_price - min_price if max_price > min_price else 1
+    
     pts = []
     for i, p in enumerate(series):
         x = x0 + (x1 - x0) * (i / max(1, n - 1))
-        y = ybot - (ybot - ytop) * max(0.0, min(1.0, float(p.price)))
+        # Normalize price to 0-1 range based on min/max, then scale to Y coordinates
+        normalized_price = (float(p.price) - min_price) / price_range if price_range > 0 else 0.5
+        normalized_price = max(0.0, min(1.0, normalized_price))
+        y = ybot - (ybot - ytop) * normalized_price
         pts.append(f"{x:.1f},{y:.1f}")
     poly = " ".join(pts)
     flagged = [i for i, p in enumerate(series) if p.flagged]
