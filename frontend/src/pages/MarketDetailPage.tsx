@@ -31,9 +31,11 @@ function LiveDisclaimer() {
     <div className="mb-6 rounded border border-warn/30 bg-warn/10 px-4 py-3 text-[12.5px] text-warn">
       <span className="font-bold uppercase tracking-wider">Live mode</span>
       <span className="mx-2 opacity-60">·</span>
-      Real Polymarket data through the S1→S2→S3 chain. The detector is
-      synthetic-trained, so this score is directional, not authoritative.
-      See the project's <code>MODEL_STATUS.md</code> for the honest read.
+      Real Polymarket data through the full S1→S7 chain. The S3
+      anomaly detector trains on a 54-market real Polymarket corpus;
+      the headline labeled-eval AUC remains preliminary pending
+      verified labels under rubric v1. See{" "}
+      <code>MODEL_STATUS.md</code> for the honest read.
     </div>
   );
 }

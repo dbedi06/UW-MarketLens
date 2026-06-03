@@ -91,8 +91,9 @@ export default function ComparePage() {
         <div className="mt-4 rounded border border-warn/30 bg-warn/10 px-4 py-3 text-[12.5px] text-warn">
           <span className="font-bold uppercase tracking-wider">Live mode</span>
           <span className="mx-2 opacity-60">·</span>
-          Scores come from real Polymarket data via the S1→S2→S3 chain; the
-          detector is synthetic-trained, so treat as directional.
+          Scores come from real Polymarket data via the full S1→S7
+          chain. The S3 detector trains on a real Polymarket corpus;
+          the labeled-eval AUC is preliminary pending verified labels.
         </div>
       )}
 

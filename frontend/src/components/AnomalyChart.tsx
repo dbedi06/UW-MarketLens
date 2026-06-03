@@ -52,6 +52,17 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
     : [0, 1];
   const yAutoScaled = rangeNarrow;
 
+  // When auto-scaled, force 5 evenly-spaced ticks across the domain.
+  // Without this recharts' nice-tick heuristic picks uneven values on
+  // narrow domains (e.g. 15.8 / 16.5 / 18.0 / 19.1 for a market
+  // trading 16-17%), which reads as "broken" to users expecting round
+  // percentage gridlines.
+  const yTicks: number[] | undefined = yAutoScaled
+    ? Array.from({ length: 5 }, (_, i) =>
+        yDomain[0] + ((yDomain[1] - yDomain[0]) * i) / 4
+      )
+    : undefined;
+
   return (
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading
@@ -78,6 +89,7 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
             />
             <YAxis
               domain={yDomain}
+              ticks={yTicks}
               tick={{ fontSize: 11, fill: "#8a8278", fontFamily: "JetBrains Mono Variable, monospace" }}
               tickLine={false}
               axisLine={false}

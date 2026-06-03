@@ -2,54 +2,42 @@ schema_version: 1
 rubric_version: v1
 cases:
 
-  # ── CONTROVERSIAL ─────────────────────────────────────────────────────────
-
   - market_url: https://polymarket.com/event/presidential-election-winner-2024
     label: controversial
     evidence_url: https://finance.yahoo.com/news/french-whale-polymarket-just-won-185058145.html
-    notes: "Single French trader pushed tens of millions into Trump YES shares weeks before resolution. Documented whale manipulation that moved market odds significantly. $3.7B volume market."
+    notes: "French whale documented in Yahoo Finance: tens of millions into Trump YES weeks before resolution. $3.7B volume."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
 
   - market_url: https://polymarket.com/event/when-will-gpt-5-be-released
-    label: controversial
+    label: mundane
     evidence_url: https://openai.com/index/hello-gpt-4o/
-    notes: "Whether GPT-4.5 or ChatGPT-5o counted was actively debated. Resolution criteria required explicit GPT-5 naming, creating definitional controversy. $7.3M volume, 1022 comments disputing criteria."
-    date_documented: 2026-06-02
-    labeler: lewi
-    rubric_version: v1
-
-  - market_url: https://polymarket.com/event/los-angeles-mayoral-election-117
-    label: controversial
-    evidence_url: https://apnews.com/article/los-angeles-mayoral-election-karen-bass-2026-ab3d5a5e4393f63007576788bbd6ec0e
-    notes: "Multi-outcome market resolving today (June 2, 2026). Spencer Pratt surge involved viral social media coordination. Resolution ambiguous if no majority in primary round."
+    notes: "Resolution criteria debate around GPT-4o naming. Trading itself was clean."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
 
   - market_url: https://polymarket.com/event/fed-decision-in-december
-    label: controversial
+    label: mundane
     evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
-    notes: "Resolved No for 50bps cut but Yes for 25bps cut. $394M volume with significant trading in multiple brackets. The rounding rule (12.5bps = 25bps bracket) created edge case controversy."
+    notes: "Resolved on bracket rounding. $394M volume, broad participation."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
 
   - market_url: https://polymarket.com/event/btc-above-100k-till-2025-end
-    label: controversial
-    evidence_url: https://www.binance.com/en/trade/BTC_USDT
-    notes: "Resolves on a single Binance 1-minute candle low price. Single-exchange resolution without cross-reference creates flash crash manipulation risk at the margin."
+    label: mundane
+    evidence_url: https://www.coindesk.com/markets/2025/12/15/bitcoin-price-above-100000
+    notes: "Resolved per Binance candle close. No documented manipulation."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
 
-  # ── MUNDANE ───────────────────────────────────────────────────────────────
-
   - market_url: https://polymarket.com/event/presidential-election-winner-2024/will-donald-trump-win-the-2024-us-presidential-election
     label: mundane
     evidence_url: https://apnews.com/article/election-night-2024-president-trump-harris-results-0f9cdeaa5d8d52be0f01ee7972b1b5c8
-    notes: "Resolved Yes at 100%. All three resolution sources (AP, Fox, NBC) called the race for Trump. Largest prediction market ever at $3.7B volume. Outcome unambiguous and undisputed."
+    notes: "Resolved Yes at 100%. AP, Fox, NBC all called for Trump. $3.7B volume."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
@@ -57,7 +45,7 @@ cases:
   - market_url: https://polymarket.com/event/fed-rate-cut-in-2025
     label: mundane
     evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
-    notes: "Resolved Yes at 100%. Fed cut rates in 2025 per official Federal Reserve website. $1.4M volume, clean outcome, no disputes. FOMC decisions are among the most clearly documented government actions."
+    notes: "Resolved Yes. Fed cut rates per official record. $1.4M volume."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
@@ -65,7 +53,7 @@ cases:
   - market_url: https://polymarket.com/event/how-many-fed-rate-cuts-in-2025
     label: mundane
     evidence_url: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
-    notes: "Resolved based on official FOMC meeting count. Resolution source is the Federal Reserve calendar and statements. Clean outcome verifiable from primary government records."
+    notes: "Scalar resolution from FOMC calendar."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
@@ -73,7 +61,7 @@ cases:
   - market_url: https://polymarket.com/event/fed-emergency-rate-cut-in-2025
     label: mundane
     evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
-    notes: "Resolved No. No emergency FOMC meeting called in 2025. Resolution verifiable directly from the Federal Reserve website. Clean binary outcome with no disputes."
+    notes: "Resolved No. No emergency FOMC meeting called in 2025."
     date_documented: 2026-06-02
     labeler: lewi
     rubric_version: v1
@@ -81,7 +69,31 @@ cases:
   - market_url: https://polymarket.com/event/presidential-election-popular-vote-winner-2024
     label: mundane
     evidence_url: https://apnews.com/article/election-night-2024-president-trump-harris-results-0f9cdeaa5d8d52be0f01ee7972b1b5c8
-    notes: "Resolved to Trump at 100%. Popular vote outcome verifiable from official FEC tallies and AP reporting. No ambiguity in outcome. Well-scrutinized market."
+    notes: "Resolved Trump. FEC tallies + AP reporting."
     date_documented: 2026-06-02
     labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/us-strikes-iran-by
+    label: controversial
+    evidence_url: https://decrypt.co/368255/polymarket-users-insider-trading-2-4-million-iran-predictions
+    notes: "Decrypt: 9 coordinated accounts, 98% win rate on Iran military timing, $2.4M total. Proceeds routed through Bybit/Binance/HTX. Sybil-ring pattern."
+    date_documented: 2026-06-03
+    labeler: rogagoja
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/us-forces-enter-iran-by
+    label: controversial
+    evidence_url: https://decrypt.co/368255/polymarket-users-insider-trading-2-4-million-iran-predictions
+    notes: "Decrypt: same 9-account ring betting on US ground-force timing. Part of the $2.4M coordinated sybil-style pattern."
+    date_documented: 2026-06-03
+    labeler: rogagoja
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/us-x-iran-ceasefire-by
+    label: controversial
+    evidence_url: https://decrypt.co/368255/polymarket-users-insider-trading-2-4-million-iran-predictions
+    notes: "Decrypt: same 9-account ring betting on ceasefire timing. Part of the $2.4M coordinated sybil-style pattern."
+    date_documented: 2026-06-03
+    labeler: rogagoja
     rubric_version: v1

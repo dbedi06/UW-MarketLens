@@ -23,11 +23,13 @@ detector scores now reflects real-market score ranges
 differently from the trained baseline — a behavioral lift the
 synthetic model didn't have.
 
-**Still missing for the full Push-to-Six story:** a verified labeled
-set. `labeled_cases.yaml` remains empty pending team curation under
-rubric v1. The script `scripts/discover_labeled_candidates.py` is
-ready to seed candidates from NewsAPI for team review whenever
-someone runs it with `NEWS_API_KEY` set.
+**Labeled-eval status (2026-06-03):** 12 cases, 4 controversial /
+8 mundane. AUC 0.672, CI [0.314, 0.964], `low_n_warning: True`
+(rubric target n≥20). Directional only. The 3 added Iran cases
+all trace to the same Decrypt sybil-ring story, so they're
+correlated — adding them lets the metric move but doesn't yet
+constitute independent positive examples. Next move: more
+independent controversial cases + Cohen's κ via a second labeler.
 
 ## What the model is today
 

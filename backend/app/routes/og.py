@@ -224,20 +224,27 @@ def og_card(sid: str) -> Response:
             # upstream API misbehaving) falls back to mock — the OG
             # endpoint should never 5xx, an image is always better
             # than no image when a link gets shared.
+            # The fallback passes `register=False` so the mock call
+            # doesn't overwrite the registered "live" source in the
+            # snapshot registry. Before this fix, a transient failure
+            # in OG silently flipped the snapshot to "mock" and every
+            # subsequent /api/snapshot/{sid} served mock data (the
+            # "verdict shows live, social preview shows mock" bug).
             try:
                 m = composite.make_market_score(url, as_of)
             except (IngestionUnavailable, ValueError) as exc:
                 logger.warning(
                     "og: live render failed for %s (%s); falling back "
-                    "to mock card.", sid, exc,
+                    "to mock card (registry not mutated).", sid, exc,
                 )
-                m = mock.make_market_score(url, as_of)
+                m = mock.make_market_score(url, as_of, register=False)
             except Exception as exc:  # noqa: BLE001
                 logger.exception(
                     "og: unexpected live-render error for %s (%s); "
-                    "falling back to mock card.", sid, exc,
+                    "falling back to mock card (registry not "
+                    "mutated).", sid, exc,
                 )
-                m = mock.make_market_score(url, as_of)
+                m = mock.make_market_score(url, as_of, register=False)
         else:
             m = mock.make_market_score(url, as_of)
         svg = _card(

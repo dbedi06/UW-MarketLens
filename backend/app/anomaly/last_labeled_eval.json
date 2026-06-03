@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "scorer": "app.anomaly.scoring:score_market_url",
-  "n_cases": 10,
-  "n_scored": 10,
+  "n_cases": 12,
+  "n_scored": 12,
   "low_n_warning": true,
   "class_balance": {
-    "controversial": 5,
-    "mundane": 5
+    "controversial": 4,
+    "mundane": 8
   },
   "pairwise_kappa": [],
-  "auc": 0.74,
-  "auc_ci_low": 0.35,
-  "auc_ci_high": 1.0,
+  "auc": 0.671875,
+  "auc_ci_low": 0.31428571428571433,
+  "auc_ci_high": 0.9638310185185185,
   "rows": [
     {
       "market_url": "https://polymarket.com/event/presidential-election-winner-2024",
@@ -20,22 +20,17 @@
     },
     {
       "market_url": "https://polymarket.com/event/when-will-gpt-5-be-released",
-      "label": "controversial",
+      "label": "mundane",
       "score": 0.08026151565554958
     },
     {
-      "market_url": "https://polymarket.com/event/los-angeles-mayoral-election-117",
-      "label": "controversial",
-      "score": 0.1987438444042469
-    },
-    {
       "market_url": "https://polymarket.com/event/fed-decision-in-december",
-      "label": "controversial",
+      "label": "mundane",
       "score": 0.11048811031832724
     },
     {
       "market_url": "https://polymarket.com/event/btc-above-100k-till-2025-end",
-      "label": "controversial",
+      "label": "mundane",
       "score": 0.22191087723352868
     },
     {
@@ -62,6 +57,21 @@
       "market_url": "https://polymarket.com/event/presidential-election-popular-vote-winner-2024",
       "label": "mundane",
       "score": 0.06304433915771519
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-strikes-iran-by",
+      "label": "controversial",
+      "score": 0.14747768160195948
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-forces-enter-iran-by",
+      "label": "controversial",
+      "score": 0.08904186322031038
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-x-iran-ceasefire-by",
+      "label": "controversial",
+      "score": 0.19022373215964072
     }
   ]
 }

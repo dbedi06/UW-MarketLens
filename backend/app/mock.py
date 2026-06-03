@@ -253,7 +253,23 @@ def make_citation(url: str, as_of: str, permalink: str, score: int,
 
 # ---- Composite (PLACEHOLDER — real version is S7) -------------------------
 
-def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
+def make_market_score(
+    url: str,
+    as_of: str | None = None,
+    *,
+    register: bool = True,
+) -> MarketScore:
+    """Generate a deterministic mock MarketScore.
+
+    `register=False` skips writing the snapshot to the shared
+    registry. Used by the OG card fallback path
+    (`routes/og.py`) when composite fails on a live snapshot — the
+    fallback needs to *render* a card SVG but must not overwrite
+    the registered "live" source, or every subsequent
+    `/api/snapshot/{sid}` read serves mock data (the bug where
+    verdict card showed live data but the embedded social-preview
+    card showed mock — same snapshot id, different sources).
+    """
     as_of = as_of or _today()
     seed = _seed(url, as_of)
     liquidity = _pct(seed, 2)
@@ -266,7 +282,8 @@ def make_market_score(url: str, as_of: str | None = None) -> MarketScore:
     reasons = _reasons(seed, liquidity, anomaly_sub, resolution_sub, meta)
     sid = snapshot_id(url, as_of)
     permalink = f"/snapshot/{sid}"
-    register_snapshot(sid, url, as_of, "mock")
+    if register:
+        register_snapshot(sid, url, as_of, "mock")
 
     verdict_pool = ["HIGH", "MEDIUM", "LOW", "UNVERIFIABLE"]
     # Derive departments from the slugified question via the live

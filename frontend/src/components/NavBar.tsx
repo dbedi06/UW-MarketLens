@@ -103,7 +103,7 @@ export default function NavBar({
             aria-pressed={isLive}
             title={
               isLive
-                ? "Live: real Polymarket data via S1→S2→S3 (synthetic-trained, directional)"
+                ? "Live: real Polymarket data via S1→S7 (detector trained on real corpus; labeled AUC preliminary)"
                 : "Mock: deterministic placeholder data"
             }
             className="hidden items-center gap-1.5 rounded-full border border-line bg-panel px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink/75 transition-colors hover:text-ink sm:inline-flex"
