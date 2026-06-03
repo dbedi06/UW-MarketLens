@@ -51,9 +51,9 @@ const EVAL: [string, string, string, string][] = [
   ],
   [
     "Usability",
-    "SUS score across UW testers",
-    "≥ 70",
-    "pending user testing",
+    "Heuristic evaluation (Nielsen, n=3 teammates)",
+    "no severity-3+ blockers on 5 scripted tasks",
+    "pending — protocol in HEURISTIC_EVAL.md",
   ],
 ];
 
