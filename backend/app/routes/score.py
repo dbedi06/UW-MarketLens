@@ -1,9 +1,11 @@
 """
-POST /api/score  — given a market URL, return a (mock) MarketScore.
+POST /api/score  — given a market URL, return a deterministic mock MarketScore.
 
-The handler is deliberately thin: validate input (FastAPI does this via the
-ScoreRequest model), then delegate to mock.make_market_score. When S7 lands,
-only the delegated call changes.
+This is the explicit fallback route used by the frontend Mock toggle.
+The frontend defaults to live mode and uses `/api/live/score` for the real
+Polymarket scoring pipeline. The handler is deliberately thin: validate input
+(FastAPI does this via the ScoreRequest model), then delegate to
+mock.make_market_score.
 """
 
 from fastapi import APIRouter, HTTPException

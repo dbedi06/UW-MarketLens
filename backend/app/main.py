@@ -20,7 +20,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="UW MarketLens API",
-    description="Prediction-market reliability platform — PLACEHOLDER backend (mock data).",
+    description=(
+        "Prediction-market reliability platform. Supports live Polymarket scoring "
+        "via /api/live/score and deterministic mock fallback via /api/score."
+    ),
     version="0.1.0",
 )
 
@@ -47,7 +50,7 @@ app.add_middleware(
 @app.get("/health", tags=["meta"])
 def health() -> dict:
     """Simple liveness check — handy for deploy/CI later."""
-    return {"status": "ok", "mode": "mock"}
+    return {"status": "ok", "mode": "mixed"}
 
 
 app.include_router(score.router)

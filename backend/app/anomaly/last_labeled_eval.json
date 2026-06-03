@@ -1,10 +1,19 @@
 {
   "schema_version": 1,
+  "scorer": "app.anomaly.scoring:score_market_url",
   "n_cases": 10,
+  "n_scored": 1,
+  "low_n_warning": true,
   "class_balance": {
     "controversial": 5,
     "mundane": 5
   },
   "pairwise_kappa": [],
-  "framing": "Scaffold mode (no scorer). The real per-case AUC/recall report becomes possible once a Polymarket-URL -> score function is provided via --scorer."
+  "rows": [
+    {
+      "market_url": "https://polymarket.com/event/los-angeles-mayoral-election-117",
+      "label": "controversial",
+      "score": 0.15519988299228762
+    }
+  ]
 }
