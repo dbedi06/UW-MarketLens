@@ -1,3 +1,87 @@
 schema_version: 1
 rubric_version: v1
-cases: []
+cases:
+
+  # ── CONTROVERSIAL ─────────────────────────────────────────────────────────
+
+  - market_url: https://polymarket.com/event/presidential-election-winner-2024
+    label: controversial
+    evidence_url: https://finance.yahoo.com/news/french-whale-polymarket-just-won-185058145.html
+    notes: "Single French trader pushed tens of millions into Trump YES shares weeks before resolution. Documented whale manipulation that moved market odds significantly. $3.7B volume market."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/when-will-gpt-5-be-released
+    label: controversial
+    evidence_url: https://openai.com/index/hello-gpt-4o/
+    notes: "Whether GPT-4.5 or ChatGPT-5o counted was actively debated. Resolution criteria required explicit GPT-5 naming, creating definitional controversy. $7.3M volume, 1022 comments disputing criteria."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/los-angeles-mayoral-election-117
+    label: controversial
+    evidence_url: https://apnews.com/article/los-angeles-mayoral-election-karen-bass-2026-ab3d5a5e4393f63007576788bbd6ec0e
+    notes: "Multi-outcome market resolving today (June 2, 2026). Spencer Pratt surge involved viral social media coordination. Resolution ambiguous if no majority in primary round."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/fed-decision-in-december
+    label: controversial
+    evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
+    notes: "Resolved No for 50bps cut but Yes for 25bps cut. $394M volume with significant trading in multiple brackets. The rounding rule (12.5bps = 25bps bracket) created edge case controversy."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/btc-above-100k-till-2025-end
+    label: controversial
+    evidence_url: https://www.binance.com/en/trade/BTC_USDT
+    notes: "Resolves on a single Binance 1-minute candle low price. Single-exchange resolution without cross-reference creates flash crash manipulation risk at the margin."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  # ── MUNDANE ───────────────────────────────────────────────────────────────
+
+  - market_url: https://polymarket.com/event/presidential-election-winner-2024/will-donald-trump-win-the-2024-us-presidential-election
+    label: mundane
+    evidence_url: https://apnews.com/article/election-night-2024-president-trump-harris-results-0f9cdeaa5d8d52be0f01ee7972b1b5c8
+    notes: "Resolved Yes at 100%. All three resolution sources (AP, Fox, NBC) called the race for Trump. Largest prediction market ever at $3.7B volume. Outcome unambiguous and undisputed."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/fed-rate-cut-in-2025
+    label: mundane
+    evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
+    notes: "Resolved Yes at 100%. Fed cut rates in 2025 per official Federal Reserve website. $1.4M volume, clean outcome, no disputes. FOMC decisions are among the most clearly documented government actions."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/how-many-fed-rate-cuts-in-2025
+    label: mundane
+    evidence_url: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+    notes: "Resolved based on official FOMC meeting count. Resolution source is the Federal Reserve calendar and statements. Clean outcome verifiable from primary government records."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/fed-emergency-rate-cut-in-2025
+    label: mundane
+    evidence_url: https://www.federalreserve.gov/monetarypolicy/openmarket.htm
+    notes: "Resolved No. No emergency FOMC meeting called in 2025. Resolution verifiable directly from the Federal Reserve website. Clean binary outcome with no disputes."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
+
+  - market_url: https://polymarket.com/event/presidential-election-popular-vote-winner-2024
+    label: mundane
+    evidence_url: https://apnews.com/article/election-night-2024-president-trump-harris-results-0f9cdeaa5d8d52be0f01ee7972b1b5c8
+    notes: "Resolved to Trump at 100%. Popular vote outcome verifiable from official FEC tallies and AP reporting. No ambiguity in outcome. Well-scrutinized market."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
