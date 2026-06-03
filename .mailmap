@@ -1,0 +1,50 @@
+# UW MarketLens — author identity canonicalization.
+#
+# PISAN line 67 flagged that `git shortlog -se` mixed
+# `bob452305@gmail.com` across three display names. This file is
+# the standard git fix: it tells log / shortlog / blame to display
+# the canonical (name, email) for each contributor without
+# rewriting commit history.
+#
+# Forward-hygiene note: this fixes the *display* of past commits.
+# It doesn't prevent future misattributions. Each teammate should
+# still set their identity correctly on every dev machine they
+# commit from:
+#
+#   git config --global user.name  "<your-canonical-name>"
+#   git config --global user.email "<your-canonical-email>"
+#
+# Going forward, new commits should land with the right (name,
+# email) on the first try so this file doesn't keep growing.
+#
+# Format: `Canonical Name <canonical@email> Bad Name <bad@email>`
+# maps the (Bad Name, bad@email) commit to the canonical pair.
+
+# Rogagoja — primary email is rogagoja@gmail.com. The
+# bob452305@gmail.com account is his too. Earlier commits using
+# that account got stored with whatever `git user.name` was
+# configured locally at the time — "Leonikot", lowercase
+# "rogagoja", or even "dbedi06" (a Claude / tooling artifact where
+# the global git name happened to be set to dbedi06 on the
+# environment that committed). Email is the truth signal; all
+# commits using bob452305 belong to Rogagoja.
+Rogagoja <rogagoja@gmail.com> Leonikot <bob452305@gmail.com>
+Rogagoja <rogagoja@gmail.com> rogagoja <bob452305@gmail.com>
+Rogagoja <rogagoja@gmail.com> dbedi06 <bob452305@gmail.com>
+# Catch-all for any future commit using bob452305 under a display
+# name not enumerated above (e.g. a Codespace defaulting to
+# "ubuntu" or "vscode"). Email-owner confirmed bob452305 is
+# exclusively his, so this is safe. Git evaluates more-specific
+# matches first, so the rules above still take precedence for
+# named display names.
+Rogagoja <rogagoja@gmail.com> <bob452305@gmail.com>
+
+# Dilshan — his real commits use dilshanbedi@gmail.com. No
+# remapping needed; line below is documentation completeness
+# (`Canonical <canon@>` alone is a valid mailmap entry — leaves
+# the row unchanged but signals "this is the canonical form").
+dbedi06 <dilshanbedi@gmail.com>
+
+# Lewi — canonicalize to his UW academic email so peer-review
+# attribution is verifiable against @uw.edu.
+Lewi <lewiale@uw.edu> Lewi <lewi@pathos.science>

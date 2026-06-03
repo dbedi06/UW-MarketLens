@@ -59,9 +59,21 @@ mock testbed.
   mocked Gamma response and never hit real Polymarket. The slug name
   is a fixture identifier; the test contract is "given this URL
   shape, parse it correctly," not "this URL exists."
+- **PISAN line 67 fix (git identity).** New `.mailmap` at repo root
+  canonicalizes author display in `git log` / `shortlog` / `blame`
+  without rewriting history. `git shortlog -sne --all` now reports
+  one row per real contributor: Rogagoja (46), dbedi06 (12), Lewi
+  (5, unified to UW academic email), Yusuf Pisan (1). Previously
+  showed up to six rows from misconfigured local `user.name` values
+  on environments where bob452305 was set as the email.
+- **Operational receipt (Track 5).** Verified on Render 2026-06-02
+  that `OPENROUTER_PROVIDER=deepinfra` is active — `model_used`
+  returns `deepseek/deepseek-v4-pro`, `model_was_fallback: False`.
+  OpenRouter key rotation remains a manual dashboard step
+  (documented in `REMAINING_WORK.md` Track 5).
 
 211 tests still passing. No semver bump because the public API
-didn't change; this is a data-quality fix.
+didn't change; this is a data-quality + identity-cleanup fix.
 
 ## v0.9-real-trained — 2026-05-31
 

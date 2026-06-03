@@ -188,33 +188,64 @@ against). Once labels exist:
 
 ---
 
-## Track 5 — Operational housekeeping (~15 min)
+## Track 5 — Operational housekeeping
 
-### Rotate the leaked OpenRouter key (~5 min)
+### Rotate the leaked OpenRouter key (~5 min — STILL PENDING, user action)
 
 The current OpenRouter key appeared in a screenshot earlier in
 development and is in the conversation transcript. Rotate it on
 OpenRouter, paste the new key into the Render dashboard for
 `marketlens-api`, trigger a manual redeploy.
 
-### Standardise git identities (~5 min)
+**Step-by-step:**
+
+1. OpenRouter dashboard → Keys → "Create new key" → name it (e.g.
+   `marketlens-prod-v2`) → copy the new `sk-or-v1-...` value.
+2. Render dashboard → `marketlens-api` service → Environment →
+   edit `OPENROUTER_API_KEY` → paste new value → Save Changes.
+3. Render will auto-redeploy. Wait ~2 min for the build.
+4. Verify: `curl -X POST https://marketlens-api.onrender.com/api/live/score
+   -H "Content-Type: application/json"
+   -d '{"url":"https://polymarket.com/event/world-cup-winner"}'`
+   — response should still contain
+   `"model_used": "deepseek/deepseek-v4-pro"`.
+5. Back in OpenRouter dashboard → Keys → delete the old leaked
+   key. Both keys are valid during rotation; deleting the old one
+   invalidates the leaked credential.
+
+### Standardise git identities (~5 min — DONE in v0.9.1 via .mailmap)
 
 PISAN line 67: *"The shared email `bob452305@gmail.com` across
 `Rogagoja`, `rogagoja`, and `Leonikot` GitHub authors will confuse
 `git shortlog`. Standardize on one identity per teammate."*
 
-Whoever's using the shared email runs `git config user.email
-<your-real-uw-email>` and `git config user.name "<canonical
-name>"` before their next commit. Future commits will then route
-to one identifiable author.
+Addressed by committing `.mailmap` at repo root. `git shortlog
+-sne --all` now reports:
 
-### Verify the deepinfra provider switch took effect (~5 min)
+- `46  Rogagoja <rogagoja@gmail.com>` (collapses bob452305 +
+  Leonikot + lowercase rogagoja + dbedi06-misattribution-with-
+  bob into one identity)
+- `12  dbedi06 <dilshanbedi@gmail.com>` (Dilshan's actual commits)
+- `5   Lewi <lewiale@uw.edu>` (UW academic identity, unifies his
+  two emails)
+- `1   Yusuf Pisan <pisan@uw.edu>` (professor, unchanged)
 
-The Render env var `OPENROUTER_PROVIDER` should read `deepinfra`
-(not `deepseek`), per the privacy-policy gotcha documented in
-`render.yaml`. Hit `POST /api/live/score` on any active market,
-confirm `resolution.model_used` returns a real model name like
-`"deepseek/deepseek-v4-pro"` instead of empty string.
+No history rewrite; works for any future viewer of the repo with
+no per-developer setup. Going forward, anyone making commits
+should still set their own `git config user.email` correctly so
+`.mailmap` doesn't have to grow.
+
+### Verify the deepinfra provider switch took effect (~5 min — DONE 2026-06-02)
+
+The Render env var `OPENROUTER_PROVIDER=deepinfra` is verified
+live. Probed `POST /api/live/score` on `world-cup-winner` and got:
+
+```
+model_used: 'deepseek/deepseek-v4-pro'
+model_was_fallback: False
+```
+
+Provider pin + key + fallback routing all healthy.
 
 ---
 
