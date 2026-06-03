@@ -92,15 +92,29 @@ def _sparkline(series) -> str:
         y = ybot - (ybot - ytop) * normalized_price
         pts.append(f"{x:.1f},{y:.1f}")
     poly = " ".join(pts)
-    flagged = [i for i, p in enumerate(series) if p.flagged]
-    shade = ""
-    if flagged:
-        fx0 = x0 + (x1 - x0) * (flagged[0] / max(1, n - 1))
-        fx1 = x0 + (x1 - x0) * (flagged[-1] / max(1, n - 1))
-        shade = (
+    # Group flagged windows into contiguous runs and shade each one
+    # separately — matches the AnomalyChart React component. Shading
+    # the whole start-to-end range over-claims when flags are sparse
+    # bookends with clean windows between (the "OG card shows the
+    # entire chart highlighted while the page chart shows one small
+    # span near the end" bug).
+    shade_parts: list[str] = []
+    i = 0
+    while i < n:
+        if not series[i].flagged:
+            i += 1
+            continue
+        run_start = i
+        while i < n and series[i].flagged:
+            i += 1
+        run_end = i - 1
+        fx0 = x0 + (x1 - x0) * (run_start / max(1, n - 1))
+        fx1 = x0 + (x1 - x0) * (run_end / max(1, n - 1))
+        shade_parts.append(
             f'<rect x="{fx0:.1f}" y="{ytop}" width="{max(3, fx1 - fx0):.1f}" '
             f'height="{ybot - ytop}" fill="#E0584F" fill-opacity="0.18"/>'
         )
+    shade = "".join(shade_parts)
     return f"""
   <text x="470" y="455" font-family="monospace" font-size="16"
         fill="#F6F4EF" opacity="0.4">TRADE-WINDOW PRICE PATH</text>
@@ -110,11 +124,26 @@ def _sparkline(series) -> str:
 
 
 def _subbars(subs) -> str:
+    # Match the React SubscoreBars: when resolution_applicable is
+    # False (futures-reweighted composite, e.g. the World Cup market
+    # where the resolution leg was dropped), render "N/A" instead of
+    # the raw 100 sitting on the schema. Before this fix the OG card
+    # showed RESOLUTION: 100 while the page showed Resolution: N/A.
+    res_applicable = bool(getattr(subs, "resolution_applicable", True)) if subs else True
     out = []
     for i, (label, key) in enumerate(_SUBS):
+        is_resolution_na = key == "resolution_quality" and not res_applicable
         v = int(getattr(subs, key)) if subs else 0
         y = 590 + i * 16
-        col = _sub_color(v)
+        col = _sub_color(v) if not is_resolution_na else "#F6F4EF"
+        if is_resolution_na:
+            out.append(
+                f'<text x="80" y="{y+4}" font-family="monospace" font-size="13" '
+                f'fill="#F6F4EF" opacity="0.55">{label}</text>'
+                f'<text x="412" y="{y+1}" font-family="monospace" font-size="13" '
+                f'fill="#F6F4EF" opacity="0.55">N / A</text>'
+            )
+            continue
         out.append(
             f'<text x="80" y="{y+4}" font-family="monospace" font-size="13" '
             f'fill="#F6F4EF" opacity="0.55">{label}</text>'
