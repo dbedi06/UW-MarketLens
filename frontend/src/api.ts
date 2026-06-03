@@ -1,7 +1,12 @@
 // Single place that knows where the backend lives. To point at staging/prod
 // later, change BASE (or wire it to an env var) — no component changes needed.
 
-import type { MarketScore, LibraryEntry, PendingTag } from "./types";
+import type {
+  MarketScore,
+  LibraryEntry,
+  PendingTag,
+  CalibrationReport,
+} from "./types";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -109,4 +114,10 @@ export function verifyTag(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ market_url, action, departments: departments ?? null }),
   }).then((r) => jsonOrThrow<PendingTag>(r));
+}
+
+export function getCalibrationReport(): Promise<CalibrationReport> {
+  return fetch(`${BASE}/api/admin/calibration-report`).then((r) =>
+    jsonOrThrow<CalibrationReport>(r),
+  );
 }

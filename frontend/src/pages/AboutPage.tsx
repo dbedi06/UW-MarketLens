@@ -2,6 +2,7 @@
 // honest evaluation-results placeholder clearly labeled as not-yet-measured.
 
 import { Link } from "react-router-dom";
+import CalibrationChart from "../components/CalibrationChart";
 import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 
@@ -95,8 +96,8 @@ export default function AboutPage() {
         sub="A free, open-access tool for the UW community that scores the reliability of Polymarket markets so they can be cited responsibly."
       />
       <p className="mt-3 max-w-prose text-sm text-ink/55">
-        For the concrete instructor, PhD-student, and research-methods-
-        class workflows MarketLens supports, see{" "}
+        For the concrete instructor, PhD-student, and research-methods- class
+        workflows MarketLens supports, see{" "}
         <Link
           to="/uw"
           className="text-brand-600 hover:text-brand-700 hover:underline
@@ -183,6 +184,9 @@ export default function AboutPage() {
             })}
           </tbody>
         </table>
+        <div className="mt-8">
+          <CalibrationChart />
+        </div>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
           Honest rating: ~5.5/10. The detector now trains on real Polymarket
           markets (54 in the corpus); the synthetic AUC is real arithmetic but

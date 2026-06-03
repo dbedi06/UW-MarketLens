@@ -8,10 +8,13 @@ State is an in-memory overlay on the mock tagger output (resets on restart;
 fine for a demo). Real S0 would persist this to a table.
 """
 
-from typing import List, Dict
+import json
+from pathlib import Path
+from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from ..schemas import PendingTag, VerifyRequest
 from .. import mock
+from ..anomaly.calibration import generate_calibration_report  # noqa: E402
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -52,3 +55,24 @@ def verify(req: VerifyRequest) -> PendingTag:
         else base.suggested_departments,
     }
     return _apply_overlay(base)
+
+
+@router.get("/calibration-report")
+def calibration_report() -> Any:
+    report_path = Path(__file__).resolve().parents[1] / "anomaly" / "calibration_report.json"
+    if report_path.exists():
+        try:
+            return json.loads(report_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    try:
+        return generate_calibration_report()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unable to compute calibration report on demand: "
+                f"{type(exc).__name__}: {exc}"
+            ),
+        )

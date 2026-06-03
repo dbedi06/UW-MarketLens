@@ -44,6 +44,30 @@ export interface ResolutionVerdict {
   model_was_fallback?: boolean;
 }
 
+export interface CalibrationBucket {
+  bucket: string;
+  count: number;
+  accuracy: number;
+  avg_confidence: number;
+}
+
+export interface CalibrationReport {
+  schema_version: number;
+  generated_at: string;
+  n_cases: number;
+  buckets: CalibrationBucket[];
+  rows: Array<{
+    market_url: string;
+    label: "controversial" | "mundane";
+    bucket: string;
+    confidence: number;
+    verdict: Verdict;
+    predicted_label: "controversial" | "mundane";
+    match: boolean;
+    error: string | null;
+  }>;
+}
+
 export interface Tags {
   departments: string[];
   course_applicability: number;
