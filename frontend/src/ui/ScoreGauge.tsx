@@ -4,10 +4,13 @@
 import { useEffect, useRef, useState } from "react";
 import { animate, useReducedMotion } from "framer-motion";
 
+// Theme-aware band colours via CSS variables — light/dark values live in
+// index.css and resolve at the cascade level so toggling theme repaints
+// the gauge without a JS roundtrip.
 const BAND: Record<string, { word: string; color: string }> = {
-  HIGH: { word: "Reliable", color: "#1f7a4d" },
-  MEDIUM: { word: "Use with caution", color: "#9a6a14" },
-  LOW: { word: "Not recommended", color: "#b3261e" },
+  HIGH: { word: "Reliable", color: "rgb(var(--good))" },
+  MEDIUM: { word: "Use with caution", color: "rgb(var(--warn))" },
+  LOW: { word: "Not recommended", color: "rgb(var(--bad))" },
 };
 
 export default function ScoreGauge({

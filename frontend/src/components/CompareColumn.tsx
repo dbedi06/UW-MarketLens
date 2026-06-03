@@ -4,10 +4,13 @@ import type { MarketScore } from "../types";
 import Badge, { bandTone } from "../ui/Badge";
 import { toast } from "../ui/Toast";
 
+// Theme-aware band colours via CSS variables — light/dark resolution
+// happens at the cascade level (see index.css). Modern browsers
+// accept var() inside SVG/CSS paint values.
 const BAND_COLOR: Record<string, string> = {
-  HIGH: "#1f7a4d",
-  MEDIUM: "#9a6a14",
-  LOW: "#b3261e",
+  HIGH: "rgb(var(--good))",
+  MEDIUM: "rgb(var(--warn))",
+  LOW: "rgb(var(--bad))",
 };
 
 export default function CompareColumn({ data }: { data: MarketScore }) {

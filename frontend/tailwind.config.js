@@ -23,9 +23,14 @@ export default {
           soft: "#d8cba8",
           text: "#85754D",
         },
-        good: "#1f7a4d",
-        warn: "#9a6a14",
-        bad: "#b3261e",
+        // Severity tokens reference CSS variables declared in
+        // frontend/src/index.css so they switch with theme. The
+        // `rgb(var(--x) / <alpha-value>)` form keeps Tailwind opacity
+        // modifiers (text-good/40, bg-warn/10, etc.) working in both
+        // light and dark.
+        good: "rgb(var(--good) / <alpha-value>)",
+        warn: "rgb(var(--warn) / <alpha-value>)",
+        bad:  "rgb(var(--bad) / <alpha-value>)",
         // Warm editorial canvas / ink / hairline
         paper: "#F6F4EF",
         panel: "#FFFFFF",

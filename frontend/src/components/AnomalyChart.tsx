@@ -98,11 +98,11 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
                 key={`${s.x1}-${s.x2}-${i}`}
                 x1={s.x1}
                 x2={s.x2}
-                fill="#b3261e"
+                fill="rgb(var(--bad))"
                 fillOpacity={0.18}
                 label={
                   i === 0
-                    ? { value: "flagged", fontSize: 10, fill: "#b3261e" }
+                    ? { value: "flagged", fontSize: 10, fill: "rgb(var(--bad))" }
                     : undefined
                 }
               />
