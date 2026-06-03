@@ -5,20 +5,48 @@ import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 
 const PIPELINE: [string, string, string][] = [
-  ["S1", "Ingest", "Polymarket Gamma + Data API; optional Polygon RPC enrichment"],
-  ["S2", "Features", "Base + microstructure + per-market relative + trader-graph"],
-  ["S3", "Anomaly", "Isolation Forest, percentile-calibrated against held-out clean"],
+  [
+    "S1",
+    "Ingest",
+    "Polymarket Gamma + Data API; optional Polygon RPC enrichment",
+  ],
+  [
+    "S2",
+    "Features",
+    "Base + microstructure + per-market relative + trader-graph",
+  ],
+  [
+    "S3",
+    "Anomaly",
+    "Isolation Forest, percentile-calibrated against held-out clean",
+  ],
   ["S4", "Resolution", "Claude LLM-as-judge over NewsAPI snippets"],
-  ["S5", "Tagger", "Claude few-shot tags vs UW departments (POLS/ECON/INFO/EVANS)"],
+  [
+    "S5",
+    "Tagger",
+    "Claude few-shot tags vs UW departments (POLS/ECON/INFO/EVANS)",
+  ],
   ["S6", "Citation", "APA + MLA + BibTeX with embedded reliability flag"],
   ["S7", "Composite", "Weighted 35/40/25 (liquidity / anomaly / resolution)"],
 ];
 
 const METHOD: [string, string][] = [
-  ["The \"why,\" not the number", "Every verdict ships with plain-language reasons and flagged-window evidence. A score is only as citable as its explanation."],
-  ["Reproducible snapshots", "Markets move; a citation must not. Each lookup yields a dated permalink that always re-renders the identical report."],
-  ["Human-in-the-loop tagging", "The LLM proposes UW department tags; a person approves or overrides before they enter the library."],
-  ["Auditable AI", "All model calls return structured, schema-constrained output evaluated against labeled ground truth."],
+  [
+    'The "why," not the number',
+    "Every verdict ships with plain-language reasons and flagged-window evidence. A score is only as citable as its explanation.",
+  ],
+  [
+    "Reproducible snapshots",
+    "Markets move; a citation must not. Each lookup yields a dated permalink that always re-renders the identical report.",
+  ],
+  [
+    "Human-in-the-loop tagging",
+    "The LLM proposes UW department tags; a person approves or overrides before they enter the library.",
+  ],
+  [
+    "Auditable AI",
+    "All model calls return structured, schema-constrained output evaluated against labeled ground truth.",
+  ],
 ];
 
 // Evaluation results. Each row's "Measured" column reflects the
@@ -74,8 +102,10 @@ export default function AboutPage() {
               <span className="numeral w-16 shrink-0 text-2xl text-brand-600">
                 {id}
               </span>
-              <span className="w-36 shrink-0 font-sans font-extrabold
-                tracking-tight text-ink">
+              <span
+                className="w-36 shrink-0 font-sans font-extrabold
+                tracking-tight text-ink"
+              >
                 {t}
               </span>
               <span className="text-sm text-ink/60">{d}</span>
@@ -83,17 +113,16 @@ export default function AboutPage() {
           ))}
         </ol>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Current build: all seven sections run real implementations by
-          default. The deterministic mock in
-          {" "}<code className="font-mono">backend/app/mock.py</code>{" "}
-          stays available behind a "Mock mode" toggle in the nav for
-          offline demos and as a fallback when the live pipeline can't
-          reach Polymarket. Set
-          {" "}<code className="font-mono">NEWS_API_KEY</code>{" "}and{" "}
-          <code className="font-mono">ANTHROPIC_API_KEY</code>{" "}
-          to enable S4 / S5 live; without them S4 returns
-          {" "}<code className="font-mono">UNVERIFIABLE</code>{" "}
-          and S5 falls back to rule-based tags.
+          Current build: all seven sections run real implementations by default.
+          The deterministic mock in{" "}
+          <code className="font-mono">backend/app/mock.py</code> stays available
+          behind a "Mock mode" toggle in the nav for offline demos and as a
+          fallback when the live pipeline can't reach Polymarket. Set{" "}
+          <code className="font-mono">NEWS_API_KEY</code> and{" "}
+          <code className="font-mono">ANTHROPIC_API_KEY</code> to enable S4 / S5
+          live; without them S4 returns{" "}
+          <code className="font-mono">UNVERIFIABLE</code> and S5 falls back to
+          rule-based tags.
         </p>
       </section>
 
@@ -142,16 +171,16 @@ export default function AboutPage() {
           </tbody>
         </table>
         <p className="mt-4 max-w-prose text-xs italic text-ink/45">
-          Honest rating: ~5.5/10. The detector now trains on real
-          Polymarket markets (54 in the corpus); the synthetic AUC is
-          real arithmetic but its test was designed to favor the
-          features under measurement, so it's a capability check, not a
-          generalization claim. The labeled-eval set is seeded with 10
-          verified cases (5 controversial + 5 mundane, equal class balance).
-          Full path to 6/10 in
-          {" "}<code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
-          current model state in
-          {" "}<code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>.
+          Honest rating: ~5.5/10. The detector now trains on real Polymarket
+          markets (54 in the corpus); the synthetic AUC is real arithmetic but
+          its test was designed to favor the features under measurement, so it's
+          a capability check, not a generalization claim. The labeled-eval set
+          is seeded with 10 verified cases (5 controversial + 5 mundane, equal
+          class balance). Full path to 6/10 in{" "}
+          <code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
+          current model state in{" "}
+          <code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>
+          .
         </p>
       </section>
     </PageShell>

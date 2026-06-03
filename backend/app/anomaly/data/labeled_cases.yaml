@@ -1,84 +1,84 @@
 schema_version: 1
 rubric_version: v1
 cases:
-# ────── Controversial cases (manipulation/suspicious trading documented) ──────
-- market_url: https://polymarket.com/event/los-angeles-mayoral-election-117
-  label: controversial
-  evidence_url: https://cryptofees.info/
-  notes: 'NewsAPI discovery + team verified: documented trading anomalies during resolution window'
-  date_documented: 2026-06-02
-  labeler: dbedi06
-  rubric_version: v1
+  # ────── Controversial cases (manipulation/suspicious trading documented) ──────
+  - market_url: https://polymarket.com/event/los-angeles-mayoral-election-117
+    label: controversial
+    evidence_url: https://cryptofees.info/
+    notes: "NewsAPI discovery + team verified: documented trading anomalies during resolution window"
+    date_documented: 2026-06-02
+    labeler: dbedi06
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/will-trump-be-indicted-before-2024
-  label: controversial
-  evidence_url: https://www.theblock.co/
-  notes: 'Flagged by team review: whale accumulation pattern 2 weeks before resolution'
-  date_documented: 2026-06-02
-  labeler: dbedi06
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/will-trump-be-indicted-before-2024
+    label: controversial
+    evidence_url: https://www.theblock.co/
+    notes: "Flagged by team review: whale accumulation pattern 2 weeks before resolution"
+    date_documented: 2026-06-02
+    labeler: dbedi06
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/bitcoin-price-end-of-year
-  label: controversial
-  evidence_url: https://coindesk.com/
-  notes: 'Documented coordinated trading: multiple wallets synchronized entries within same block'
-  date_documented: 2026-06-02
-  labeler: rogagoja
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/bitcoin-price-end-of-year
+    label: controversial
+    evidence_url: https://coindesk.com/
+    notes: "Documented coordinated trading: multiple wallets synchronized entries within same block"
+    date_documented: 2026-06-02
+    labeler: rogagoja
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/us-inflation-rate-2024
-  label: controversial
-  evidence_url: https://decrypt.co/
-  notes: 'Team flagged: unusual network clustering (10+ wallets from same IP subnet)'
-  date_documented: 2026-06-02
-  labeler: rogagoja
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/us-inflation-rate-2024
+    label: controversial
+    evidence_url: https://decrypt.co/
+    notes: "Team flagged: unusual network clustering (10+ wallets from same IP subnet)"
+    date_documented: 2026-06-02
+    labeler: rogagoja
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/ethereum-shanghai-upgrade-date
-  label: controversial
-  evidence_url: https://www.theblockcrypto.com/
-  notes: 'Anomaly detector true positive: rolling-Z jumped to 4.8 in final week'
-  date_documented: 2026-06-02
-  labeler: lewi
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/ethereum-shanghai-upgrade-date
+    label: controversial
+    evidence_url: https://www.theblockcrypto.com/
+    notes: "Anomaly detector true positive: rolling-Z jumped to 4.8 in final week"
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
 
-# ────── Mundane cases (resolved cleanly, no manipulation discussion) ──────
-- market_url: https://polymarket.com/event/will-spacex-launch-starship-2025
-  label: mundane
-  evidence_url: null
-  notes: 'Team searched: no controversy. Resolved as expected, normal participation.'
-  date_documented: 2026-06-02
-  labeler: dbedi06
-  rubric_version: v1
+  # ────── Mundane cases (resolved cleanly, no manipulation discussion) ──────
+  - market_url: https://polymarket.com/event/will-spacex-launch-starship-2025
+    label: mundane
+    evidence_url: null
+    notes: "Team searched: no controversy. Resolved as expected, normal participation."
+    date_documented: 2026-06-02
+    labeler: dbedi06
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/will-openai-release-gpt4-2024
-  label: mundane
-  evidence_url: null
-  notes: 'Clean resolution: ~500 USDC volume, 45 unique traders, no disputes.'
-  date_documented: 2026-06-02
-  labeler: dbedi06
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/will-openai-release-gpt4-2024
+    label: mundane
+    evidence_url: null
+    notes: "Clean resolution: ~500 USDC volume, 45 unique traders, no disputes."
+    date_documented: 2026-06-02
+    labeler: dbedi06
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/us-election-2024-winner
-  label: mundane
-  evidence_url: null
-  notes: 'Major market, well-scrutinized. Resolved without controversy.'
-  date_documented: 2026-06-02
-  labeler: rogagoja
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/us-election-2024-winner
+    label: mundane
+    evidence_url: null
+    notes: "Major market, well-scrutinized. Resolved without controversy."
+    date_documented: 2026-06-02
+    labeler: rogagoja
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/federal-reserve-rate-decision-june
-  label: mundane
-  evidence_url: null
-  notes: 'Institutional market: 1200+ USDC traded, 89 unique wallets, clean outcome.'
-  date_documented: 2026-06-02
-  labeler: rogagoja
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/federal-reserve-rate-decision-june
+    label: mundane
+    evidence_url: null
+    notes: "Institutional market: 1200+ USDC traded, 89 unique wallets, clean outcome."
+    date_documented: 2026-06-02
+    labeler: rogagoja
+    rubric_version: v1
 
-- market_url: https://polymarket.com/event/will-trump-win-2028
-  label: mundane
-  evidence_url: null
-  notes: 'Team review: expected participation, no anomaly patterns detected in final window.'
-  date_documented: 2026-06-02
-  labeler: lewi
-  rubric_version: v1
+  - market_url: https://polymarket.com/event/will-trump-win-2028
+    label: mundane
+    evidence_url: null
+    notes: "Team review: expected participation, no anomaly patterns detected in final window."
+    date_documented: 2026-06-02
+    labeler: lewi
+    rubric_version: v1
