@@ -34,12 +34,16 @@ const FEATURE_LABEL: Record<string, string> = {
 
 export default function FeatureContributions({
   contributions,
+  windowIndex,
 }: {
   contributions?: FeatureContribution[];
+  windowIndex?: number;
 }) {
   if (!contributions || contributions.length === 0) {
     return null;
   }
+
+  const hasWindow = windowIndex !== undefined && windowIndex >= 0;
 
   // Max abs value across the bars for proportional scaling.
   const maxAbs = Math.max(
@@ -51,8 +55,17 @@ export default function FeatureContributions({
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading
         eyebrow="Feature attribution"
-        title="What drove the most-anomalous window"
-        sub="SHAP values for the single window in this market with the highest anomaly score. Positive (right) = pushed toward 'more anomalous'; negative (left) = pulled toward 'normal'."
+        title={
+          hasWindow
+            ? `Why window ${windowIndex} was flagged`
+            : "What drove the most-anomalous window"
+        }
+        sub={
+          (hasWindow
+            ? `This is the most-anomalous window (number ${windowIndex} on the chart above). `
+            : "") +
+          "SHAP values for the window with the highest anomaly score. Positive (right) = pushed toward 'more anomalous'; negative (left) = pulled toward 'normal'."
+        }
       />
 
       <ul className="mt-4 space-y-2">

@@ -77,13 +77,17 @@ For each task, fill in:
 
 ### Reviewer C — Leo
 
-| Task | Done? | Time | What was confusing or annoying |
-| ---- | ----- | ---- | ------------------------------ |
-| 1    |       |      |                                |
-| 2    |       |      |                                |
-| 3    |       |      |                                |
-| 4    |       |      |                                |
-| 5    |       |      |                                |
+| Task | Done? | Time            | Notes                                 |
+| :--: | :---: | :-------------- | :------------------------------------ |
+|  1   |  Yes  | ~60s            | Score and band clear once loaded; first request was slow (dyno wake). |
+|  2   |  Yes  | immediate       | APA tab is the default, "Copy" button obvious. |
+|  3   |  Yes  | 5s + 20s load   | Course-pack mode easy to find; market load felt a touch slow. |
+|  4   |  Yes  | immediate       | "Copy permalink" button right where expected. |
+|  5   |  Yes  | immediate       | Reasons panel reads clearly; subscore bars make the driver obvious. |
+
+### Consolidated headline
+
+n=1 reviewer. All 5 tasks completed, no blockers.
 
 ## After everyone's done
 

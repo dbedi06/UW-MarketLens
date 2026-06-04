@@ -116,7 +116,10 @@ export default function MarketReport({
         <Suspense fallback={<Skeleton className="h-80" />}>
           <AnomalyChart series={data.anomaly_series} />
         </Suspense>
-        <FeatureContributions contributions={data.anomaly.top_contributions} />
+        <FeatureContributions
+          contributions={data.anomaly.top_contributions}
+          windowIndex={data.anomaly.top_window_index}
+        />
         <SubscoreBars subscores={data.subscores} />
         <ComputationNote />
         <MarketFacts data={data} />

@@ -55,6 +55,9 @@ class AnomalyResult(BaseModel):
     # by |shap| descending. Empty when SHAP is unavailable or when there
     # are no scored windows.
     top_contributions: List[dict] = Field(default_factory=list)
+    # The window index (matches the chart x-axis) that top_contributions
+    # explains — the single most-anomalous window. -1 when none scored.
+    top_window_index: int = -1
     # Recorded provenance describing whether the detector was loaded from
     # a real trained model or trained synthetically in-process.
     trained_on: str = "unknown"

@@ -26,6 +26,7 @@ export interface AnomalyResult {
   flagged_windows: number;
   top_features: string[];
   top_contributions?: FeatureContribution[];
+  top_window_index?: number;
   trained_on?: string;
 }
 

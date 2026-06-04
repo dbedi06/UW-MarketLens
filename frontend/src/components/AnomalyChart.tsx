@@ -73,7 +73,7 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
         title="Trade-window price path"
         sub={
           (hasFlag
-            ? "The shaded span is the window the anomaly model flagged: an unusual price move on thin volume."
+            ? "The shaded spans are the windows the anomaly model flagged. The Feature attribution panel below explains why the most-anomalous one scored as unusual."
             : "No window was flagged: the price path stays within normal market behavior.")
           + (yAutoScaled
             ? " Y-axis zoomed to the traded range — this outcome moved less than 8pp."

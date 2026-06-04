@@ -312,6 +312,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
     anomaly_series: list[AnomalyPoint] = []
     top_features: list[str] = []
     top_contributions: list[dict] = []
+    top_window_index = -1
     flagged_windows = 0
 
     X_base, X_net, mid, widx = from_trades_with_network(market)
@@ -393,6 +394,10 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             try:
                 from .anomaly.explain import Explainer
                 most_idx = int(np.argmax(per_window))
+                # The chart-facing window number (widx is the sparse
+                # per-window index array). Lets the UI tie the SHAP
+                # panel to a specific span on the price chart.
+                top_window_index = int(widx[most_idx]) if most_idx < len(widx) else -1
                 expl = Explainer(det, list(FULL_FEATURE_NAMES_WITH_NETWORK))
                 attr = expl.explain(F[most_idx], top_k=5)
                 top_contributions = attr.get("contributions", [])
@@ -506,6 +511,7 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
             flagged_windows=flagged_windows,
             top_features=top_features,
             top_contributions=top_contributions,
+            top_window_index=top_window_index,
             trained_on=trained_on,
         ),
         resolution=ResolutionVerdict(
