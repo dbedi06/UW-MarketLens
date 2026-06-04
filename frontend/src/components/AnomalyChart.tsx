@@ -46,6 +46,15 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
   // On the hardcoded [0, 1] axis those reads as a flat line — visually
   // identical to the pre-fix bug where every window got `yes_price`.
   // Widen to at least an 8pp window so the movement is visible.
+  // X domain must be numeric (not the default category axis) or the
+  // flagged-window ReferenceAreas — which use ±0.5 fractional bounds
+  // so single-window flags get a visible width — match no category
+  // and render nothing. Pad the domain by 0.5 so edge spans aren't
+  // clipped.
+  const xs = series.map((p) => p.window_index);
+  const xMin = xs.length ? Math.min(...xs) : 0;
+  const xMax = xs.length ? Math.max(...xs) : 1;
+
   const prices = series.map((p) => p.price).filter((v) => Number.isFinite(v));
   const pMin = prices.length ? Math.min(...prices) : 0;
   const pMax = prices.length ? Math.max(...prices) : 1;
@@ -86,6 +95,9 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
             <CartesianGrid stroke="#E4DFD5" vertical={false} />
             <XAxis
               dataKey="window_index"
+              type="number"
+              domain={[xMin - 0.5, xMax + 0.5]}
+              allowDecimals={false}
               tick={{ fontSize: 11, fill: "#8a8278", fontFamily: "JetBrains Mono Variable, monospace" }}
               tickLine={false}
               axisLine={{ stroke: "#E4DFD5" }}
