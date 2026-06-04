@@ -111,6 +111,7 @@ export default function MarketReport({
             <TrainingBadge trainedOn={data.anomaly.trained_on} />
           </div>
         )}
+        <MarketFacts data={data} />
         <WhyPanel reasons={data.reasons} />
         <ResolutionEvidence resolution={data.resolution} />
         <Suspense fallback={<Skeleton className="h-80" />}>
@@ -122,7 +123,6 @@ export default function MarketReport({
         />
         <SubscoreBars subscores={data.subscores} />
         <ComputationNote />
-        <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
         {!hideSocialPreview && (
           <SocialPreview

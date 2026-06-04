@@ -109,17 +109,18 @@ export default function AnomalyChart({ series }: { series: AnomalyPoint[] }) {
               }}
             />
             {spans.map((s, i) => (
+              // Hardcoded hex (matches the OG card). recharts drops a
+              // `rgb(var(--bad))` fill — its color handling doesn't
+              // resolve CSS vars — which made the shading invisible
+              // in-page while the snapshot card still showed it.
+              // No text label: it collided with the left-edge y-axis
+              // ticks; the subhead already explains the shaded spans.
               <ReferenceArea
                 key={`${s.x1}-${s.x2}-${i}`}
                 x1={s.x1}
                 x2={s.x2}
-                fill="rgb(var(--bad))"
-                fillOpacity={0.18}
-                label={
-                  i === 0
-                    ? { value: "flagged", fontSize: 10, fill: "rgb(var(--bad))" }
-                    : undefined
-                }
+                fill="#E0584F"
+                fillOpacity={0.2}
               />
             ))}
             <Area
