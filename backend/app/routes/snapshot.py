@@ -12,7 +12,7 @@ substitution was the B2 bug.
 from fastapi import APIRouter, HTTPException
 from ..schemas import MarketScore
 from ..ingestion import IngestionUnavailable
-from .. import mock
+from .. import mock, snapshot_store
 from . import live
 
 router = APIRouter(prefix="/api", tags=["snapshot"])
@@ -20,6 +20,13 @@ router = APIRouter(prefix="/api", tags=["snapshot"])
 
 @router.get("/snapshot/{sid}", response_model=MarketScore)
 def snapshot(sid: str) -> MarketScore:
+    # Fast path: return the exact score the page rendered. Skips
+    # re-running composite (which can drift on multi-outcome
+    # markets if the favourite-pick re-evaluates differently) and
+    # avoids any mock/live dispatch confusion in the registry.
+    cached = snapshot_store.get(sid)
+    if cached is not None:
+        return cached
     full = mock.resolve_snapshot_full(sid)
     if full is None:
         raise HTTPException(

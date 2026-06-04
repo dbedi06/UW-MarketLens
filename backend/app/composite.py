@@ -527,4 +527,9 @@ def make_market_score(url: str, as_of: Optional[str] = None) -> MarketScore:
         source="live",
     )
     _cache_put(cache_key, score)
+    # Also store by snapshot id so /api/snapshot/<sid> and
+    # /api/og/<sid> return exactly this score (no re-run, no
+    # mock-fallback drift, no multi-outcome favourite-pick race).
+    from . import snapshot_store
+    snapshot_store.put(sid, score)
     return score

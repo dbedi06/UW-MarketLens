@@ -10,7 +10,7 @@ deps. Unknown ids fall back to a generic branded card (not 404).
 import logging
 import math
 from fastapi import APIRouter, Response
-from .. import composite, mock
+from .. import composite, mock, snapshot_store
 from ..ingestion import IngestionUnavailable
 
 router = APIRouter(prefix="/api", tags=["og"])
@@ -237,6 +237,23 @@ def _card(question, headline, score, band, as_of, subs=None,
 
 @router.get("/og/{sid}")
 def og_card(sid: str) -> Response:
+    # Fast path: render OG from the exact MarketScore the page used.
+    # Bypasses the source-dispatch / composite-fallback logic that
+    # was producing mock-data OG cards next to live verdict cards.
+    cached = snapshot_store.get(sid)
+    if cached is not None:
+        m = cached
+        svg = _card(
+            m.market_question, m.headline, m.reliability_score, m.band,
+            m.as_of, m.subscores, m.anomaly_series,
+            m.subscores.resolution_applicable,
+        )
+        return Response(
+            content=svg,
+            media_type="image/svg+xml",
+            headers={"Cache-Control": "public, max-age=300"},
+        )
+
     full = mock.resolve_snapshot_full(sid)
     if full is None:
         svg = _card(

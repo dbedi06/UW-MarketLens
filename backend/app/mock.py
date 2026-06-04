@@ -293,7 +293,7 @@ def make_market_score(
     # "untagged" — e.g. a generic sports event).
     depts = _tagger_keyword_fallback(_question_from_url(url)).departments
 
-    return MarketScore(
+    score = MarketScore(
         market_url=url,
         market_question=_question_from_url(url),
         reliability_score=overall,
@@ -325,6 +325,13 @@ def make_market_score(
         permalink=permalink,
         source="mock",
     )
+    # Store in the sid cache so /api/snapshot/<sid> + /api/og/<sid>
+    # return this exact object. Skipped when register=False (the
+    # OG mock-fallback path doesn't want to mutate shared state).
+    if register:
+        from . import snapshot_store
+        snapshot_store.put(sid, score)
+    return score
 
 
 def make_library() -> list[LibraryEntry]:
