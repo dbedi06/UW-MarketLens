@@ -30,5 +30,11 @@ def get(sid: str) -> "MarketScore | None":
     return _CACHE.get(sid)
 
 
+def recent() -> list["MarketScore"]:
+    """All cached scores, most-recent-first. Used by the library to
+    surface markets users have scored on top of the curated seed."""
+    return list(reversed(_CACHE.values()))
+
+
 def clear() -> None:
     _CACHE.clear()

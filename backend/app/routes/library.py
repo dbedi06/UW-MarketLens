@@ -19,10 +19,13 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from ..schemas import LibraryEntry
-from .. import composite, mock
+from .. import composite, mock, snapshot_store
 
 router = APIRouter(prefix="/api", tags=["library"])
 logger = logging.getLogger(__name__)
+
+# How many user-scored markets to surface on top of the curated seed.
+_MAX_RECENT = 15
 
 
 def _library_rows() -> List[LibraryEntry]:
@@ -41,6 +44,9 @@ def _library_rows() -> List[LibraryEntry]:
         return mock.make_library()
 
     rows: List[LibraryEntry] = []
+    seen: set[str] = set()
+
+    # Curated seed — always present, live-scored (cached after first load).
     for url in mock.library_urls():
         try:
             ms = composite.make_market_score(url)
@@ -49,6 +55,19 @@ def _library_rows() -> List[LibraryEntry]:
                            "falling back to mock row.", url, exc)
             ms = mock.make_market_score(url, register=False)
         rows.append(mock.entry_from_score(ms))
+        seen.add(ms.market_url)
+
+    # Markets users have scored, newest first — read straight from the
+    # in-process store (no re-scoring). Only real (source="live")
+    # markets; mock-toggle scores never leak into the library.
+    added = 0
+    for ms in snapshot_store.recent():
+        if added >= _MAX_RECENT:
+            break
+        if ms.source == "live" and ms.market_url not in seen:
+            rows.append(mock.entry_from_score(ms))
+            seen.add(ms.market_url)
+            added += 1
     return rows
 
 

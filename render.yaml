@@ -66,6 +66,14 @@ services:
         sync: false
       - key: OPENROUTER_FALLBACK_MODEL
         sync: false
+      # Shared secret gating the admin tag-review endpoints
+      # (/api/admin/pending-tags, /api/admin/verify). When set, those
+      # endpoints require it via the X-Admin-Token header or ?token=
+      # query; the admin page prompts for it. Unset = open (so leave
+      # it set in production). The public calibration-report endpoint
+      # is intentionally NOT gated.
+      - key: ADMIN_TOKEN
+        sync: false
 
   # ---- Vite/React frontend (free static site; always-on) ----
   - type: web
