@@ -31,7 +31,13 @@ export default function LibraryPage() {
   const [rows, setRows] = useState<LibraryEntry[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [dept, setDept] = useState("ALL");
+  // Pre-select a department when ?dept=POLS is in the URL (the For-UW
+  // workflow CTAs deep-link this way). Course-pack (?course=) still
+  // wins when both are present.
+  const deptParam = (params.get("dept") || "").toUpperCase();
+  const [dept, setDept] = useState(
+    DEPTS.includes(deptParam) ? deptParam : "ALL",
+  );
   const [sortDesc, setSortDesc] = useState(true);
 
   useEffect(() => {

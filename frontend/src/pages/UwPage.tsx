@@ -1,8 +1,8 @@
-// /uw — UW Community Impact framing page (PISAN line 14 narrative
-// follow-up). Three concrete workflows the project supports, with
-// real demo links into the existing course-pack / citation / CSV
-// surfaces. Honest scope statement at the bottom names what isn't
-// integrated (NetID, UW Libraries API) so the page doesn't overclaim.
+// /uw — UW Community Impact framing page. Three concrete workflows
+// the project supports, with real demo links into the department-
+// filtered library / citation / CSV surfaces. Scope statement +
+// "honest delta from the proposal" section keep the page from
+// overclaiming relative to the original DYOP pitch.
 
 import { Link } from "react-router-dom";
 import PageShell from "../ui/PageShell";
@@ -18,20 +18,20 @@ type Workflow = {
 
 const WORKFLOWS: Workflow[] = [
   {
-    persona: "Instructor preparing POLS 270",
-    goal: "Build a reading list of prediction markets relevant to Intro to Comparative Politics — markets students can analyse for the term paper without you having to vet each one by hand.",
+    persona: "A Political Science (POLS) instructor",
+    goal: "Build a reading list of prediction markets relevant to your course — markets students can analyse for the term paper without you having to vet each one by hand.",
     steps: [
-      "Open the Library page in course-pack mode and type the course code (POLS 270, ECON 201, INFO 200, EVANS 547).",
+      "Open the Library page and pick the POLS department tab.",
       "MarketLens filters the library to markets the LLM tagger has classified for that department, with a reliability score on each row.",
       "Click any market to see the full reliability report — plain-language reasons, anomaly chart, subscores, snapshot permalink.",
       "Drop the snapshot permalink into the syllabus PDF. The permalink re-renders the identical verdict at that URL — deterministically for mock mode, and as long as the ingestion cache holds the source data for live mode (a cold cache returns 503 rather than silently substituting different data).",
     ],
-    cta_label: "Try course-pack mode →",
-    cta_to: "/library?course=POLS270",
+    cta_label: "Filter the library by POLS →",
+    cta_to: "/library?dept=POLS",
   },
   {
-    persona: "PhD student writing a methods paper",
-    goal: "Cite a Polymarket market in a published paper with a reliability flag and a stable URL — not a screenshot of a price that will be stale by the time peer review comes back.",
+    persona: "An Economics or Evans School researcher",
+    goal: "Cite a Polymarket market in a paper or policy memo with a reliability flag and a stable URL — not a screenshot of a price that will be stale by the time peer review comes back.",
     steps: [
       "Look up the market URL from the Home page. The full pipeline (S1–S7) scores it: liquidity, trading-pattern integrity, resolution corroboration.",
       "The verdict card shows the band (HIGH / MEDIUM / LOW) plus the reliability flag (RELIABLE / USE WITH CAUTION / NOT RECOMMENDED).",
@@ -42,16 +42,16 @@ const WORKFLOWS: Workflow[] = [
     cta_to: "/market?url=https%3A%2F%2Fpolymarket.com%2Fevent%2Fworld-cup-winner",
   },
   {
-    persona: "Research-methods class designing a dataset assignment",
-    goal: "Hand students a real CSV of currently-active prediction markets they can analyse in R or Python without having to write their own Polymarket scraper.",
+    persona: "An Information School (INFO) data-methods class",
+    goal: "Hand students a real CSV of prediction markets they can analyse in R or Python without having to write their own Polymarket scraper.",
     steps: [
-      "Open the Library page and apply whatever filter fits the assignment (department, course code, or search).",
+      "Open the Library page and apply whatever fits the assignment — the POLS/ECON/INFO/EVANS department tabs or a question search.",
       "Click Download CSV. The export includes market URL, question, reliability score, band, departments, and verified flag.",
       "Drop the CSV into the assignment brief. Students can join it to other course datasets, run descriptive stats, or use it as a starting point for their own analysis.",
       "Every row has a stable Polymarket URL — students can navigate from a row in the CSV back to the live market for follow-up.",
     ],
     cta_label: "Open the Library →",
-    cta_to: "/library",
+    cta_to: "/library?dept=INFO",
   },
 ];
 
@@ -61,7 +61,7 @@ export default function UwPage() {
       <SectionHeading
         eyebrow="For the UW community"
         title="Three workflows MarketLens supports"
-        sub="MarketLens exists for UW researchers and instructors outside finance — Political Science, Economics, Information School, and Evans School of Public Policy users who want prediction-market data they can defensibly cite in academic work. The workflows below show what the existing course-pack, citation, and CSV-export surfaces are actually for."
+        sub="Prediction markets are increasingly cited in UW coursework — Evans School policy memos, Economics papers, iSchool data projects, Political Science forecasting. Students have no academic-grade way to tell a high-quality market signal from low-liquidity noise or manipulated price action, and Polymarket has no incentive to evaluate its own integrity. MarketLens fills that gap. The workflows below show what the department-filtered library, citation, and CSV-export surfaces are for."
       />
 
       <section className="mt-10 space-y-10">
@@ -116,10 +116,9 @@ export default function UwPage() {
             </div>
             <ul className="mt-2 space-y-1.5 text-sm leading-relaxed
               text-ink/70">
-              <li>• Course-pack filter for ~12 UW course codes
-                (POLS / ECON / INFO / EVANS) mapped in{" "}
-                <code className="font-mono">app/data/uw_courses.json</code>
-              </li>
+              <li>• Department filter (POLS / ECON / INFO / EVANS) on
+                the library, with LLM-assigned department tags per
+                market</li>
               <li>• APA / MLA / BibTeX / RIS citation generation with
                 an embedded reliability flag</li>
               <li>• CSV export of the library for class-assignment
@@ -164,8 +163,46 @@ export default function UwPage() {
           The honest assessment: what's in scope is real and works
           end-to-end. What's out of scope would require partnerships
           (Libraries) or institutional buy-in (SSO) the project
-          doesn't have. The course-pack and citation tooling are the
-          UW connection that doesn't depend on either.
+          doesn't have. The department-filtered library and citation
+          tooling are the UW connection that doesn't depend on either.
+        </p>
+      </section>
+
+      <section className="mt-12 border-t border-line pt-8">
+        <h2 className="section-title">Honest delta from the original proposal</h2>
+        <p className="mt-2 max-w-prose text-sm text-ink/65">
+          The DYOP proposal pitched a few things that turned out to be
+          out of scope for a few-week student build — and, frankly,
+          impossible on the free Render tier's hardware. What actually
+          shipped:
+        </p>
+        <ul className="mt-4 space-y-2.5 text-sm leading-relaxed text-ink/75">
+          <li>• <b>Self-run / self-trained LLMs</b> — Render's free
+            tier can't host a model this size, so S4 (resolution) and
+            S5 (tagging) call the OpenRouter API (DeepSeek V4 Pro).
+            The hardware makes self-hosting a non-starter, not a
+            choice.</li>
+          <li>• <b>An auto-ingesting ≥1,000-market library</b> — an
+            always-on pipeline at that scale needs compute and a
+            persistent database the free dyno doesn't have (it sleeps
+            after 15 minutes idle). We ship a curated seed plus
+            markets you score on the fly; the scored ones live in
+            memory and reset when the dyno restarts.</li>
+          <li>• <b>Faculty endorsements / Spring-syllabus adoption</b>
+            — aspirational in the proposal; not secured.</li>
+          <li>• <b>A SUS usability study with ≥10 recruited testers</b>
+            — replaced with a lighter heuristic evaluation (Nielsen,
+            small reviewer panel). See the About page.</li>
+          <li>• <b>≥80% LLM-judge agreement on 30 labeled markets</b>
+            — the verified set is 12 cases, and S4 can't verify
+            resolved historical markets through free-tier NewsAPI
+            (no archival reporting), so the calibration is a sanity
+            check, not a headline number.</li>
+        </ul>
+        <p className="mt-4 max-w-prose text-xs italic text-ink/45">
+          None of these change what the tool does for a UW user today
+          — they're scope and infrastructure honesty, not capability
+          gaps in the shipped workflows above.
         </p>
       </section>
 
