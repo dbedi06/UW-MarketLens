@@ -194,7 +194,7 @@ export default function LibraryPage() {
               className="group flex w-full items-center gap-7 py-6 text-left
                 transition-colors hover:bg-ink/[0.03]"
             >
-              <span className="numeral w-24 shrink-0 text-5xl text-brand-600">
+              <span className="numeral w-24 shrink-0 text-center text-5xl text-brand-600">
                 {r.reliability_score}
               </span>
               <span className="min-w-0 flex-1">
