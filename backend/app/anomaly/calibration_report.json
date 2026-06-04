@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-04T05:37:00Z",
+  "n_cases": 12,
+  "buckets": [
+    {
+      "bucket": "0.0\u20130.2",
+      "count": 12,
+      "accuracy": 0.6666666666666666,
+      "avg_confidence": 0.0
+    },
+    {
+      "bucket": "0.2\u20130.4",
+      "count": 0,
+      "accuracy": 0.0,
+      "avg_confidence": 0.0
+    },
+    {
+      "bucket": "0.4\u20130.6",
+      "count": 0,
+      "accuracy": 0.0,
+      "avg_confidence": 0.0
+    },
+    {
+      "bucket": "0.6\u20130.8",
+      "count": 0,
+      "accuracy": 0.0,
+      "avg_confidence": 0.0
+    },
+    {
+      "bucket": "0.8\u20131.0",
+      "count": 0,
+      "accuracy": 0.0,
+      "avg_confidence": 0.0
+    }
+  ],
+  "rows": [
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-winner-2024",
+      "label": "controversial",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": false,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/when-will-gpt-5-be-released",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-decision-in-december",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/btc-above-100k-till-2025-end",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-winner-2024/will-donald-trump-win-the-2024-us-presidential-election",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-rate-cut-in-2025",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/how-many-fed-rate-cuts-in-2025",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/fed-emergency-rate-cut-in-2025",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/presidential-election-popular-vote-winner-2024",
+      "label": "mundane",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": true,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-strikes-iran-by",
+      "label": "controversial",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": false,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-forces-enter-iran-by",
+      "label": "controversial",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": false,
+      "error": null
+    },
+    {
+      "market_url": "https://polymarket.com/event/us-x-iran-ceasefire-by",
+      "label": "controversial",
+      "bucket": "0.0\u20130.2",
+      "confidence": 0.0,
+      "verdict": "UNVERIFIABLE",
+      "predicted_label": "mundane",
+      "match": false,
+      "error": null
+    }
+  ]
+}

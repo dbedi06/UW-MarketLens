@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from ..schemas import PendingTag, VerifyRequest
 from .. import composite, mock
-from ..anomaly.calibration import generate_calibration_report  # noqa: E402
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -105,6 +104,13 @@ def verify(req: VerifyRequest) -> PendingTag:
 
 @router.get("/calibration-report")
 def calibration_report() -> Any:
+    # Serve the committed, precomputed report only. Never generate on
+    # the request path: live generation fires ~36 LLM calls (12 cases
+    # x self-consistency), takes 45s+, times out behind Render's proxy,
+    # and — because self-consistency samples at temperature — produces
+    # a different chart every load. The report is built offline via
+    # `python -m scripts.calibration_report` and committed, so the
+    # endpoint is instant and stable.
     report_path = Path(__file__).resolve().parents[1] / "anomaly" / "calibration_report.json"
     if report_path.exists():
         try:
@@ -112,13 +118,11 @@ def calibration_report() -> Any:
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc))
 
-    try:
-        return generate_calibration_report()
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=(
-                "Unable to compute calibration report on demand: "
-                f"{type(exc).__name__}: {exc}"
-            ),
-        )
+    raise HTTPException(
+        status_code=503,
+        detail=(
+            "Calibration report not generated. Run "
+            "`python -m scripts.calibration_report` and commit "
+            "app/anomaly/calibration_report.json."
+        ),
+    )
