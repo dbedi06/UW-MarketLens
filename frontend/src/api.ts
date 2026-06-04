@@ -11,8 +11,12 @@ import type {
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Absolute URL of the dynamic OG share card for a snapshot id.
-export function ogImageUrl(id: string): string {
-  return `${BASE}/api/og/${id}`;
+// `cacheBust` (e.g. the reliability score) is appended as ?v= so the
+// in-app preview refetches when a snapshot's score changes, instead
+// of showing the browser-cached old image for up to max-age (300s).
+export function ogImageUrl(id: string, cacheBust?: string | number): string {
+  const base = `${BASE}/api/og/${id}`;
+  return cacheBust !== undefined ? `${base}?v=${cacheBust}` : base;
 }
 
 // Absolute URL for the CSV export of the library. Used by a direct

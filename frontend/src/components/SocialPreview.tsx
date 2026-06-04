@@ -6,7 +6,13 @@ import { fadeUp } from "../lib/motion";
 import { ogImageUrl } from "../api";
 import SectionHeading from "../ui/SectionHeading";
 
-export default function SocialPreview({ snapshotId }: { snapshotId: string }) {
+export default function SocialPreview({
+  snapshotId,
+  score,
+}: {
+  snapshotId: string;
+  score?: number;
+}) {
   return (
     <motion.div variants={fadeUp} className="card p-6">
       <SectionHeading
@@ -16,7 +22,7 @@ export default function SocialPreview({ snapshotId }: { snapshotId: string }) {
       />
       <div className="overflow-hidden rounded-lg border border-line">
         <img
-          src={ogImageUrl(snapshotId)}
+          src={ogImageUrl(snapshotId, score)}
           alt="Social share card for this reliability snapshot"
           width={1200}
           height={630}

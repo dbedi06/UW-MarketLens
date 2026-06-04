@@ -124,7 +124,12 @@ export default function MarketReport({
         <ComputationNote />
         <MarketFacts data={data} />
         <CitationBox citation={data.citation} />
-        {!hideSocialPreview && <SocialPreview snapshotId={data.snapshot_id} />}
+        {!hideSocialPreview && (
+          <SocialPreview
+            snapshotId={data.snapshot_id}
+            score={data.reliability_score}
+          />
+        )}
         <p className="pt-1 text-center text-xs italic text-ink/40">
           {data.source === "live" ? (
             <>
