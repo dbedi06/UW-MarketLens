@@ -13,14 +13,43 @@ the committed `app/data/uw_courses.json` table.
 import csv
 import io
 import json
+import logging
 from pathlib import Path
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from ..schemas import LibraryEntry
-from .. import mock
+from .. import composite, mock
 
 router = APIRouter(prefix="/api", tags=["library"])
+logger = logging.getLogger(__name__)
+
+
+def _library_rows() -> List[LibraryEntry]:
+    """The library list. When the live pipeline is available, score
+    each curated market through the real S1→S7 composite so the
+    displayed numbers match what a user gets clicking through (and
+    so the snapshot they share matches). Per-URL fallback to mock so
+    one slow/failing market can't break or hang the whole page.
+    Live scores are cached in composite._LIVE_SCORE_CACHE, so only
+    the first load after a cold dyno is slow.
+
+    Without the live flag (pure-mock deploy / tests) this is the
+    deterministic mock list.
+    """
+    if not composite.has_live_pipeline():
+        return mock.make_library()
+
+    rows: List[LibraryEntry] = []
+    for url in mock.library_urls():
+        try:
+            ms = composite.make_market_score(url)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("library: live score failed for %s (%s); "
+                           "falling back to mock row.", url, exc)
+            ms = mock.make_market_score(url, register=False)
+        rows.append(mock.entry_from_score(ms))
+    return rows
 
 
 _COURSE_PATH = Path(__file__).parent.parent / "data" / "uw_courses.json"
@@ -84,7 +113,7 @@ def library(
         ),
     ),
 ) -> List[LibraryEntry]:
-    rows = mock.make_library()
+    rows = _library_rows()
     return _filter_rows(rows, q, dept, course)
 
 
@@ -97,7 +126,7 @@ def library_csv(
     """Same filtering as /api/library, returned as CSV with a
     Content-Disposition header so browsers download it. Useful for a
     research-methods instructor who wants a class dataset."""
-    rows = _filter_rows(mock.make_library(), q, dept, course)
+    rows = _filter_rows(_library_rows(), q, dept, course)
     buf = io.StringIO()
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow([

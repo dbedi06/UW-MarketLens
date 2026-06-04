@@ -334,25 +334,37 @@ def make_market_score(
     return score
 
 
+def library_urls() -> list[str]:
+    """The curated demo library URLs. Public accessor so route code
+    doesn't reach into the private `_SAMPLE_URLS`."""
+    return list(_SAMPLE_URLS)
+
+
+def entry_from_score(ms: MarketScore) -> LibraryEntry:
+    """Build a LibraryEntry from any MarketScore — live or mock — so
+    the library list and the live-scoring path share one shape."""
+    return LibraryEntry(
+        market_url=ms.market_url,
+        market_question=ms.market_question,
+        reliability_score=ms.reliability_score,
+        band=ms.band,
+        departments=ms.tags.departments,
+        verified=_seed(ms.market_url, ms.as_of) % 2 == 0,
+    )
+
+
 def make_library() -> list[LibraryEntry]:
-    entries = []
-    for u in _SAMPLE_URLS:
-        ms = make_market_score(u)
-        entries.append(LibraryEntry(
-            market_url=ms.market_url,
-            market_question=ms.market_question,
-            reliability_score=ms.reliability_score,
-            band=ms.band,
-            departments=ms.tags.departments,
-            verified=_seed(u, ms.as_of) % 2 == 0,
-        ))
-    return entries
+    # register=False: building list rows must not write to the
+    # snapshot registry / sid cache (that silently overwrote live
+    # snapshots with mock scores for the same url+date).
+    return [entry_from_score(make_market_score(u, register=False))
+            for u in _SAMPLE_URLS]
 
 
 def make_pending_tags() -> list[PendingTag]:
     out = []
     for u in _SAMPLE_URLS:
-        ms = make_market_score(u)
+        ms = make_market_score(u, register=False)
         out.append(PendingTag(
             market_url=ms.market_url,
             market_question=ms.market_question,
