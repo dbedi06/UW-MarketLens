@@ -9,17 +9,61 @@ fine for a demo). Real S0 would persist this to a table.
 """
 
 import json
+import logging
+import os
 from pathlib import Path
-from typing import Any, Dict, List
-from fastapi import APIRouter, HTTPException
+from typing import Any, Dict, List, Optional
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from ..schemas import PendingTag, VerifyRequest
-from .. import mock
+from .. import composite, mock
 from ..anomaly.calibration import generate_calibration_report  # noqa: E402
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+logger = logging.getLogger(__name__)
 
 # market_url -> {"verified": bool, "departments": [...]}
 _OVERLAY: Dict[str, dict] = {}
+
+
+def require_admin(
+    x_admin_token: Optional[str] = Header(default=None),
+    token: Optional[str] = Query(default=None),
+) -> None:
+    """Shared-secret gate for the mutating admin endpoints. Reads the
+    token from the `X-Admin-Token` header (sent by the frontend) or a
+    `?token=` query param (secret-in-the-address). Enforced only when
+    `ADMIN_TOKEN` is set in the environment — unset means open, which
+    keeps local dev + the test suite working without config. Set it
+    in the Render dashboard to lock production.
+
+    Not real auth (one shared secret, no users/sessions) but it does
+    actually 401 the endpoints — demo-grade, honestly so.
+    """
+    expected = os.environ.get("ADMIN_TOKEN")
+    if not expected:
+        logger.warning("ADMIN_TOKEN not set; admin endpoints are open.")
+        return
+    if (x_admin_token or token) != expected:
+        raise HTTPException(status_code=401, detail="Admin token required")
+
+
+def _pending_tags() -> List[PendingTag]:
+    """The tag-review queue. Scores each curated market through the
+    real pipeline when live is available (real questions + real
+    departments), per-URL mock fallback so one failing market can't
+    break the page. Mirrors `routes.library._library_rows`."""
+    if not composite.has_live_pipeline():
+        return mock.make_pending_tags()
+    out: List[PendingTag] = []
+    for url in mock.library_urls():
+        try:
+            ms = composite.make_market_score(url)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("admin: live score failed for %s (%s); "
+                           "mock fallback.", url, exc)
+            ms = mock.make_market_score(url, register=False)
+        out.append(mock.pending_tag_from_score(ms))
+    return out
 
 
 def _apply_overlay(tag: PendingTag) -> PendingTag:
@@ -32,15 +76,17 @@ def _apply_overlay(tag: PendingTag) -> PendingTag:
     })
 
 
-@router.get("/pending-tags", response_model=List[PendingTag])
+@router.get("/pending-tags", response_model=List[PendingTag],
+            dependencies=[Depends(require_admin)])
 def pending_tags() -> List[PendingTag]:
-    return [_apply_overlay(t) for t in mock.make_pending_tags()]
+    return [_apply_overlay(t) for t in _pending_tags()]
 
 
-@router.post("/verify", response_model=PendingTag)
+@router.post("/verify", response_model=PendingTag,
+             dependencies=[Depends(require_admin)])
 def verify(req: VerifyRequest) -> PendingTag:
     base = next(
-        (t for t in mock.make_pending_tags() if t.market_url == req.market_url),
+        (t for t in _pending_tags() if t.market_url == req.market_url),
         None,
     )
     if base is None:

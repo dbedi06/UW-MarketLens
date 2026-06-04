@@ -102,10 +102,30 @@ export function getLibrary(
   );
 }
 
+// Admin shared-secret token, stored locally. The admin endpoints
+// 401 without it when ADMIN_TOKEN is set on the backend.
+const ADMIN_TOKEN_KEY = "marketlens.adminToken";
+
+export function getAdminToken(): string {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(ADMIN_TOKEN_KEY) ?? "";
+}
+
+export function setAdminToken(token: string): void {
+  if (typeof window === "undefined") return;
+  if (token) window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  else window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
+function adminHeaders(extra?: Record<string, string>): Record<string, string> {
+  const t = getAdminToken();
+  return { ...(extra ?? {}), ...(t ? { "X-Admin-Token": t } : {}) };
+}
+
 export function getPendingTags(): Promise<PendingTag[]> {
-  return fetch(`${BASE}/api/admin/pending-tags`).then((r) =>
-    jsonOrThrow<PendingTag[]>(r),
-  );
+  return fetch(`${BASE}/api/admin/pending-tags`, {
+    headers: adminHeaders(),
+  }).then((r) => jsonOrThrow<PendingTag[]>(r));
 }
 
 export function verifyTag(
@@ -115,7 +135,7 @@ export function verifyTag(
 ): Promise<PendingTag> {
   return fetch(`${BASE}/api/admin/verify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: adminHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ market_url, action, departments: departments ?? null }),
   }).then((r) => jsonOrThrow<PendingTag>(r));
 }

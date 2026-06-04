@@ -361,6 +361,18 @@ def make_library() -> list[LibraryEntry]:
             for u in _SAMPLE_URLS]
 
 
+def pending_tag_from_score(ms: MarketScore) -> PendingTag:
+    """Build a PendingTag from any MarketScore — live or mock — so the
+    admin queue and the live-scoring path share one shape."""
+    return PendingTag(
+        market_url=ms.market_url,
+        market_question=ms.market_question,
+        suggested_departments=ms.tags.departments,
+        course_applicability=ms.tags.course_applicability,
+        verified=False,
+    )
+
+
 def make_pending_tags() -> list[PendingTag]:
     out = []
     for u in _SAMPLE_URLS:

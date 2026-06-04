@@ -3,8 +3,15 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 import type { PendingTag } from "../types";
-import { getPendingTags, verifyTag } from "../api";
+import {
+  ApiError,
+  getAdminToken,
+  getPendingTags,
+  setAdminToken,
+  verifyTag,
+} from "../api";
 import PageShell from "../ui/PageShell";
 import SectionHeading from "../ui/SectionHeading";
 import Badge from "../ui/Badge";
@@ -15,14 +22,48 @@ import { toast } from "../ui/Toast";
 const ALL_DEPTS = ["POLS", "ECON", "INFO", "EVANS"];
 
 export default function AdminPage() {
+  const [params, setParams] = useSearchParams();
   const [tags, setTags] = useState<PendingTag[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [pwInput, setPwInput] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<string[]>([]);
 
+  function load() {
+    setErr(null);
+    getPendingTags()
+      .then((ts) => {
+        setTags(ts);
+        setLocked(false);
+      })
+      .catch((e) => {
+        if (e instanceof ApiError && e.status === 401) {
+          setLocked(true);
+        } else {
+          setErr(e instanceof Error ? e.message : "Failed to load");
+        }
+      });
+  }
+
+  // Capture ?key= from the address (secret-in-the-URL), persist it,
+  // and strip it from the bar so it isn't left lying in history.
   useEffect(() => {
-    getPendingTags().then(setTags).catch((e) => setErr(e.message));
+    const key = params.get("key");
+    if (key) {
+      setAdminToken(key);
+      params.delete("key");
+      setParams(params, { replace: true });
+    }
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function unlock() {
+    setAdminToken(pwInput.trim());
+    setPwInput("");
+    load();
+  }
 
   function replace(u: PendingTag) {
     setTags((ts) => ts.map((t) => (t.market_url === u.market_url ? u : t)));
@@ -60,7 +101,33 @@ export default function AdminPage() {
       </motion.div>
       {err && <p className="text-sm text-bad">{err}</p>}
 
-      {tags.length === 0 && !err && (
+      {locked && (
+        <div className="card mx-auto mt-4 max-w-md p-6 text-center">
+          <p className="font-medium text-ink">This area is restricted</p>
+          <p className="caption mt-1">
+            Enter the admin token to review tags.
+          </p>
+          <div className="mt-4 flex gap-2">
+            <input
+              type="password"
+              value={pwInput}
+              onChange={(e) => setPwInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && unlock()}
+              placeholder="Admin token"
+              className="field flex-1 font-mono text-[13px]"
+              autoFocus
+            />
+            <Button onClick={unlock}>Unlock</Button>
+          </div>
+          {getAdminToken() && (
+            <p className="caption mt-3 text-bad">
+              That token was rejected. Try again.
+            </p>
+          )}
+        </div>
+      )}
+
+      {!locked && tags.length === 0 && !err && (
         <div className="card p-10 text-center">
           <p className="text-sm italic text-ink/55">
             No tags are pending review right now.
