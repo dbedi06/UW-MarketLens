@@ -195,7 +195,7 @@ export default function AboutPage() {
           The labeled-eval set now contains 12 verified cases (4 controversial +
           8 mundane) and reports a measured AUC of 0.672 with a wide CI. Full
           path to 6/10 in{" "}
-          <code className="font-mono">UW_MarketLens_Push_To_Six.html</code>;
+          <code className="font-mono">docs/UW_MarketLens_Push_To_Six.html</code>;
           current model state in{" "}
           <code className="font-mono">backend/app/anomaly/MODEL_STATUS.md</code>
           .

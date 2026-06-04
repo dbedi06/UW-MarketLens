@@ -1,13 +1,10 @@
 """
-PLACEHOLDER SCHEMAS — replace in S0.
+API schemas — the shape of every request and response.
 
-These Pydantic models define the *shape* of every API request and response.
-They are intentionally temporary: just enough structure to make the backend
-return something the frontend can render. The whole team finalizes the real
-schemas in Section S0 — do not treat field names here as final.
-
-Why Pydantic: FastAPI validates incoming requests against these models, and
-auto-generates the interactive API docs at /docs from them for free.
+These Pydantic models are the contract between the backend and the
+frontend; `frontend/src/types.ts` mirrors them field-for-field. FastAPI
+validates incoming requests against them and auto-generates the
+interactive API docs at /docs.
 """
 
 from typing import List, Literal
@@ -17,7 +14,6 @@ from pydantic import BaseModel, Field
 # ---- Request models -------------------------------------------------------
 
 class ScoreRequest(BaseModel):
-    # PLACEHOLDER — replace in S0
     url: str = Field(..., description="A Polymarket market URL")
     as_of: str | None = Field(
         default=None, description="Snapshot date YYYY-MM-DD; defaults to today"
@@ -25,7 +21,6 @@ class ScoreRequest(BaseModel):
 
 
 class CitationRequest(BaseModel):
-    # PLACEHOLDER — replace in S0
     url: str = Field(..., description="A Polymarket market URL")
     style: Literal["APA", "MLA"] = "APA"
 
@@ -33,7 +28,6 @@ class CitationRequest(BaseModel):
 # ---- Response sub-models --------------------------------------------------
 
 class Subscores(BaseModel):
-    # PLACEHOLDER — replace in S0
     liquidity_health: int = Field(..., ge=0, le=100)
     anomaly: int = Field(..., ge=0, le=100)
     resolution_quality: int = Field(..., ge=0, le=100)
@@ -79,7 +73,7 @@ class ResolutionVerdict(BaseModel):
 
 
 class Tags(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S5 LLM tagger)
+    # Department tags + applicability score from the S5 LLM tagger.
     departments: List[str] = Field(default_factory=list)
     course_applicability: int = Field(..., ge=0, le=100)
 
@@ -93,8 +87,8 @@ class Citation(BaseModel):
 
 
 class ReasonItem(BaseModel):
-    # PLACEHOLDER — replace in S0. The plain-language "why" behind the verdict.
-    # Real headlines/details come from S3 (anomaly), S4 (resolution), liquidity rules.
+    # The plain-language "why" behind the verdict — headlines/details
+    # come from S3 (anomaly), S4 (resolution), and the liquidity rules.
     factor: Literal["liquidity", "anomaly", "resolution"]
     severity: Literal["good", "warn", "bad"]
     headline: str
@@ -102,7 +96,7 @@ class ReasonItem(BaseModel):
 
 
 class MarketMeta(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S1 ingestion)
+    # Aggregate market facts from S1 ingestion.
     volume_usd: int
     liquidity_usd: int
     unique_traders: int
@@ -111,7 +105,7 @@ class MarketMeta(BaseModel):
 
 
 class AnomalyPoint(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version comes from S2/S3 windowed features)
+    # One scored trade window from the S2/S3 windowed features.
     window_index: int
     price: float
     anomaly_value: float
@@ -119,7 +113,6 @@ class AnomalyPoint(BaseModel):
 
 
 class MarketScore(BaseModel):
-    # PLACEHOLDER — replace in S0
     market_url: str
     market_question: str
     reliability_score: int = Field(..., ge=0, le=100)
@@ -140,7 +133,7 @@ class MarketScore(BaseModel):
 
 
 class PendingTag(BaseModel):
-    # PLACEHOLDER — replace in S0 (real version: S5 tagger output awaiting review)
+    # S5 tagger output awaiting one-click human review in the admin view.
     market_url: str
     market_question: str
     suggested_departments: List[str]
@@ -149,14 +142,12 @@ class PendingTag(BaseModel):
 
 
 class VerifyRequest(BaseModel):
-    # PLACEHOLDER — replace in S0
     market_url: str
     action: Literal["approve", "override"]
     departments: List[str] | None = None  # required when action == "override"
 
 
 class LibraryEntry(BaseModel):
-    # PLACEHOLDER — replace in S0
     market_url: str
     market_question: str
     reliability_score: int

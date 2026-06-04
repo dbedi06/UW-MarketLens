@@ -8,9 +8,9 @@ Public Policy users who want to cite Polymarket markets defensibly in
 academic work. The pipeline scores reliability across liquidity,
 trading-pattern integrity, and resolution corroboration; the output is
 a stable, dated snapshot permalink with an APA / MLA / BibTeX / RIS
-citation embedded with the reliability flag. Course-pack mode filters
-the library by UW course code (POLS 270, ECON 200, INFO 200, EVANS 547,
-etc.) so an instructor can build a syllabus reading list in one click.
+citation embedded with the reliability flag. The library filters by UW
+department (POLS, ECON, INFO, EVANS) so an instructor can build a
+reading list in one click.
 
 **Live demo:** https://marketlens-web.onrender.com — start at
 [For UW](https://marketlens-web.onrender.com/uw) for the three
@@ -27,10 +27,10 @@ concrete workflows the project supports.
 > tagger → S6 citation → S7 weighted composite (35% liquidity / 40%
 > anomaly / 25% resolution). The deterministic mock at
 > `backend/app/mock.py` is still available behind a Mock toggle in the
-> nav. See `UW_MarketLens_Implementation_Plan.html` for the section
+> nav. See `docs/UW_MarketLens_Implementation_Plan.html` for the section
 > breakdown and `backend/app/anomaly/MODEL_STATUS.md` for the honest
 > ML rating (currently ~6.0/10 with a low-N caveat, and the upgrade
-> path in `UW_MarketLens_Push_To_Six.html`).
+> path in `docs/UW_MarketLens_Push_To_Six.html`).
 
 ## Run locally (two terminals)
 
@@ -56,10 +56,10 @@ Open http://localhost:5173. Multi-page app: **Home** (lookup) → **Market
 detail** (plain-language "why", anomaly chart with the flagged window shaded,
 subscores, market facts, copy-able APA/MLA/BibTeX citation, and a dated
 **snapshot permalink** that always re-renders the identical report) →
-**Library** (search + department filters, course-pack mode for UW course
-codes, CSV download) → **Compare** (side-by-side reliability of two
-markets) → **For UW** (concrete instructor / PhD / research-methods
-workflows) → **Admin** (approve/override LLM tags) → **About**
+**Library** (search + UW department filters, CSV download) → **Compare**
+(side-by-side reliability of two markets) → **For UW** (concrete
+instructor / PhD / research-methods workflows) → **Admin**
+(approve/override LLM tags) → **About**
 (architecture + methodology). Interactive API docs: http://localhost:8000/docs
 
 For live scoring, load `backend/.env` and set `MARKETLENS_POLYMARKET_LIVE=1`
@@ -89,3 +89,15 @@ make test
 | `frontend/src/types.ts`       | TS mirror of the schema                                                                                                                |
 | `frontend/src/api.ts`         | Backend URL lives here only                                                                                                            |
 | `frontend/src/components/`    | MarketReport, AnomalyChart, SubscoreBars, CitationBox, etc.                                                                            |
+
+## Docs & paper trail
+
+Project write-ups live in [`docs/`](docs/):
+
+| Doc                                       | What                                            |
+| ----------------------------------------- | ----------------------------------------------- |
+| `UW_MarketLens_Implementation_Plan.html`  | Section-by-section build plan (S0–S7)           |
+| `UW_MarketLens_Push_To_Six.html`          | Upgrade path to a defensible 6/10 ML rating     |
+| `HEURISTIC_EVAL.md`                        | Nielsen heuristic usability eval (n=2)          |
+| `PISAN-Suggest.md`                         | Feedback notes                                  |
+| `REMAINING_WORK.md`                        | Running track of what's left                    |

@@ -251,7 +251,7 @@ def make_citation(url: str, as_of: str, permalink: str, score: int,
     return Citation(apa=apa, mla=mla, bibtex=bibtex, reliability_flag=flag)
 
 
-# ---- Composite (PLACEHOLDER — real version is S7) -------------------------
+# ---- Deterministic mock score (the real scorer is composite.py / S7) ------
 
 def make_market_score(
     url: str,

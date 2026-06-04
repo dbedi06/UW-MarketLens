@@ -1,5 +1,5 @@
-// PLACEHOLDER types — mirror of backend/app/schemas.py.
-// Keep in lockstep with the backend until S0 finalizes the real schema.
+// Types — mirror of backend/app/schemas.py. Keep in lockstep with
+// the backend contract.
 
 export type Band = "HIGH" | "MEDIUM" | "LOW";
 export type Verdict = "HIGH" | "MEDIUM" | "LOW" | "UNVERIFIABLE";

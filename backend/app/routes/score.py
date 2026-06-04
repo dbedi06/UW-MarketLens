@@ -19,6 +19,7 @@ router = APIRouter(prefix="/api", tags=["score"])
 def score(req: ScoreRequest) -> MarketScore:
     url = req.url.strip()
     if "polymarket.com" not in url:
-        # PLACEHOLDER validation — S1 will do real URL parsing.
+        # Mock route does a light sanity check; the live route's S1
+        # ingestion does full slug parsing + Gamma lookup.
         raise HTTPException(status_code=400, detail="Expected a polymarket.com URL")
     return mock.make_market_score(url, req.as_of)

@@ -147,7 +147,7 @@ What is genuinely real:
 
 ## What gates the next half-point
 
-See `UW_MarketLens_Push_To_Six.html` (project root) for the full
+See `docs/UW_MarketLens_Push_To_Six.html` for the full
 breakdown. Status:
 
 1. ~~Cached real-market corpus, ≥50 resolved markets, retrain the
