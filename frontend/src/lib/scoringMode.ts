@@ -1,8 +1,9 @@
 // Scoring mode: which backend route the lookup pages hit.
 //
-//   "live"  → POST /api/live/score   real Polymarket ingestion + S1→S2→S3.
-//             The detector is synthetic-trained; numbers are directional,
-//             not authoritative. Cache miss → 503 (prompt user to switch).
+//   "live"  → POST /api/live/score   real Polymarket ingestion + full S1→S7.
+//             The detector is trained on a real Polymarket corpus; the
+//             labeled-eval AUC is still low-N. Cache miss → 503 (prompt
+//             user to switch).
 //   "mock"  → POST /api/score        deterministic mock; always works.
 //
 // Persisted in localStorage so toggling survives a reload. Default is

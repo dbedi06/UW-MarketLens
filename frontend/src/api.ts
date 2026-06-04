@@ -58,9 +58,10 @@ export function getScore(url: string, asOf?: string): Promise<MarketScore> {
   }).then((r) => jsonOrThrow<MarketScore>(r));
 }
 
-// Live path: real Polymarket ingestion + the S1→S2→S3 chain. The detector
-// is synthetic-trained; on cache miss without MARKETLENS_POLYMARKET_LIVE
-// the backend returns 503 (treat as "ask the user to switch to mock").
+// Live path: real Polymarket ingestion + the full S1→S7 chain. The detector
+// is trained on a real Polymarket corpus; on cache miss without
+// MARKETLENS_POLYMARKET_LIVE the backend returns 503 (treat as "ask the
+// user to switch to mock").
 export function getLiveScore(
   url: string,
   asOf?: string,

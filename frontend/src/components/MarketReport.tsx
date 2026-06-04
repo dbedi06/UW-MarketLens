@@ -35,7 +35,7 @@ function SourceBadge({ source }: { source: "live" | "mock" }) {
         }`}
       title={
         isLive
-          ? "Score produced by the live S1→S2→S3 chain on real Polymarket data."
+          ? "Score produced by the live S1→S7 chain on real Polymarket data."
           : "Score produced by the deterministic mock data path."
       }
     >
@@ -133,7 +133,7 @@ export default function MarketReport({
         <p className="pt-1 text-center text-xs italic text-ink/40">
           {data.source === "live" ? (
             <>
-              Live data via the S1→S2→S3 chain. Detector training provenance:{" "}
+              Live data via the S1→S7 chain. Detector training provenance:{" "}
               {data.anomaly.trained_on === "real-corpus"
                 ? "real corpus"
                 : data.anomaly.trained_on === "synthetic"

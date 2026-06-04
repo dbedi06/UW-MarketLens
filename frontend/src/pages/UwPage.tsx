@@ -150,6 +150,13 @@ export default function UwPage() {
               <li>• <b>Faculty / course-staff verification</b> — the
                 Admin route lets anyone approve LLM-suggested tags;
                 no UW-affiliation check</li>
+              <li>• <b>Self-hosted / self-trained LLMs</b> — Render's
+                free tier can't run a model this size, so S4
+                (resolution) and S5 (tagging) call the OpenRouter API
+                (DeepSeek V4 Pro) rather than language models we host
+                ourselves. The Isolation Forest anomaly detector (S3)
+                <i> is</i> ours and runs on-box; only the
+                language-model steps are outsourced.</li>
             </ul>
           </div>
         </div>

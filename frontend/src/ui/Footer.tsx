@@ -11,8 +11,8 @@ export default function Footer() {
           </div>
           <p className="mt-3 text-xs leading-relaxed text-paper/55">
             Academic-grade reliability scoring for Polymarket markets.
-            Placeholder build. Scores are deterministic mock data pending the
-            real S1-S7 pipeline.
+            The full S1–S7 pipeline runs live on real Polymarket data; a
+            deterministic mock stays behind a Mock-mode toggle.
           </p>
         </div>
         <nav className="flex gap-8 font-mono text-xs uppercase tracking-wide

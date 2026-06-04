@@ -22,11 +22,11 @@ const PIPELINE: [string, string, string][] = [
     "Anomaly",
     "Isolation Forest, percentile-calibrated against held-out clean",
   ],
-  ["S4", "Resolution", "Claude LLM-as-judge over NewsAPI snippets"],
+  ["S4", "Resolution", "LLM-as-judge (OpenRouter) over NewsAPI snippets"],
   [
     "S5",
     "Tagger",
-    "Claude few-shot tags vs UW departments (POLS/ECON/INFO/EVANS)",
+    "LLM few-shot tags vs UW departments (POLS/ECON/INFO/EVANS)",
   ],
   ["S6", "Citation", "APA + MLA + BibTeX with embedded reliability flag"],
   ["S7", "Composite", "Weighted 35/40/25 (liquidity / anomaly / resolution)"],
@@ -133,7 +133,7 @@ export default function AboutPage() {
           behind a "Mock mode" toggle in the nav for offline demos and as a
           fallback when the live pipeline can't reach Polymarket. Set{" "}
           <code className="font-mono">NEWS_API_KEY</code> and{" "}
-          <code className="font-mono">ANTHROPIC_API_KEY</code> to enable S4 / S5
+          <code className="font-mono">OPENROUTER_API_KEY</code> to enable S4 / S5
           live; without them S4 returns{" "}
           <code className="font-mono">UNVERIFIABLE</code> and S5 falls back to
           rule-based tags.
