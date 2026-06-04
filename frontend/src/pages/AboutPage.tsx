@@ -81,7 +81,7 @@ const EVAL: [string, string, string, string][] = [
   ],
   [
     "Usability",
-    "Heuristic evaluation (Nielsen, n=1 reviewer pass)",
+    "Heuristic evaluation (Nielsen, n=2 reviewers)",
     "no task blockers on 5 scripted tasks",
     "all 5 tasks completed, no blockers",
   ],

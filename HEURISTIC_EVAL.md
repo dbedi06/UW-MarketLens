@@ -1,7 +1,7 @@
 # UW MarketLens — Heuristic Evaluation
 
-You're testing the site as a stand-in for a usability study. Three of
-us each run the same 5 tasks, write what we found, then merge.
+You're testing the site as a stand-in for a usability study. Each
+reviewer runs the same 5 tasks, writes what they found, then we merge.
 
 ## How to do it
 
@@ -66,17 +66,7 @@ For each task, fill in:
 | 4    | Yes   | 0s   | Just had to click a button, smooth.                                                                                                                                            |
 | 5    | Yes   | 0s   | The liquidity is deep enough that prices reflect broad consensus. 7 of 44 time windows were flagged as unusual by the anomaly model. No resolution since market is still open. |
 
-### Reviewer B — Lewi
-
-| Task | Done? | Time | What was confusing or annoying |
-| ---- | ----- | ---- | ------------------------------ |
-| 1    |       |      |                                |
-| 2    |       |      |                                |
-| 3    |       |      |                                |
-| 4    |       |      |                                |
-| 5    |       |      |                                |
-
-### Reviewer C — Leo
+### Reviewer B — Leo
 
 | Task | Done? | Time          | Notes                                                                 |
 | :--: | :---: | :------------ | :-------------------------------------------------------------------- |
@@ -88,14 +78,14 @@ For each task, fill in:
 
 ### Consolidated headline
 
-n=1 reviewer. All 5 tasks completed, no blockers.
+n=2 reviewers. All 5 tasks completed by both, no blockers.
 
 ## After everyone's done
 
 One person pastes the headline into AboutPage's evaluation row.
 Suggested format:
 
-> _"Heuristic evaluation, n=3 reviewers, 5 tasks. X tasks completed
+> _"Heuristic evaluation, n=2 reviewers, 5 tasks. X tasks completed
 > by all reviewers. Y issues surfaced (Z fixed before submission).
 > No reviewer was unable to complete a task."_
 
